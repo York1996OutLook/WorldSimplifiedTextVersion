@@ -6,28 +6,43 @@ Base = declarative_base()
 
 # 属性
 
+class BaseProperty(Base):
+    """
+    基础属性名称，体质、力量、敏捷、感知、智力
+    """
+
+    __tablename__ = 'base_property'
+    id = Column(Integer, primary_key=True)
+    name = Column(String, "名字")
+
+
 class PropertyRecord(Base):
-    """属性表"""
-    __tablename__ = 'property_log'
+    """人物、怪物常见属性表，后期可能会更新"""
+    __tablename__ = 'property_record'
 
     id = Column(Integer, primary_key=True)
     attack_speed = Column(Float, nullable=False, comment='出手速度')
     attack = Column(Float, nullable=False, comment='攻击力')
+
     health = Column(Float, nullable=False, comment='生命值')
     health_recovery = Column(Float, nullable=False, comment='生命恢复')
     health_absorption = Column(Float, nullable=False, comment='生命吸收')
+
     mana = Column(Float, nullable=False, comment='法力值')
     mana_recovery = Column(Float, nullable=False, comment='法力恢复')
     mana_absorption = Column(Float, nullable=False, comment='法力吸收')
+
     counterattack = Column(Float, nullable=False, comment='反击值')
     ignore_counterattack = Column(Float, nullable=False, comment='无视反击值')
-    critical_point = Column(Float, nullable=False, comment='致命点')
+
+    critical_point = Column(Float, nullable=False, comment='致命点')  # 致命伤害
+
     damage_shield = Column(Float, nullable=False, comment='免伤护盾')
 
 
 class Skill(Base):
     """
-    技能表
+    人物可学习或者怪物的技能
     """
     __tablename__ = 'skill'
     id = Column(Integer, primary_key=True)
@@ -148,15 +163,30 @@ class EquipmentQuality(Base):
     __tablename__ = 'equipment_quality'
 
     id = Column(Integer, primary_key=True)
-    quality = Column(Enum("Low", "Normal", "High", "Very High", name="quality_enum"), comment="品质")
+    quality = Column(String, comment="品质")
     bonus = Column(Integer, comment="对应加成（比例）")
 
 
-class StuffPrototype(Base):
-    __tablename__ = 'equipment_prototype'
+class Part(Base):
+    """
+    Enum("披风", "项链", "时装", "护符", "坐骑", "头", "肩", "衣服", "腰", "手", "腿", "脚", "武器")
+    Enum("披", "项", "装", "符", "骑", "头", "肩", "衣", "腰", "手", "腿", "脚", "武")
+    """
+    __tablename__ = 'part'
+
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    position = Column(Enum("披风", "项链", "时装", "护符", "坐骑", "头", "肩", "衣服", "腰", "手", "腿", "脚", "武器"))
+    one_char_name = Column(String, comment="单字名字")
+
+
+class StuffPrototype(Base):
+    """
+    装备、物品等的属性
+    """
+    __tablename__ = 'stuff_prototype'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    part = Column(Integer, comment="所属位置")
     is_bound = Column(Integer, comment="是否已经绑定")
     decompose_get_stuffs = Column(String, comment="分解可以获得的物品列表")
     quality = Column(Integer, comment="品质")  # 枚举类型
@@ -169,7 +199,25 @@ class StuffPrototype(Base):
     property2 = Column(Integer, comment="属性2")  # 为属性id的列表.当前属性；
     property3 = Column(Integer, comment="属性3")  # 为属性id的列表.当前属性；
     property4 = Column(Integer, comment="属性4")  # 为属性id的列表.当前属性；
-    introduction = Column(String,comment="说明")
+    introduction = Column(String, comment="说明")
+
+
+class Gem(Base):
+    __tablename__ = 'gem'
+
+    id = Column(Integer, primary_key=True)
+    attribute = Column(Integer, comment="参考基础属性表，暂时不考虑加入其它属性的宝石")
+    increase = Column(Integer, comment="+1还是+2，3，4，5等")
+
+
+class SkillBook(Base):
+    """
+    技能书的列表
+    """
+    __tablename__ = 'skill_book'
+    id = Column(Integer, primary_key=True)
+    skill_id = Column(Integer, comment="参考技能表")
+    level = Column(Integer, comment="技能书的等级，高等级技能书可以学习低等级技能，但是反过来不行")
 
 
 class StuffStatus(Base):
@@ -206,17 +254,18 @@ class ExchangeRecord(Base):
 class Setting(Base):
     """
     比如：
-    交易所税率
-    充值比例
-    挂售退回时间
-    每日可以挑战次数
-    设置的值
+
+    交易所税率 3%
+    充值比例  200%
+    挂售退回时间  2day
+    每日可以挑战次数 # 10
+    致命伤害的加成：2.5
     """
     __tablename__ = 'setting'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(255), nullable=False)
-    value = Column(String(255), nullable=False)
+    name = Column(String, comment="设置的名称")
+    value = Column(String, comment="设置的值，如果是数字，则将字符串转换为数字；")
 
 
 engine = create_engine('sqlite:///worldSTV.db')
