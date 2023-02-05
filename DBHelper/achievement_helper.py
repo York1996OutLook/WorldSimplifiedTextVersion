@@ -6,8 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
-
-from worldDB import Achievement
+from typing import List
 
 Base = declarative_base()
 
@@ -18,6 +17,19 @@ engine = create_engine('sqlite:///example.db')
 Session = sessionmaker(bind=engine)
 session = Session()
 
+# 成就系统
+class Achievement(Base):
+    """
+    有哪些成就可以达成
+    """
+    __tablename__ = "achievement"
+
+    id = Column(Integer, primary_key=True, comment="成就ID")
+    name = Column(String, comment="成就名称")
+    condition = Column(String, comment="达成条件")
+
+
+# 增
 def create_achievement(name: str, condition: str) -> Achievement:
     """
     创建成就
@@ -34,20 +46,27 @@ def create_achievement(name: str, condition: str) -> Achievement:
     session.commit()
     return achievement
 
-
-def get_achievement_by_id(achievement_id: int) -> Achievement:
+# 删
+def delete_achievement(achievement_id: int) -> bool:
     """
-    根据id查询成就
+    删除成就
 
     Args:
         achievement_id (int): 成就id
 
     Returns:
-        Achievement: 查询到的成就
+        bool: 删除是否成功
     """
     achievement = session.query(Achievement).filter_by(id=achievement_id).first()
-    return achievement
+    if achievement:
+        session.delete(achievement)
+        session.commit()
+        return True
+    else:
+        return False
 
+
+# 改
 
 def update_achievement(achievement_id: int, new_name: str, new_condition: str) -> Achievement:
     """
@@ -67,25 +86,29 @@ def update_achievement(achievement_id: int, new_name: str, new_condition: str) -
         achievement.condition = new_condition
         session.commit()
     return achievement
+# 查
 
 
-def delete_achievement(achievement_id: int) -> bool:
+
+
+def get_achievement_by_id(achievement_id: int) -> Achievement:
     """
-    删除成就
+    根据id查询成就
 
     Args:
         achievement_id (int): 成就id
 
     Returns:
-        bool: 删除是否成功
+        Achievement: 查询到的成就
     """
     achievement = session.query(Achievement).filter_by(id=achievement_id).first()
-    if achievement:
-        session.delete(achievement)
-        session.commit()
-        return True
-    else:
-        return False
+    return achievement
+
+
+
+
+
+
 
 
 def get_all_achievements() -> List[Achievement]:

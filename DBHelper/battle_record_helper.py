@@ -1,11 +1,29 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String, Float,Boolean
+Base = declarative_base()
 
-from worldDB import BattleRecord
 
 engine = create_engine("sqlite:///mydatabase.db")
 Session = sessionmaker(bind=engine)
 session = Session()
+
+
+class BattleRecord(Base):
+    """
+    战斗中记录表
+    """
+    __tablename__ = "battle_record"
+    id = Column(Integer, primary_key=True)
+    battle_type = Column(Integer, comment="战斗类型")
+
+    positive_id = Column(Integer, comment="主动攻击玩家ID")
+    passive_id = Column(Integer, comment="被动攻击玩家ID")
+
+    positive_won = Column(Boolean, comment="主动攻击人是否胜利")
+    battle_text = Column(String, comment="战斗产生的文字说明")
+
 
 
 # 增
@@ -51,7 +69,7 @@ def delete_battle_record(record_id: int) -> None:
 
 
 # 改
-def modify_battle_record_outcome(record_id: int, positive_won: bool) -> None:
+def modify_battle_record_won(record_id: int, positive_won: bool) -> None:
     """
     修改战斗记录表中的主动攻击是否获胜
 
