@@ -1,7 +1,8 @@
 from collections import defaultdict
 from typing import List
 
-from DBHelper.tables.player_base_property_point_record import get_player_base_property_point_record_by_character_id,get_player_base_property_point_dict_by_character_id
+from DBHelper.tables.player_base_property_point_record import get_player_base_property_point_record_by_character_id, \
+    get_player_base_property_point_dict_by_character_id
 from DBHelper.tables.player_achievement_record import get_all_achievements_records_by_character_id
 from DBHelper.tables.achievement import get_achievement_by_achievement_id
 from DBHelper.tables.skill_achievement_equipment_etc_properties import SkillAchievementEquipmentEtcProperties, \
@@ -121,8 +122,6 @@ def get_all_equipments_additional_properties_by_character_id(character_id: int):
     result_properties_dict = sum_all_additional_properties(dicts)
     return result_properties_dict
 
-def get_player_base_properties_dict(character_id:int):
-    return
 
 def get_player_skills_achievements_equipments_properties_dict(character_id: int):
     """
@@ -132,18 +131,16 @@ def get_player_skills_achievements_equipments_properties_dict(character_id: int)
     """
     additional_properties = defaultdict(int)
 
-    base_property_point_properties_dict=get_player_base_property_point_dict_by_character_id(character_id=character_id)
-    skill_properties_dict = get_all_skills_additional_properties_by_character_id(character_id)   # 技能
-    achievement_properties_dict = get_all_equipments_additional_properties_by_character_id(character_id)
-    equipment_properties_dict = get_all_equipments_additional_properties_by_character_id(character_id)
+    base_property_point_properties_dict = get_player_base_property_point_dict_by_character_id(character_id=character_id)
+    skill_properties_dict = get_all_skills_additional_properties_by_character_id(character_id=character_id)  # 技能
+    achievement_properties_dict = get_all_equipments_additional_properties_by_character_id(character_id=character_id)
+    equipment_properties_dict = get_all_equipments_additional_properties_by_character_id(character_id=character_id)
 
-    for dic in [skill_properties_dict, achievement_properties_dict, equipment_properties_dict]:
+    for dic in [base_property_point_properties_dict,skill_properties_dict, achievement_properties_dict, equipment_properties_dict]:
         for key in dic:
             additional_properties[key] += dic[key]
 
     return additional_properties
-
-
 
 
 if __name__ == '__main__':

@@ -6,6 +6,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float, Boolean
 
 from Enums import EmailType
+from Utils.tools import find_smallest_missing
 
 Base = declarative_base()
 
@@ -14,7 +15,7 @@ from ..session import session
 
 class PlayerMailRecord(Base):
     """
-    用户右键记录表
+    用户邮件记录表
     """
     __tablename__ = 'player_mail_record'
 
@@ -22,6 +23,7 @@ class PlayerMailRecord(Base):
 
     send_character_id = Column(Integer, comment="邮件发送人的 character_id。如果是游戏管理员，需要在设置表中指定游戏管理员的ID；")
     received_character_id = Column(Integer, comment="邮件接收人的 character_id")
+    mail_position_index = Column(Integer, comment="邮件所占用位置的索引，从1开始；")
 
     give_stuff_id = Column(Integer, comment="赠送物品的id。只有未绑定的物品才可以邮寄给别人。暂定最多赠送一件物品。")
 
@@ -30,5 +32,120 @@ class PlayerMailRecord(Base):
 
     mail_type = Column(Integer, comment="邮件类型，参考EmailType")
 
+    is_already_read = Column(Boolean, comment="是否已经打开过了")
+
     addition_message = Column(Integer, comment="邮件发送的时候的附加信息，接受放能够看到；")
     send_timestamp = Column(Integer, comment="邮件发送的时间")
+
+
+# 增
+def add_player_mail_record(send_character_id: int,
+                           received_character_id: int,
+                           mail_position_index: int,
+                           give_stuff_id: int,
+                           charge: int,
+                           give: int,
+                           mail_type: int,
+                           is_already_read: Boolean,
+                           addition_message: int,
+                           send_timestamp: int
+                           ):
+    """
+    增加一条邮件记录
+    :param send_character_id: 邮件发送人的 character_id
+    :param received_character_id: 邮件接收人的 character_id
+    :param mail_position_index: 邮件的位置
+    :param give_stuff_id: 赠送物品的id
+    :param charge: 收费黄金数量
+    :param give: 赠送黄金数量
+    :param mail_type: 邮件类型
+    :param is_already_read: 是否已经读过了
+    :param addition_message: 邮件发送的时候的附加信息
+    :param send_timestamp: 邮件发送的时间
+    """
+    new_record = PlayerMailRecord(
+        send_character_id=send_character_id,
+        received_character_id=received_character_id,
+        mail_position_index=mail_position_index,
+        give_stuff_id=give_stuff_id,
+        charge=charge,
+        give=give,
+        mail_type=mail_type,
+        is_already_read=is_already_read,
+        addition_message=addition_message,
+        send_timestamp=send_timestamp
+    )
+    session.add(new_record)
+    session.commit()
+
+
+# 删
+def delete_player_mail_record_by_mail_id(mail_id: int):
+    """
+    删除指定的邮件记录
+    :param mail_id: 邮件记录的ID
+    """
+    session.query(PlayerMailRecord).filter(PlayerMailRecord.id == mail_id).delete()
+    session.commit()
+
+
+# 改
+def update_mail_read_status(mail_id: int, is_read: Boolean) -> PlayerMailRecord:
+    """
+    修改某个邮件的已读状态
+    :param mail_id: 邮件id
+    :param is_read: 是否已读，True/False
+    :return: None
+    """
+    mail = session.query(PlayerMailRecord).filter(PlayerMailRecord.id == mail_id).first()
+    mail.is_already_read = is_read
+    session.commit()
+    return mail
+
+
+# 查
+def get_all_mails_for_character(character_id: int) -> List[PlayerMailRecord]:
+    return session.query(PlayerMailRecord).filter(PlayerMailRecord.received_character_id == character_id).all()
+
+
+# other
+# 获得当前邮箱没有占用的位置的最小位置
+
+
+def get_unused_mail_position(character_id: int):
+    """
+    获取某个角色未用的角色
+    """
+    mails = get_all_mails_for_character(character_id)
+
+    positions = []
+    for mail in mails:
+        positions.append(mail.mail_position_index)
+
+    available_position = find_smallest_missing(positions)
+    return available_position
+
+
+def insert_player_mail_record_to_available_position(send_character_id: int,
+                                                    received_character_id: int,
+                                                    give_stuff_id: int,
+                                                    charge: int,
+                                                    give: int,
+                                                    mail_type: int,
+                                                    is_already_read: Boolean,
+                                                    addition_message: int,
+                                                    send_timestamp: int):
+    available_position = get_unused_mail_position(
+        character_id=received_character_id
+    )
+    add_player_mail_record(send_character_id=send_character_id,
+                           received_character_id=received_character_id,
+                           mail_position_index=available_position,
+                           give_stuff_id=give_stuff_id,
+                           charge=charge,
+                           give=give,
+                           mail_type=mail_type,
+                           is_already_read=is_already_read,
+                           addition_message=addition_message,
+                           send_timestamp=send_timestamp
+                           )

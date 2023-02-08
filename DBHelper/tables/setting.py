@@ -165,7 +165,7 @@ def get_setting_by_id(setting_id: int) -> Setting:
     return setting
 
 
-def get_setting_value_by_name(setting_name: str) -> dict:
+def get_setting_value_by_name(setting_name: str) -> str:
     """
     Retrieve a single record from the 'setting' table based on its name.
 
@@ -191,30 +191,37 @@ def get_setting_value_by_name(setting_name: str) -> dict:
 
 # other
 
-def get_per_star_improved_percent():
+def get_per_star_improved_percent() -> int:
     """
     获取每个升星会获得多少加成。
     :return:
     """
-    return get_setting_value_by_name('per_star_improved_percent')
+    value = get_setting_value_by_name('per_star_improved_percent')
+    return int(value)
+
 
 def get_lottery_start_hour():
     """
     获取开始抽奖的时间
     :return:
     """
-    return get_setting_value_by_name('lottery_start_hour')
+    value = get_setting_value_by_name('lottery_start_hour')
+    return int(value)
+
 
 def get_lottery_end_hour():
     """
     获取结束抽奖的时间
     :return:
     """
-    return get_setting_value_by_name('lottery_end_hour')
+    value = get_setting_value_by_name('lottery_end_hour')
+    return int(value)
+
 
 def get_lottery_lucky_num():
     """
     获取结束抽奖的时间
     :return:
     """
-    return get_setting_value_by_name('lottery_lucky_num')
+    value = get_setting_value_by_name('lottery_lucky_num')
+    return int(value)
