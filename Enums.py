@@ -64,9 +64,13 @@ class StuffType:
     物品类型
     """
     EQUIPMENT = 1  # 装备
-    GEM = 2  # 宝石
-    BOX = 3  # 箱子
-    BOOK = 4  # （升星、鉴定）卷轴，技能书（卷轴），
+    BOX = 2  # 箱子   允许一次性使用多个
+    GEM = 3  # 宝石
+    RAISE_STAR_BOOK = 4  # 升星卷轴 允许一次性使用多个
+    IDENTIFY_BOOK = 5  # 鉴定卷轴
+    EXP_BOOK = 6 # 经验书  允许一次性使用多个
+    SKILL_BOOK = 7 # 技能书 允许一次性使用多个
+
 
 
 class BookType:
@@ -153,16 +157,17 @@ class AdditionalPropertyType:
     max_num = 33
 
 
-class EmailType:
+class MailType:
     """
     收到的邮件类型
     """
     SEND_TO_OTHER_PLAYER = 1  # 由玩家寄出给别人的，需要指明收费多少；
-    RECEIVED_FROM_OTHER_PLAYER = 2  # 由别人寄给玩家的，需要指明收费多少；
-    RECEIVED_FROM_GAME_MASTER = 3  # 从游戏管理员那里收到的
-    RECEIVED_FROM_EXCHANGE_STORE_SOLD = 4  # 交易所发给自己的邮件（卖出了）；
-    RECEIVED_FROM_EXCHANGE_STORE_NOT_SOLD_RETURN = 5  # 交易所发给自己的邮件（时间到了，未售出，退回）；
-    RECEIVED_FROM_EXCHANGE_STORE_POSITIVE_RETURN = 6  # 交易所发给自己的邮件（时间未到，但是玩家选择主动退回，不挂售）；
+    SEND_TO_OTHER_PLAYER_GET_REJECT = 2  # 由玩家寄出给别人的，需要指明收费多少；
+    RECEIVED_FROM_OTHER_PLAYER = 3  # 由别人寄给玩家的，需要指明收费多少；
+    RECEIVED_FROM_GAME_MASTER = 4  # 从游戏管理员那里收到的
+    RECEIVED_FROM_EXCHANGE_STORE_SOLD = 5  # 交易所发给自己的邮件（卖出了）；
+    RECEIVED_FROM_EXCHANGE_STORE_NOT_SOLD_RETURN = 6  # 交易所发给自己的邮件（时间到了，未售出，退回）；
+    RECEIVED_FROM_EXCHANGE_STORE_POSITIVE_RETURN = 7  # 交易所发给自己的邮件（时间未到，但是玩家选择主动退回，不挂售）；
 
 
 if __name__ == '__main__':

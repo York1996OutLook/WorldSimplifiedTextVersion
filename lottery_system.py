@@ -6,7 +6,7 @@ from DBHelper.tables.achievement import get_achievement_by_achievement_id
 from DBHelper.tables.skill_achievement_equipment_etc_properties import SkillAchievementEquipmentEtcProperties, \
     get_properties_dict_by_source_type_and_id
 from DBHelper.tables.player_skill_record import PlayerSkillRecord, \
-    get_all_player_skill_records_by_character_id_or_skill_id
+    get_player_skill_record_by_character_id_and_skill_id
 from DBHelper.tables.skill_book import SkillBook, get_skill_book_by_skill_id_skill_level
 from DBHelper.tables.player_stuff_record import PlayerStuffRecord, get_all_wearing_stuffs_by_character_id
 from DBHelper.tables.equipment_gem_record import get_all_gems_by_equipment_id
@@ -45,4 +45,5 @@ def get_today_lottery_winners():
     character_ids = set()
     for record in [*all_max_num_player_lottery_records,*all_is_lucky_num_player_lottery_records]:
         character_ids.add(record.character_id)
+
     return character_ids

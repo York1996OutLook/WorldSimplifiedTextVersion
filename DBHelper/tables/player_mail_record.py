@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float, Boolean
 
-from Enums import EmailType
+from Enums import MailType
 from Utils.tools import find_smallest_missing
 
 Base = declarative_base()
@@ -25,12 +25,12 @@ class PlayerMailRecord(Base):
     received_character_id = Column(Integer, comment="邮件接收人的 character_id")
     mail_position_index = Column(Integer, comment="邮件所占用位置的索引，从1开始；")
 
-    give_stuff_id = Column(Integer, comment="赠送物品的id。只有未绑定的物品才可以邮寄给别人。暂定最多赠送一件物品。")
+    give_stuff_record_id = Column(Integer, comment="赠送物品的id。只有未绑定的物品才可以邮寄给别人。暂定最多赠送一件物品。")
 
     charge = Column(Integer, comment="收费黄金数量，如果要接受邮件需要付费的数量")
     give = Column(Integer, comment="赠送黄金数量，不仅赠送给人物品，还赠送给别人黄金")
 
-    mail_type = Column(Integer, comment="邮件类型，参考EmailType")
+    mail_type = Column(Integer, comment="邮件类型，参考MailType")
 
     is_already_read = Column(Boolean, comment="是否已经打开过了")
 
@@ -103,18 +103,48 @@ def update_mail_read_status(mail_id: int, is_read: Boolean) -> PlayerMailRecord:
     return mail
 
 
+def update_mail_type_by_mail_record_id(mail_record_id: int, new_mail_type: MailType):
+    """
+    修改某个邮件的类型
+    :param mail_record_id: 邮件id
+    :param new_mail_type: 新的邮件类型
+    :return: None
+    """
+    mail = session.query(PlayerMailRecord).filter(PlayerMailRecord.id == mail_record_id).first()
+    mail.mail_type = new_mail_type
+    session.commit()
+    return mail
+
+
 # 查
 def get_all_mails_for_character(character_id: int) -> List[PlayerMailRecord]:
-    return session.query(PlayerMailRecord).filter(PlayerMailRecord.received_character_id == character_id).all()
+    """
+    获取某个人所有可见的邮件，包括发送的（一直可见），接受的（收到邮件后选择了拒收，则后续将看不到这个邮件）
+    :param character_id:
+    :return:
+    """
+    return session.query(PlayerMailRecord).filter(
+        (PlayerMailRecord.received_character_id == character_id and PlayerMailRecord.mail_type != MailType.SEND_TO_OTHER_PLAYER_GET_REJECT)
+          |
+        (PlayerMailRecord.send_character_id == character_id)).all()
+
+
+def get_player_mail_record_by_player_mail_record_id(player_mail_id: int) -> PlayerMailRecord:
+    """
+    根据玩家邮件记录来查询
+    :param player_mail_id:
+    :return:
+    """
+    return session.query(PlayerMailRecord).filter(PlayerMailRecord.id == player_mail_id).all()
 
 
 # other
 # 获得当前邮箱没有占用的位置的最小位置
 
 
-def get_unused_mail_position(character_id: int):
+def get_min_unused_mail_position(character_id: int):
     """
-    获取某个角色未用的角色
+    获取某个角色未用的邮箱位置
     """
     mails = get_all_mails_for_character(character_id)
 
@@ -135,7 +165,7 @@ def insert_player_mail_record_to_available_position(send_character_id: int,
                                                     is_already_read: Boolean,
                                                     addition_message: int,
                                                     send_timestamp: int):
-    available_position = get_unused_mail_position(
+    available_position = get_min_unused_mail_position(
         character_id=received_character_id
     )
     add_player_mail_record(send_character_id=send_character_id,

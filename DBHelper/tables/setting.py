@@ -16,7 +16,7 @@ class Setting(Base):
 
     交易所税率 3%
     充值比例  200%
-    挂售退回时间  2day
+    挂售退回时间  72 hour
 
     每日可以挑战次数 # 10
     致命伤害的加成：2.5
@@ -225,3 +225,24 @@ def get_lottery_lucky_num():
     """
     value = get_setting_value_by_name('lottery_lucky_num')
     return int(value)
+
+
+# sell_store
+def get_sell_expire_hours():
+    """
+    获取结束抽奖的时间
+    :return:
+    """
+    value = get_setting_value_by_name('sell_expire_hours')
+    return int(value)
+
+
+# game master
+def get_game_master_id():
+    """
+    获取结束抽奖的时间
+    :return:
+    """
+    value = get_setting_value_by_name('game_master_id')
+    return int(value)
+

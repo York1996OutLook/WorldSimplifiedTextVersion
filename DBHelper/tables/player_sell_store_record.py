@@ -1,3 +1,5 @@
+from typing import List
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -7,17 +9,15 @@ Base = declarative_base()
 from ..session import session
 
 
-
 # 交易所记录
 class PlayerSellStoreRecord(Base):
     __tablename__ = 'player_sell_store_record'
 
     id = Column(Integer, primary_key=True)
 
-    owner_player_id = Column(Integer, comment="参考")
+    owner_character_id = Column(Integer, comment="参考player表")
 
-    stuff_name = Column(String, comment='物品名称')
-    stuff_count = Column(Integer, comment="物品个数。如果不可叠加则数量是1，如果可叠加，则数量可以不是1")
+    stuff_record_id = Column(Integer,comment="物品记录ID")
 
     original_price = Column(Integer, comment='原始售价')
     initial_sell_timestamp = Column(Integer, comment='初始挂售时间')
@@ -31,7 +31,7 @@ class PlayerSellStoreRecord(Base):
 
 # 增
 def add_sell_store_record(owner_character_id: int, stuff_name: str, stuff_count: int, original_price: int,
-                          initial_sell_timestamp: int, tax_rate: float)->PlayerSellStoreRecord:
+                          initial_sell_timestamp: int, tax_rate: float) -> PlayerSellStoreRecord:
     """
     增加一条交易所记录
 
@@ -44,25 +44,27 @@ def add_sell_store_record(owner_character_id: int, stuff_name: str, stuff_count:
         tax_rate (float): 税率
     """
     taxed_price = original_price * (1 + tax_rate)
-    new_record = PlayerSellStoreRecord(owner_character_id=owner_character_id, stuff_name=stuff_name, stuff_count=stuff_count,
-                                 original_price=original_price, initial_sell_timestamp=initial_sell_timestamp,
-                                 is_sold=False, deal_timestamp=None, tax_rate=tax_rate, taxed_price=taxed_price)
+    new_record = PlayerSellStoreRecord(owner_character_id=owner_character_id, stuff_name=stuff_name,
+                                       stuff_count=stuff_count,
+                                       original_price=original_price, initial_sell_timestamp=initial_sell_timestamp,
+                                       is_sold=False, deal_timestamp=None, tax_rate=tax_rate, taxed_price=taxed_price)
     session.add(new_record)
     session.commit()
     return PlayerSellStoreRecord
 
 
 # 删除
-def delete_sell_store_record(record_id: int):
+def delete_sell_store_record(*,sell_store_record_id: int):
     """
     删除一条交易所记录
 
     Args:
-        record_id (int): 记录的ID
+        sell_store_record_id (int): 记录的ID
     """
-    record = session.query(PlayerSellStoreRecord).get(record_id)
+    record = session.query(PlayerSellStoreRecord).get(sell_store_record_id)
     session.delete(record)
     session.commit()
+
 
 # 改
 def update_sell_store_record(record_id: int, new_owner_character_id: int = None, new_stuff_name: str = None,
@@ -95,7 +97,12 @@ def update_sell_store_record(record_id: int, new_owner_character_id: int = None,
         record.tax_rate = new_tax_rate
     session.commit()
 
+
 # 查
+
+
+
+
 def query_sell_store_records(owner_character_id: int = None, stuff_name: str = None, is_sold: bool = None):
     """
     查询交易所记录
@@ -117,7 +124,8 @@ def query_sell_store_records(owner_character_id: int = None, stuff_name: str = N
         query = query.filter_by(is_sold=is_sold)
     return query.all()
 
-def get_sell_store_record_by_id(record_id: int):
+
+def get_sell_store_record_by_record_id(record_id: int)->PlayerSellStoreRecord:
     """
     根据id查询交易所记录
 
@@ -130,12 +138,12 @@ def get_sell_store_record_by_id(record_id: int):
     return session.query(PlayerSellStoreRecord).filter_by(id=record_id).first()
 
 
-def query_sell_store_records_by_timestamp(start_timestamp: int = None, end_timestamp: int = None):
+def get_all_sell_store_records_by_timestamp(start_timestamp: int = None, end_timestamp: int = None):
     """
     根据时间查询交易所记录
 
     Args:
-        start_timestamp (int, optional): 起始时间，时间戳，以秒为单位
+        start_timestamp (int, optional): 开始时间，时间戳，以秒为单位
         end_timestamp (int, optional): 结束时间，时间戳，以秒为单位
 
     Returns:
@@ -145,5 +153,24 @@ def query_sell_store_records_by_timestamp(start_timestamp: int = None, end_times
     if start_timestamp:
         query = query.filter(PlayerSellStoreRecord.initial_sell_timestamp >= start_timestamp)
     if end_timestamp:
-        query = query.filter(PlayerSellStoreRecord.initial_sell_timestamp <= end_timestamp)
+        query = query.filter(PlayerSellStoreRecord.initial_sell_timestamp < end_timestamp)
     return query.all()
+
+
+def get_expired_records(current_timestamp: int,
+                        expired_milliseconds:int
+                        ) -> List[PlayerSellStoreRecord]:
+    """
+
+    查询所有已经过期的物品记录
+
+    :param expired_milliseconds: 过期阈值，单位是毫秒
+    :param current_timestamp: 目标时间
+    :return: 已过期的物品记录列表
+    """
+
+    # 查询已过期的物品
+    records = session.query(PlayerSellStoreRecord).filter(
+        PlayerSellStoreRecord.initial_sell_timestamp < current_timestamp - expired_milliseconds
+    )
+    return records

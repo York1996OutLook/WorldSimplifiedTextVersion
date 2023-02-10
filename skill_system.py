@@ -9,7 +9,7 @@ from DBHelper.tables.player_skill_record import PlayerSkillRecord, \
 from DBHelper.tables.skill_book import get_skill_book_by_skill_id_skill_level, get_skill_id_by_skill_book_id, \
     get_skill_book_by_skill_book_id
 
-from Enums import EmailType
+from Enums import MailType
 from Utils.tools import find_smallest_missing
 
 Base = declarative_base()

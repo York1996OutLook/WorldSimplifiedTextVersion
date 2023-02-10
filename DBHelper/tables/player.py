@@ -27,6 +27,7 @@ class Player(Base):
 
     game_sign = Column(String, comment="游戏中的签名，可以被其他角色查看到属性")
 
+    gold_num = Column(Integer,comment="黄金数量，游戏唯一游戏币")
 
 # 增
 def add_player(player_id: str, nickname: str, current_level: int, current_experience: int,
@@ -124,7 +125,7 @@ def is_player_exists_by_player_id(player_id: int) -> bool:
     return player is not None
 
 
-def query_player_by_player_id(player_id: int) -> Player:
+def get_player_by_player_id(player_id: int) -> Player:
     """
     根据人物ID查询人物信息
 
@@ -132,6 +133,16 @@ def query_player_by_player_id(player_id: int) -> Player:
     :return: Player对象
     """
     player = session.query(Player).filter_by(player_id=player_id).first()
+    return player
+
+def get_player_by_character_id(character_id: int) -> Player:
+    """
+    根据人物ID查询人物信息
+
+    :param character_id: 人物ID
+    :return: Player对象
+    """
+    player = session.query(Player).filter_by(id=character_id).first()
     return player
 
 
