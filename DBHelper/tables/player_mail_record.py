@@ -46,7 +46,7 @@ def add_player_mail_record(send_character_id: int,
                            charge: int,
                            give: int,
                            mail_type: int,
-                           is_already_read: Boolean,
+                           is_already_read: bool,
                            addition_message: int,
                            send_timestamp: int
                            ):
@@ -90,7 +90,7 @@ def delete_player_mail_record_by_mail_id(mail_id: int):
 
 
 # 改
-def update_mail_read_status(mail_id: int, is_read: Boolean) -> PlayerMailRecord:
+def update_mail_read_status(mail_id: int, is_read: bool) -> PlayerMailRecord:
     """
     修改某个邮件的已读状态
     :param mail_id: 邮件id
@@ -162,7 +162,7 @@ def insert_player_mail_record_to_available_position(send_character_id: int,
                                                     charge: int,
                                                     give: int,
                                                     mail_type: int,
-                                                    is_already_read: Boolean,
+                                                    is_already_read: bool,
                                                     addition_message: int,
                                                     send_timestamp: int):
     available_position = get_min_unused_mail_position(

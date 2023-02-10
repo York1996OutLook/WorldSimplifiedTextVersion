@@ -124,7 +124,7 @@ def player_buy_sell_store_stuff_to_self_bag(buyer_character_id: int, player_sell
     send_email(
         send_character_id=gem_id,
         received_character_id=player_sell_store_record.owner_character_id,
-        give_stuff_record_id=None,
+        give_stuff_record_id=0,
         charge=0,
         give=player_sell_store_record.original_price,
         mail_type=MailType.RECEIVED_FROM_EXCHANGE_STORE_SOLD,

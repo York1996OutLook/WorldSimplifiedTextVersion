@@ -18,6 +18,8 @@ class Achievement(Base):
     id = Column(Integer, primary_key=True, comment="成就ID")
     name = Column(String, comment="成就名称")
 
+    achievement_type = Column(Integer, comment="成就类型")
+
     condition = Column(String, comment="达成条件")
     introduce = Column(String, comment="对于成就的介绍")
 

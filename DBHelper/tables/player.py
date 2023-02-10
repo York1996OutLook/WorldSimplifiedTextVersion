@@ -27,11 +27,14 @@ class Player(Base):
 
     game_sign = Column(String, comment="游戏中的签名，可以被其他角色查看到属性")
 
-    gold_num = Column(Integer,comment="黄金数量，游戏唯一游戏币")
+    gold_num = Column(Integer, comment="黄金数量，游戏唯一游戏币")
+
+    pk_rank = Column(Integer, comment="pk排名次")
+
 
 # 增
 def add_player(player_id: str, nickname: str, current_level: int, current_experience: int,
-               game_sign: str)->Player:
+               game_sign: str, pk_rank: int) -> Player:
     """
     新增玩家记录
     :param player_id: qq
@@ -39,13 +42,16 @@ def add_player(player_id: str, nickname: str, current_level: int, current_experi
     :param current_level: 当前等级
     :param current_experience: 当前经验值
     :param game_sign: 游戏中的签名
+    :param pk_rank: 在pk中的排名
     :return:
     """
     player = Player(player_id=player_id,
                     nickname=nickname,
                     current_level=current_level,
                     current_experience=current_experience,
-                    game_sign=game_sign)
+                    game_sign=game_sign,
+                    pk_rank=pk_rank,
+                    )
     session.add(player)
     session.commit()
     return player
@@ -83,7 +89,9 @@ def update_player(character_id: int,
                   nickname: Optional[str] = None,
                   current_level: Optional[int] = None,
                   current_experience: Optional[int] = None,
-                  game_sign: Optional[str] = None):
+                  game_sign: Optional[str] = None,
+                  pk_rank: Optional[int] = None,
+                  ):
     """
     更新人物属性
     :param character_id: 人物ID
@@ -91,6 +99,7 @@ def update_player(character_id: int,
     :param current_level: 当前等级
     :param current_experience: 当前经验值
     :param game_sign: 游戏中的签名
+    :param pk_rank: pk排名名次
     :return: None
     """
     player = session.query(Player).filter(Player.character_id == character_id).first()
@@ -104,6 +113,8 @@ def update_player(character_id: int,
         player.current_experience = current_experience
     if game_sign is not None:
         player.game_sign = game_sign
+    if pk_rank is not None:
+        player.pk_rank = pk_rank
     session.commit()
 
 
@@ -134,6 +145,7 @@ def get_player_by_player_id(player_id: int) -> Player:
     """
     player = session.query(Player).filter_by(player_id=player_id).first()
     return player
+
 
 def get_player_by_character_id(character_id: int) -> Player:
     """

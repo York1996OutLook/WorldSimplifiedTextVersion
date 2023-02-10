@@ -1,3 +1,12 @@
+class BattleType:
+    """
+    战斗类型
+    """
+    WITH_OTHER_PLAYER = 1  # 和其他玩家
+    WITH_MONSTER = 2  # 和怪物Boss等
+    WITH_SELF = 3  # 和自己战斗？？
+
+
 class BasePropertyType:  # 目前宝石和基础属性公用一套属性。所以宝石的类型也仅仅限于这些类型。
     """
     1 3 5 7 9的原因是为了和附加属性一致
@@ -9,6 +18,22 @@ class BasePropertyType:  # 目前宝石和基础属性公用一套属性。所�
     PERCEPTION = 9  # "感知"
 
     items = [PHYSIQUE, STRENGTH, AGILITY, INTELLIGENCE, PERCEPTION]
+
+
+class AchievementType:
+    """
+    成就的类型
+    """
+    ENTER_THE_GAME = 1  # 第一次进入游戏
+    BASE_PROPERTY = 2  # 基础属性突破
+    KILL_BOSS = 3  # 击败BOSS
+    PK = 4  # PK相关
+    GOLD_NUM_INCREASE = 5  # 黄金数量
+    SKILL = 6  # 技能相关
+    LOTTERY = 7  # 抽奖相关
+    EQUIPMENT = 8  # 装备穿戴相关
+    SELL_STUFF = 9  # 交易物品相关
+    EXP_BOOK = 10  # 经验书相关
 
 
 class EquipmentQuality:
@@ -24,14 +49,14 @@ class EquipmentQuality:
         ULTIMATE (int): Representing ultimate equipment quality. # 终极
         ETERNAL (int): Representing eternal equipment quality. # 永恒
     """
-    COMMON = 1
-    EXCELLENT = 2
-    RARE = 3
-    LEGENDARY = 4
-    EPIC = 5
-    MYTHIC = 6
-    ULTIMATE = 7
-    ETERNAL = 8
+    COMMON = 1  # 1个属性
+    EXCELLENT = 2  # 1个属性
+    RARE = 3  # 2个属性
+    LEGENDARY = 4  # 2个属性
+    EPIC = 5  # 3个属性
+    MYTHIC = 6  # 3个属性
+    ULTIMATE = 7  # 4个属性
+    ETERNAL = 8  # 4个属性
 
 
 class Part:
@@ -68,19 +93,8 @@ class StuffType:
     GEM = 3  # 宝石
     RAISE_STAR_BOOK = 4  # 升星卷轴 允许一次性使用多个
     IDENTIFY_BOOK = 5  # 鉴定卷轴
-    EXP_BOOK = 6 # 经验书  允许一次性使用多个
-    SKILL_BOOK = 7 # 技能书 允许一次性使用多个
-
-
-
-class BookType:
-    """
-    卷轴类型
-    """
-    RISING_STAR = 1  # 升星卷轴
-    IDENTIFY = 2  # 鉴定卷轴
-    SKILL = 3  # 技能书
-    PLAYER_EXP = 4  # 人物技能书
+    EXP_BOOK = 6  # 经验书  允许一次性使用多个
+    SKILL_BOOK = 7  # 技能书 允许一次性使用多个
 
 
 class BeingType:
