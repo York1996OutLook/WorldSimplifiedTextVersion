@@ -11,8 +11,7 @@ from DBHelper.tables.skill_achievement_equipment_etc_properties import SkillAchi
 from DBHelper.tables.player_skill_record import PlayerSkillRecord, \
     get_player_skill_record_by_character_id_and_skill_id
 from DBHelper.tables.skill_book import SkillBook, get_skill_book_by_skill_id_skill_level
-from DBHelper.tables.player_stuff_record import PlayerStuffRecord, get_all_wearing_stuffs_by_character_id, \
-    get_all_in_bag_stuffs_by_character_id
+import DBHelper.tables.player_stuff_record as player_stuff_record
 from DBHelper.tables.equipment_gem_record import get_all_gems_by_equipment_id
 from DBHelper.tables.gem import get_gem_by_gem_id
 from DBHelper.tables.setting import get_per_star_improved_percent, get_sell_expire_hours, get_game_master_id
@@ -39,7 +38,7 @@ def player_sort_bag(character_id: int):
     :param character_id:
     :return:
     """
-    bag_stuffs = get_all_in_bag_stuffs_by_character_id(character_id=character_id)
+    bag_stuffs = player_stuff_record.get_all_in_bag_stuffs_by_character_id(character_id=character_id)
 
     # order by stuff.type stuff.name
     bag_stuffs_list = []
@@ -49,7 +48,9 @@ def player_sort_bag(character_id: int):
 
     bag_stuffs_list.sort(key=lambda item: item[1:])
 
+    # 更新背包位置
+    bag_stuff_position_list = []
     for index, bag_stuff in enumerate(bag_stuffs):
-        bag_stuff.position_in_bag = index + 1  # +1 的原因是这里enumerate返回的索引是从0开始的，而背包的位置是从1开始的。
+        bag_stuff_position_list.append((bag_stuff, index + 1))
 
-    session.commit()
+    player_stuff_record.update_bag_stuffs_position(stuff_position_list=bag_stuff_position_list)

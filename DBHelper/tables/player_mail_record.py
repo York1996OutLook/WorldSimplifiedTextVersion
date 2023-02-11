@@ -10,7 +10,7 @@ from Utils.tools import find_smallest_missing
 
 Base = declarative_base()
 
-from ..session import session
+from DBHelper.session import session
 
 
 class PlayerMailRecord(Base):

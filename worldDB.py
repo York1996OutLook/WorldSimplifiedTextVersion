@@ -7,37 +7,47 @@ from sqlalchemy.ext.declarative import declarative_base
 from DBHelper.tables.achievement import Achievement
 from DBHelper.tables.base_property_add_record import BasePropertyAddRecord
 from DBHelper.tables.base_property_additional_property import BasePropertyAdditionalProperty
-from DBHelper.tables.battle_record import BattleRecord
 from DBHelper.tables.battle_status import BattleStatus
+from DBHelper.tables.equipment_gem_record import EquipmentGemRecord
 from DBHelper.tables.gem import Gem
+from DBHelper.tables.holiday import Holiday
 from DBHelper.tables.monster import Monster
+from DBHelper.tables.monster_show_up_record import MonsterShowUpRecord
+from DBHelper.tables.monster_skill_record import MonsterSkillRecord
 from DBHelper.tables.open_decompose_or_drop_stuffs import OpenDecomposeOrDropStuffs
 from DBHelper.tables.player import Player
 from DBHelper.tables.player_achievement_record import PlayerAchievementRecord
+from DBHelper.tables.player_base_property_point_record import PlayerBasePropertyPointRecord
+from DBHelper.tables.player_battle_record import PlayerBattleRecord
 from DBHelper.tables.player_level_exp import PlayerLevelExp
+from DBHelper.tables.player_lottery_record import PlayerLotteryRecord
+from DBHelper.tables.player_mail_record import PlayerMailRecord
 from DBHelper.tables.player_monster_additional_property_record import PlayerMonsterAdditionalPropertyRecord
 from DBHelper.tables.player_sell_store_record import PlayerSellStoreRecord
-from DBHelper.tables.player_stuff_record import PlayerStuffRecord
 from DBHelper.tables.player_skill_record import PlayerSkillRecord
+from DBHelper.tables.player_stuff_record import PlayerStuffRecord
 from DBHelper.tables.raise_star_prob import RaiseStarProb
 from DBHelper.tables.setting import Setting
 from DBHelper.tables.skill import Skill
 from DBHelper.tables.skill_achievement_equipment_etc_properties import SkillAchievementEquipmentEtcProperties
 from DBHelper.tables.skill_book import SkillBook
-from DBHelper.tables.skill_point import SkillPoint
-from DBHelper.tables.stuff_property import StuffProperty
+from DBHelper.tables.skill_cost_mana import PositiveSkillCostMana
+from DBHelper.tables.skill_cost_point import SkillCostPoint
+from DBHelper.tables.stuff import Stuff
 
 Base = declarative_base()
 
-table_classes = [Achievement, PlayerMonsterAdditionalPropertyRecord, BasePropertyAddRecord,
+table_classes = [Achievement, BasePropertyAddRecord,
                  BasePropertyAdditionalProperty,
-                 BattleRecord, BattleStatus, Gem, Monster, OpenDecomposeOrDropStuffs, Player, PlayerAchievementRecord,
-                 PlayerLevelExp, PlayerSellStoreRecord, PlayerStuffRecord, PlayerSkillRecord, RaiseStarProb, Setting,
-                 Skill, SkillAchievementEquipmentEtcProperties, SkillBook, SkillPoint, StuffProperty
+                 BattleStatus, EquipmentGemRecord, Gem,Holiday, Monster,MonsterShowUpRecord, OpenDecomposeOrDropStuffs, Player,
+                 PlayerAchievementRecord, PlayerBasePropertyPointRecord,PlayerLevelExp,PlayerLotteryRecord,PlayerMailRecord,
+                 PlayerMonsterAdditionalPropertyRecord, PlayerBattleRecord,
+                 PlayerSellStoreRecord, PlayerSkillRecord,PlayerStuffRecord, RaiseStarProb, Setting,
+                 Skill, SkillAchievementEquipmentEtcProperties, SkillBook, PositiveSkillCostMana,SkillCostPoint,Stuff,
                  ]
 
 # 全局设置
-engine = create_engine('sqlite:///worldSTV.db')
+engine = create_engine('sqlite:///F:\Python-code\WorldSimplifiedTextVersion\DBHelper\worldSTV.db')
 Base.metadata.create_all(engine)
 
 # 创建所有表格

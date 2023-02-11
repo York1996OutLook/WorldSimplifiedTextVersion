@@ -6,7 +6,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float, Boolean
 
 Base = declarative_base()
-from ..session import session
+from DBHelper.session import session
 
 
 # 交易所记录

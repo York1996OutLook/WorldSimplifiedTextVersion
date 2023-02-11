@@ -8,7 +8,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
-from ..session import session
+from DBHelper.session import session
 
 
 class BasePropertyAddRecord(Base):

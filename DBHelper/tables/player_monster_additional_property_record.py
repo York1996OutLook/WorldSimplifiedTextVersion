@@ -4,15 +4,17 @@ from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from typing import List, Optional
 
-from Enums import BeingType
+import DBHelper.tables.player_initial_properties as player_initial_properties
 
-from ..session import session
+from Enums import BeingType, AdditionalPropertyType
+
+from DBHelper.session import session
 
 Base = declarative_base()
 
 
 class PlayerMonsterAdditionalPropertyRecord(Base):
-    """人物、怪物常见的所有属性表，后期可能会更新"""
+    """人物、怪物常见的所有属性表，后期可能会更新。这个表中的数据依赖于其它的表格；"""
     __tablename__ = 'player_monster_additional_property_record'
 
     id = Column(Integer, primary_key=True)
@@ -39,6 +41,8 @@ class PlayerMonsterAdditionalPropertyRecord(Base):
 
     damage_shield = Column(Integer, comment='免伤护盾')
 
+    exp_add_percent = Column(Integer, comment='经验值加成')
+
 
 # 增
 def add_player_monster_additional_property_record(
@@ -55,7 +59,8 @@ def add_player_monster_additional_property_record(
         counterattack: int,
         ignore_counterattack: int,
         critical_point: int,
-        damage_shield: int
+        damage_shield: int,
+        exp_add_percent: int,
 ) -> PlayerMonsterAdditionalPropertyRecord:
     """
     新增人物、怪物常见属性记录
@@ -73,6 +78,7 @@ def add_player_monster_additional_property_record(
     :param ignore_counterattack: 无视反击值
     :param critical_point: 致命点
     :param damage_shield: 免伤护盾
+    :param exp_add_percent: 经验值加成
 
     :return 返回该属性的id
     """
@@ -90,8 +96,53 @@ def add_player_monster_additional_property_record(
         counterattack=counterattack,
         ignore_counterattack=ignore_counterattack,
         critical_point=critical_point,
-        damage_shield=damage_shield
+        damage_shield=damage_shield,
+        exp_add_percent=exp_add_percent
     )
+    session.add(new_additional_property_record)
+    session.commit()
+    return new_additional_property_record
+
+
+def add_new_player_additional_property_record(
+        *,character_id: int,
+) -> PlayerMonsterAdditionalPropertyRecord:
+    """
+    新增新玩家的额外属性记录，由于是新的玩家，所以所有属性都是初始值；
+    :param character_id: 玩家的character_id
+    :return 返回该属性的id
+    """
+    new_additional_property_record = PlayerMonsterAdditionalPropertyRecord(
+        being_type=BeingType.PLAYER,
+        being_id=character_id,
+        attack=player_initial_properties.get_player_property_by_type(
+            additional_property_type=AdditionalPropertyType.ATTACK),
+        attack_speed=player_initial_properties.get_player_property_by_type(
+            additional_property_type=AdditionalPropertyType.ATTACK_SPEED),
+        health=player_initial_properties.get_player_property_by_type(
+            additional_property_type=AdditionalPropertyType.HEALTH),
+        health_recovery=player_initial_properties.get_player_property_by_type(
+            additional_property_type=AdditionalPropertyType.HEALTH_RECOVERY),
+        health_absorption=player_initial_properties.get_player_property_by_type(
+            additional_property_type=AdditionalPropertyType.HEALTH_ABSORPTION),
+        mana=player_initial_properties.get_player_property_by_type(
+            additional_property_type=AdditionalPropertyType.MANA),
+        mana_recovery=player_initial_properties.get_player_property_by_type(
+            additional_property_type=AdditionalPropertyType.MANA_RECOVERY),
+        mana_absorption=player_initial_properties.get_player_property_by_type(
+            additional_property_type=AdditionalPropertyType.MANA_ABSORPTION),
+        counterattack=player_initial_properties.get_player_property_by_type(
+            additional_property_type=AdditionalPropertyType.COUNTERATTACK),
+        ignore_counterattack=player_initial_properties.get_player_property_by_type(
+            additional_property_type=AdditionalPropertyType.IGNORE_COUNTERATTACK),
+        critical_point=player_initial_properties.get_player_property_by_type(
+            additional_property_type=AdditionalPropertyType.CRITICAL_POINT),
+        damage_shield=player_initial_properties.get_player_property_by_type(
+            additional_property_type=AdditionalPropertyType.DAMAGE_SHIELD),
+        exp_add_percent=player_initial_properties.get_player_property_by_type(
+            additional_property_type=AdditionalPropertyType.EXP_ADD_PERCENT)
+    )
+
     session.add(new_additional_property_record)
     session.commit()
     return new_additional_property_record
@@ -112,21 +163,22 @@ def delete_player_monster_additional_property_record(record_id: int) -> None:
 # 改
 
 def update_player_monster_additional_property_record(record_id: int,
-                                      being_type: Optional[int] = None,
-                                      being_id: Optional[int] = None,
-                                      attack_speed: Optional[int] = None,
-                                      attack: Optional[int] = None,
-                                      health: Optional[int] = None,
-                                      health_recovery: Optional[int] = None,
-                                      health_absorption: Optional[int] = None,
-                                      mana: Optional[int] = None,
-                                      mana_recovery: Optional[int] = None,
-                                      mana_absorption: Optional[int] = None,
-                                      counterattack: Optional[int] = None,
-                                      ignore_counterattack: Optional[int] = None,
-                                      critical_point: Optional[int] = None,
-                                      damage_shield: Optional[int] = None
-                                      ):
+                                                     being_type: Optional[int] = None,
+                                                     being_id: Optional[int] = None,
+                                                     attack_speed: Optional[int] = None,
+                                                     attack: Optional[int] = None,
+                                                     health: Optional[int] = None,
+                                                     health_recovery: Optional[int] = None,
+                                                     health_absorption: Optional[int] = None,
+                                                     mana: Optional[int] = None,
+                                                     mana_recovery: Optional[int] = None,
+                                                     mana_absorption: Optional[int] = None,
+                                                     counterattack: Optional[int] = None,
+                                                     ignore_counterattack: Optional[int] = None,
+                                                     critical_point: Optional[int] = None,
+                                                     damage_shield: Optional[int] = None,
+                                                     exp_add_percent: Optional[int] = None
+                                                     ):
     """
     更新附加属性记录
 
@@ -145,9 +197,10 @@ def update_player_monster_additional_property_record(record_id: int,
     :param ignore_counterattack: 无视反击值
     :param critical_point: 致命点
     :param damage_shield: 免伤护盾
+    :param exp_add_percent: 免伤护盾
     :return: None
     """
-    record = session.query(PlayerMonsterAdditionalPropertyRecord).get(record_id)
+    record = session.query(PlayerMonsterAdditionalPropertyRecord).get(record_id).first()
 
     if being_type is not None:
         record.being_type = being_type
@@ -177,7 +230,8 @@ def update_player_monster_additional_property_record(record_id: int,
         record.critical_point = critical_point
     if damage_shield is not None:
         record.damage_shield = damage_shield
-
+    if exp_add_percent is not None:
+        record.exp_add_percent = exp_add_percent
     session.commit()
 
 

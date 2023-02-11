@@ -7,7 +7,7 @@ from sqlalchemy import Column, Integer, String, Float, Boolean
 
 Base = declarative_base()
 
-from ..session import session
+from DBHelper.session import session
 
 
 class PlayerSkillRecord(Base):
@@ -121,3 +121,15 @@ def get_player_skill_record_by_character_id_and_skill_id(
     query = session.query(PlayerSkillRecord)
     query = query.filter(PlayerSkillRecord.character_id == character_id, skill_id == skill_id)
     return query.first()
+
+def get_player_all_skill_record_by_character_id(
+        character_id: int,
+) -> List[PlayerSkillRecord]:
+    """查询已学习技能记录
+
+    Args:
+        character_id (int): 查询条件，比如 character_id=1
+    """
+    query = session.query(PlayerSkillRecord)
+    query = query.filter(PlayerSkillRecord.character_id == character_id)
+    return query.all()

@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
-from ..session import session
+from DBHelper.session import session
 
 Base = declarative_base()
 
@@ -109,3 +109,29 @@ def get_all_achievements() -> List[Achievement]:
     """
     achievements = session.query(Achievement).all()
     return achievements
+
+
+if __name__ == '__main__':
+    # 连接数据库
+    import random
+
+    # 随机生成成就记录
+    achievement_list = [{"name": "学习高手", "achievement_type": random.randint(1, 10), "condition": "完成 10 个学习任务",
+                         "introduce": "您已经成为一名学习高手！"},
+                        {"name": "技能大师", "achievement_type": random.randint(1, 10), "condition": "完成 20 个学习任务",
+                         "introduce": "您已经成为一名技能大师！"},
+                        {"name": "学习精英", "achievement_type": random.randint(1, 10), "condition": "完成 30 个学习任务",
+                         "introduce": "您已经成为一名学习精英！"}]
+
+    # 插入数据
+    for achievement in achievement_list:
+        new_achievement = Achievement(
+            name=achievement["name"],
+            achievement_type=achievement["achievement_type"],
+            condition=achievement["condition"],
+            introduce=achievement["introduce"]
+        )
+        session.add(new_achievement)
+
+    session.commit()
+    session.close()

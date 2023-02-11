@@ -4,7 +4,7 @@ from typing import List
 
 Base = declarative_base()
 
-from ..session import session
+from DBHelper.session import session
 
 
 
@@ -107,6 +107,14 @@ def get_all_achievements_records_by_character_id(character_id: int) -> List[Play
     records = session.query(PlayerAchievementRecord).filter(PlayerAchievementRecord.character_id == character_id).all()
     return records
 
+def get_player_achievement_title_by_character_id(character_id: int) -> PlayerAchievementRecord:
+    """
+    通过玩家ID获取其所有成就记录
+    :param character_id: 玩家ID
+    :return: List[AchievementRecord]
+    """
+    record = session.query(PlayerAchievementRecord).filter(PlayerAchievementRecord.character_id == character_id).first()
+    return record
 
 # other
 

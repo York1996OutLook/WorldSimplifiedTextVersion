@@ -5,8 +5,7 @@ from sqlalchemy import Column, Integer, String, Float, Boolean
 
 Base = declarative_base()
 
-from ..session import session
-
+from DBHelper.session import session
 
 
 # 怪物
@@ -17,32 +16,23 @@ class Monster(Base):
     __tablename__ = 'monster'
 
     id = Column(Integer, primary_key=True, comment='ID')
-    difficulty = Column(Integer, comment='难度值')
     name = Column(Integer, comment='名称')
+
     exp_value = Column(Integer, comment='被击败后掉落的经验值')
 
-    weekday = Column(String, comment="周几会出现")
-    monthday = Column(String, comment="每个月几号会出现")
-
-    attack_property_id = Column(Integer, comment="参考攻击属性")
-
-    active_skill_id = Column(Integer, comment='主动技能名称')
-
     description = Column(String, comment='怪物说明或者背景')
-    drop_stuffs = Column(String, comment='可以掉落的物品')  # 格式为【物品id,概率】的文字列表；
 
 
 # 增
-def add_monster(difficulty: int, name: str, exp_value: int, weekday: str, monthday: str, attack_property_id: int,
-                active_skill_id: int, description: str, drop_stuffs: str) -> Monster:
+def add_monster(difficulty: int, name: str, exp_value: int, description: str, ) -> Monster:
     """
     新增怪物记录
 
     :param difficulty: 难度值
     :param name: 名称
     :param exp_value: 被击败后掉落的经验值
-    :param weekday: 被击败后掉落的经验值
-    :param monthday: 被击败后掉落的经验值
+    :param weekdays: 被击败后掉落的经验值
+    :param monthdays: 被击败后掉落的经验值
 
     :param attack_property_id: 参考攻击属性
     :param active_skill_id: 主动技能名称
@@ -54,8 +44,8 @@ def add_monster(difficulty: int, name: str, exp_value: int, weekday: str, monthd
                       name=name,
                       exp_value=exp_value,
                       attack_property_id=attack_property_id,
-                      weekday=weekday,
-                      monthday=monthday,
+                      weekdays=weekdays,
+                      monthdays=monthdays,
                       active_skill_id=active_skill_id,
                       description=description,
                       drop_stuffs=drop_stuffs
@@ -121,3 +111,16 @@ def get_monster_by_id(id: int):
     :return: 查询结果
     """
     return session.query(Monster).filter(Monster.id == id).one_or_none()
+
+
+if __name__ == '__main__':
+    # insert records into Monster table
+    monster1 = Monster(difficulty=5, name='史莱姆', exp_value=200, weekdays='星期二', monthdays='1号', special_days='情人节',
+                       description='一种蓝色的生物，常常出没于森林深处。')
+    monster2 = Monster(difficulty=7, name='食人魔', exp_value=350, weekdays='星期四', monthdays='5号', special_days='圣诞节',
+                       description='一种行动迅速，残忍无情的生物，喜欢吃掉无助的旅行者。')
+    monster3 = Monster(difficulty=8, name='龙', exp_value=450, weekdays='星期六', monthdays='10号', special_days='新年',
+                       description='一种以智慧和力量著称的生物，生活在高山和岩石间。')
+
+    session.add_all([monster1, monster2, monster3])
+    session.commit()

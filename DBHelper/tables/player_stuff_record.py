@@ -9,7 +9,7 @@ from Utils.tools import find_smallest_missing
 
 Base = declarative_base()
 
-from ..session import session
+from DBHelper.session import session
 
 
 class PlayerStuffRecord(Base):
@@ -28,20 +28,24 @@ class PlayerStuffRecord(Base):
 
     position_in_bag = Column(Integer, comment="在背包中的位置，从1开始，目前没有设定背包大小.0代表没有在背包中。")
 
-    base_property1 = Column(Integer, comment="属性1")  # 当前属性；参考skill_achievement_equipment_etc_properties
-    base_property2 = Column(Integer, comment="属性2")  # 当前属性；参考skill_achievement_equipment_etc_properties
-    base_property3 = Column(Integer, comment="属性3")  # 当前属性；参考skill_achievement_equipment_etc_properties
-    base_property4 = Column(Integer, comment="属性4")  # 当前属性；参考skill_achievement_equipment_etc_properties
-    base_property5 = Column(Integer, comment="属性5")  # 当前属性；参考skill_achievement_equipment_etc_properties
-    base_property6 = Column(Integer, comment="属性6")  # 当前属性；参考skill_achievement_equipment_etc_properties
+    base_property1_type = Column(Integer, comment="属性1")  # 当前属性；
+    base_property1_value = Column(Integer, comment="属性1")  # 当前属性；
+    base_property2_type = Column(Integer, comment="属性2")  # 当前属性；
+    base_property2_value = Column(Integer, comment="属性2")  # 当前属性；
+    base_property3_type = Column(Integer, comment="属性3")  # 当前属性；
+    base_property3_value = Column(Integer, comment="属性3")  # 当前属性；
+    base_property4_type = Column(Integer, comment="属性4")  # 当前属性；
+    base_property4_value = Column(Integer, comment="属性4")  # 当前属性；
 
     # 新鉴定出的属性
-    temp_property1 = Column(Integer, comment="新鉴定出来的属性1")  # 当前属性；参考skill_achievement_equipment_etc_properties
-    temp_property2 = Column(Integer, comment="新鉴定出来的属性2")  # 当前属性；参考skill_achievement_equipment_etc_properties
-    temp_property3 = Column(Integer, comment="新鉴定出来的属性3")  # 当前属性；参考skill_achievement_equipment_etc_properties
-    temp_property4 = Column(Integer, comment="新鉴定出来的属性4")  # 当前属性；参考skill_achievement_equipment_etc_properties
-    temp_property5 = Column(Integer, comment="新鉴定出来的属性5")  # 当前属性；参考skill_achievement_equipment_etc_properties
-    temp_property6 = Column(Integer, comment="新鉴定出来的属性6")  # 当前属性；参考skill_achievement_equipment_etc_properties
+    temp_property1_type = Column(Integer, comment="新鉴定出来的属性1")  # 当前属性；
+    temp_property1_value = Column(Integer, comment="新鉴定出来的属性1")  # 当前属性；
+    temp_property2_type = Column(Integer, comment="新鉴定出来的属性2")  # 当前属性；
+    temp_property2_value = Column(Integer, comment="新鉴定出来的属性2")  # 当前属性；
+    temp_property3_type = Column(Integer, comment="新鉴定出来的属性3")  # 当前属性；
+    temp_property3_value = Column(Integer, comment="新鉴定出来的属性3")  # 当前属性；
+    temp_property4_type = Column(Integer, comment="新鉴定出来的属性4")  # 当前属性；
+    temp_property4_value = Column(Integer, comment="新鉴定出来的属性4")  # 当前属性；
 
     # 根据（升星后的数量*加成百分比+1）* 基础属性计算升星后的属性值；
     current_stars_num = Column(Integer, comment="当前升星数量")
@@ -55,21 +59,19 @@ def add_player_stuff_record(character_id: int,
                             is_wearing: bool,
                             position_in_bag: int,
 
-                            base_property1: int,
-                            base_property2: int,
-                            base_property3: int,
-                            base_property4: int,
-                            base_property5: int,
-                            base_property6: int,
+                            base_property1_type: int,
+                            base_property1_value: int,
 
-                            temp_property1: int,
-                            temp_property2: int,
-                            temp_property3: int,
-                            temp_property4: int,
-                            temp_property5: int,
-                            temp_property6: int,
+                            base_property2_type: int,
+                            base_property2_value: int,
 
-                            current_stars_num: int)->PlayerStuffRecord:
+                            base_property3_type: int,
+                            base_property3_value: int,
+
+                            base_property4_type: int,
+                            base_property4_value: int,
+
+                            current_stars_num: int) -> PlayerStuffRecord:
     """
     新增一条玩家物品记录
     :param character_id: 人物id
@@ -79,18 +81,18 @@ def add_player_stuff_record(character_id: int,
     :param is_wearing: 是否穿戴中
     :param position_in_bag: 在背包中的位置，从1开始，目前没有设定背包大小。
     如果穿戴中，则其在背包中的位置属性没有意义。从穿戴到背包的时候会分配新的位置。
-    :param base_property1: 基础属性1
-    :param base_property2: 基础属性2
-    :param base_property3: 基础属性3
-    :param base_property4: 基础属性4
-    :param base_property5: 基础属性5
-    :param base_property6: 基础属性6
-    :param temp_property1: 新鉴定出来的属性1
-    :param temp_property2: 新鉴定出来的属性2
-    :param temp_property3: 新鉴定出来的属性3
-    :param temp_property4: 新鉴定出来的属性4
-    :param temp_property5: 新鉴定出来的属性5
-    :param temp_property6: 新鉴定出来的属性6
+    :param base_property1_type: 基础属性1类型
+    :param base_property1_value: 基础属性1值
+
+    :param base_property2_type: 基础属性2类型
+    :param base_property2_value: 基础属性2值
+
+    :param base_property3_type: 基础属性3类型
+    :param base_property3_value: 基础属性3值
+
+    :param base_property4_type: 基础属性4类型
+    :param base_property4_value: 基础属性4值
+
     :param current_stars_num: 当前升星数量
     :return: None
     """
@@ -102,19 +104,17 @@ def add_player_stuff_record(character_id: int,
         is_wearing=is_wearing,
         position_in_bag=position_in_bag,
 
-        base_property1=base_property1,
-        base_property2=base_property2,
-        base_property3=base_property3,
-        base_property4=base_property4,
-        base_property5=base_property5,
-        base_property6=base_property6,
+        base_property1_type=base_property1_type,
+        base_property1_value=base_property1_value,
 
-        temp_property1=temp_property1,
-        temp_property2=temp_property2,
-        temp_property3=temp_property3,
-        temp_property4=temp_property4,
-        temp_property5=temp_property5,
-        temp_property6=temp_property6,
+        base_property2_type=base_property2_type,
+        base_property2_value=base_property2_value,
+
+        base_property3_type=base_property3_type,
+        base_property3_value=base_property3_value,
+
+        base_property4_type=base_property4_type,
+        base_property4_value=base_property4_value,
 
         current_stars_num=current_stars_num,
     )
@@ -126,7 +126,17 @@ def add_player_stuff_record(character_id: int,
 # 删
 
 # 改
-def update_stuff_wearing_and_position(stuff_record_id:int, is_wearing:bool=None,new_position:int=None):
+def update_bag_stuffs_position(*,stuff_position_list:List[PlayerStuffRecord,int]):
+    """
+
+    :param stuff_position_list:
+    :return:
+    """
+    for stuff,new_position in stuff_position_list:
+        stuff.position_in_bag=new_position
+    session.commit()
+
+def update_stuff_wearing_and_position(stuff_record_id: int, is_wearing: bool = None, new_position: int = None):
     """
     更新物品穿戴情况和位置信息
     该函数将一件物品的穿戴情况和位置信息更新为新的穿戴情况和位置信息
@@ -146,11 +156,13 @@ def update_stuff_wearing_and_position(stuff_record_id:int, is_wearing:bool=None,
     """
     record = session.query(PlayerStuffRecord).filter_by(id=stuff_record_id).first()
     if is_wearing:
-        record.is_wearing=is_wearing
+        record.is_wearing = is_wearing
     if new_position:
         record.position_in_bag = new_position
     session.commit()
     return record
+
+
 # 查
 
 def get_player_stuff_record_by_record_id(record_id: int) -> PlayerStuffRecord:
@@ -189,8 +201,6 @@ def get_all_in_bag_stuffs_by_character_id(character_id: int) -> List[PlayerStuff
     return stuffs
 
 
-
-
 # other
 
 # 获取当面背包没有被占用的最小位置
@@ -209,7 +219,7 @@ def get_min_unused_bag_position(character_id: int):
 
 
 # 往背包中的某个位置插入物品，并且这个物品之前之前没有穿戴着；
-def insert_stuff_to_player_bag(stuff_record_id: int, character_id: int)->PlayerStuffRecord:
+def insert_stuff_to_player_bag(stuff_record_id: int, character_id: int) -> PlayerStuffRecord:
     """
     往用户背包中插入新的物品
     :param stuff_record_id:
@@ -219,7 +229,7 @@ def insert_stuff_to_player_bag(stuff_record_id: int, character_id: int)->PlayerS
     available_position = get_min_unused_bag_position(
         character_id=character_id,
     )
-    player_stuff_record=get_player_stuff_record_by_record_id(stuff_record_id)
+    player_stuff_record = get_player_stuff_record_by_record_id(stuff_record_id)
 
     record = add_player_stuff_record(
         character_id=character_id,
@@ -229,19 +239,17 @@ def insert_stuff_to_player_bag(stuff_record_id: int, character_id: int)->PlayerS
         is_wearing=False,
         position_in_bag=available_position,
 
-        base_property1=player_stuff_record.base_property1,
-        base_property2=player_stuff_record.base_property2,
-        base_property3=player_stuff_record.base_property3,
-        base_property4=player_stuff_record.base_property4,
-        base_property5=player_stuff_record.base_property5,
-        base_property6=player_stuff_record.base_property6,
+        base_property1_type=player_stuff_record.base_property1_type,
+        base_property1_value=player_stuff_record.base_property1_value,
 
-        temp_property1=player_stuff_record.temp_property1,
-        temp_property2=player_stuff_record.temp_property2,
-        temp_property3=player_stuff_record.temp_property3,
-        temp_property4=player_stuff_record.temp_property4,
-        temp_property5=player_stuff_record.temp_property5,
-        temp_property6=player_stuff_record.temp_property6,
+        base_property2_type=player_stuff_record.base_property2_type,
+        base_property2_value=player_stuff_record.base_property2_value,
+
+        base_property3_type=player_stuff_record.base_property3_type,
+        base_property3_value=player_stuff_record.base_property3_value,
+
+        base_property4_type=player_stuff_record.base_property4_type,
+        base_property4_value=player_stuff_record.base_property4_value,
 
         current_stars_num=player_stuff_record.current_stars_num,
     )
@@ -260,8 +268,9 @@ def wearing_stuff_to_bag(character_id: int, player_stuff_record_id: int):
     available_position = get_min_unused_bag_position(
         character_id=character_id,
     )
-    update_stuff_wearing_and_position(player_stuff_record_id,is_wearing=False,new_position=available_position)
+    update_stuff_wearing_and_position(player_stuff_record_id, is_wearing=False, new_position=available_position)
     session.commit()
+
 
 def bag_stuff_to_wearing(player_stuff_record_id: int):
     """
@@ -269,6 +278,5 @@ def bag_stuff_to_wearing(player_stuff_record_id: int):
     :param player_stuff_record_id:
     :return:
     """
-    update_stuff_wearing_and_position(player_stuff_record_id,is_wearing=False)
+    update_stuff_wearing_and_position(player_stuff_record_id, is_wearing=False)
     session.commit()
-

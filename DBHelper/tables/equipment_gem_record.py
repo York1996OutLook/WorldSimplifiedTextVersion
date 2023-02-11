@@ -7,7 +7,7 @@ from sqlalchemy import Column, Integer, String, Float, Boolean
 
 Base = declarative_base()
 
-from ..session import session
+from DBHelper.session import session
 
 
 class EquipmentGemRecord(Base):

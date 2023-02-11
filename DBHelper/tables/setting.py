@@ -6,7 +6,7 @@ from typing import List
 
 Base = declarative_base()
 
-from ..session import session
+from DBHelper.session import session
 
 
 class Setting(Base):
@@ -199,6 +199,22 @@ def get_per_star_improved_percent() -> int:
     value = get_setting_value_by_name('per_star_improved_percent')
     return int(value)
 
+def get_initial_player_level() -> int:
+    """
+    获取每个升星会获得多少加成。
+    :return:
+    """
+    value = get_setting_value_by_name('initial_player_level')
+    return int(value)
+
+def get_player_default_game_sign() -> int:
+    """
+    获取每个升星会获得多少加成。
+    :return:
+    """
+    value = get_setting_value_by_name('player_default_game_sign')
+    return value
+
 
 def get_lottery_start_hour():
     """
@@ -246,3 +262,10 @@ def get_game_master_id():
     value = get_setting_value_by_name('game_master_id')
     return int(value)
 
+
+def get_full_critical_point():
+    """
+    :return: 获取最大致命点，预计为 1000
+    """
+    value = get_setting_value_by_name('最大致命点')
+    return int(value)

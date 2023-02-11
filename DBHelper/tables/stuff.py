@@ -6,7 +6,8 @@ from typing import List
 
 Base = declarative_base()
 
-from ..session import session
+from DBHelper.session import session
+
 
 class Stuff(Base):
     """
@@ -15,7 +16,7 @@ class Stuff(Base):
     __tablename__ = 'stuff_property'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String,comment="物品的中文名字")
+    name = Column(String, comment="物品的中文名字")
 
     stuff_type = Column(Integer, comment="物品类型，请参考StuffType枚举类型")
 
@@ -24,28 +25,35 @@ class Stuff(Base):
 
     is_bindable = Column(Integer, comment="是否已经绑定")
 
-    decompose_get_stuffs = Column(Integer, comment="分解可以获得的物品列表")
+    quality = Column(Integer, comment="参考品质类型")  # 枚举类型
 
-    quality = Column(Integer, comment="参考品质表")  # 枚举类型
+    property1_type = Column(Integer, comment="当前属性1的类型")
+    property1_value = Column(Integer, comment="当前属性1的值")
 
+    property2_type = Column(Integer, comment="当前属性2的类型")
+    property2_value = Column(Integer, comment="当前属性2的值")
+
+    property3_type = Column(Integer, comment="当前属性3的类型")
+    property3_value = Column(Integer, comment="当前属性3的值")
+
+    property4_type = Column(Integer, comment="当前属性4的类型")
+    property4_value = Column(Integer, comment="当前属性4的值")
+
+
+    temp_identify_property1_type = Column(Integer, comment="临时鉴定属性1的类型")
+    temp_identify_property1_value = Column(Integer, comment="临时鉴定属性1的值")
+
+    temp_identify_property2_type = Column(Integer, comment="临时鉴定当前属性2的类型")
+    temp_identify_property2_value = Column(Integer, comment="临时鉴定当前属性2的值")
+
+    temp_identify_property3_type = Column(Integer, comment="临时鉴定当前属性3的类型")
+    temp_identify_property3_value = Column(Integer, comment="临时鉴定当前属性3的值")
+
+    temp_identify_property4_type = Column(Integer, comment="临时鉴定当前属性4的类型")
+    temp_identify_property4_value = Column(Integer, comment="临时鉴定当前属性4的值")
 
     # 新产生的属性将在最小和满属性之间
-    minimum_property1 = Column(Integer, comment="属性1")  # 最低属性值，参考skill_achievement_equipment_etc_properties
-    minimum_property2 = Column(Integer, comment="属性2")  # 最低属性值，参考skill_achievement_equipment_etc_properties
-    minimum_property3 = Column(Integer, comment="属性3")  # 最低属性值，参考skill_achievement_equipment_etc_properties
-    minimum_property4 = Column(Integer, comment="属性4")  # 最低属性值，参考skill_achievement_equipment_etc_properties
-    minimum_property5 = Column(Integer, comment="属性5")  # 最低属性值，参考skill_achievement_equipment_etc_properties
-    minimum_property6 = Column(Integer, comment="属性6")  # 最低属性值，参考skill_achievement_equipment_etc_properties
-
-    complete_property1 = Column(Integer, comment="属性1")  # 满鉴定属性，参考skill_achievement_equipment_etc_properties
-    complete_property2 = Column(Integer, comment="属性2")  # 满鉴定属性，参考skill_achievement_equipment_etc_properties
-    complete_property3 = Column(Integer, comment="属性3")  # 满鉴定属性，参考skill_achievement_equipment_etc_properties
-    complete_property4 = Column(Integer, comment="属性4")  # 满鉴定属性，参考skill_achievement_equipment_etc_properties
-    complete_property5 = Column(Integer, comment="属性5")  # 满鉴定属性，参考skill_achievement_equipment_etc_properties
-    complete_property6 = Column(Integer, comment="属性6")  # 满鉴定属性，参考skill_achievement_equipment_etc_properties
-
     introduction = Column(String, comment="说明")
-
 # 增
 
 # 删
@@ -53,9 +61,6 @@ class Stuff(Base):
 # 改
 
 # 查
-
-
-
 def get_stuff_by_stuff_id(stuff_id: int):
     """
     根据物品的id查询物品的详细信息
@@ -71,4 +76,3 @@ def get_stuff_by_stuff_id(stuff_id: int):
     """
     stuff = session.query(Stuff).filter(Stuff.id == stuff_id).first()
     return stuff
-

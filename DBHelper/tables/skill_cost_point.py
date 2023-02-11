@@ -6,10 +6,10 @@ from typing import List, Optional
 
 Base = declarative_base()
 
-from ..session import session
+from DBHelper.session import session
 
 
-class SkillPoint(Base):
+class SkillCostPoint(Base):
     """
     升级技能需要的技能点
     """
@@ -31,5 +31,5 @@ def get_kill_point_by_level(level: int, ):
     """
     获取某个等级需要的技能点
     """
-    skill_point = session.query(SkillPoint).filter(SkillPoint.level == level)
+    skill_point = session.query(SkillCostPoint).filter(SkillCostPoint.level == level)
     return skill_point

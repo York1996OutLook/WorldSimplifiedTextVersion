@@ -26,14 +26,15 @@ class AchievementType:
     """
     ENTER_THE_GAME = 1  # 第一次进入游戏
     BASE_PROPERTY = 2  # 基础属性突破
-    KILL_BOSS = 3  # 击败BOSS
-    PK = 4  # PK相关
-    GOLD_NUM_INCREASE = 5  # 黄金数量
-    SKILL = 6  # 技能相关
-    LOTTERY = 7  # 抽奖相关
-    EQUIPMENT = 8  # 装备穿戴相关
-    SELL_STUFF = 9  # 交易物品相关
-    EXP_BOOK = 10  # 经验书相关
+    LEVEL_UP = 3  # 等级提升相关
+    KILL_BOSS = 4  # 击败BOSS
+    PK = 5  # PK相关
+    GOLD_NUM_INCREASE = 6  # 黄金数量
+    SKILL = 7  # 技能相关
+    LOTTERY = 8  # 抽奖相关
+    EQUIPMENT = 9  # 装备穿戴相关
+    SELL_STUFF = 10  # 交易物品相关
+    EXP_BOOK = 11  # 经验书相关
 
 
 class EquipmentQuality:
@@ -109,9 +110,11 @@ class AdditionSourceType:
     """
     增加属性的来源
     """
-    ACHIEVEMENT = 1  # 成就称号
-    SKILL = 2  # 技能
-    EQUIPMENT = 3  # 装备
+    INITIAL = 1  # 初始属性
+    BASE_PROPERTY_POINT = 2  # 基础属性加点
+    ACHIEVEMENT = 3  # 成就称号
+    SKILL = 4  # 技能
+    EQUIPMENT = 5  # 装备
 
 
 class AdditionalPropertyType:
@@ -119,7 +122,7 @@ class AdditionalPropertyType:
     装备、技能、称号所有可能的属性
     """
     PHYSIQUE = 1  # "体质"
-    PHYSIQUE_ADD_PERCENT = 2  # "体质"
+    PHYSIQUE_ADD_PERCENT = 2  # "体质增加百分比"
 
     STRENGTH = 3  # "力量"
     STRENGTH_ADD_PERCENT = 4  # "力量"
@@ -167,8 +170,10 @@ class AdditionalPropertyType:
 
     DAMAGE_SHIELD = 33  # 免伤护盾
 
+    EXP_ADD_PERCENT = 34  # 经验增加百分比，有些装备可以增加经验值获得
+
     min_num = 1
-    max_num = 33
+    max_num = 34
 
 
 class MailType:
@@ -182,6 +187,11 @@ class MailType:
     RECEIVED_FROM_EXCHANGE_STORE_SOLD = 5  # 交易所发给自己的邮件（卖出了）；
     RECEIVED_FROM_EXCHANGE_STORE_NOT_SOLD_RETURN = 6  # 交易所发给自己的邮件（时间到了，未售出，退回）；
     RECEIVED_FROM_EXCHANGE_STORE_POSITIVE_RETURN = 7  # 交易所发给自己的邮件（时间未到，但是玩家选择主动退回，不挂售）；
+
+
+class CalendarType:
+    LUNAR = 1  # 农历
+    GREGORIAN = 2  # 公历
 
 
 if __name__ == '__main__':

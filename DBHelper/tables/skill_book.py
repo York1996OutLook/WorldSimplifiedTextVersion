@@ -6,7 +6,7 @@ from typing import List, Optional
 
 Base = declarative_base()
 
-from ..session import session
+from DBHelper.session import session
 
 
 class SkillBook(Base):

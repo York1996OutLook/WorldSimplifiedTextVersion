@@ -1,10 +1,10 @@
 import time
 from DBHelper.tables.player import Player, add_player, is_player_exists_by_player_id
-from DBHelper.tables.player_monster_additional_property_record import add_player_monster_additional_property_record, \
-    update_player_monster_additional_property_record
+import DBHelper.tables.player_monster_additional_property_record  as player_monster_additional_property_record
 from DBHelper.tables.player_achievement_record import add_player_achievement_record
 
-from Enums import BeingType, AdditionSourceType
+import DBHelper.tables.setting as setting
+
 
 
 class App:
@@ -31,28 +31,18 @@ class App:
             # 完成新建玩家和玩家对应属性表
 
             # 新增玩家
-            _id = add_player(self.player_id, nickname=self.nick_name, current_level=0, current_experience=0,
-                             game_sign="")
+            player = add_player(player_id=self.player_id,
+                             nickname=self.nick_name,
+                             current_level=setting.get_initial_player_level(),
+                             game_sign=setting.get_player_default_game_sign())
             # 新增玩家对应属性表
-            add_player_monster_additional_property_record(being_type=BeingType.PLAYER,
-                                                          being_id=_id,
-                                                          attack_speed=0,
-                                                          attack=0,
-                                                          health=0,
-                                                          health_recovery=0,
-                                                          health_absorption=0,
-                                                          mana=0,
-                                                          mana_recovery=0,
-                                                          mana_absorption=0,
-                                                          counterattack=0,
-                                                          ignore_counterattack=0,
-                                                          critical_point=0,
-                                                          damage_shield=0,
-                                                          )
+            player_monster_additional_property_record.add_new_player_additional_property_record(character_id=player.id,)
             # 给新玩家一个新人成就
-            add_player_achievement_record(achievement_id=1, character_id=_id, achieve_timestamp=int(time.time()))
+            add_player_achievement_record(achievement_id=1, character_id=player.id, achieve_timestamp=int(time.time()))
+
             # 给了新的成就之后要更新玩家的属性
-            update_player_monster_additional_property_record()
+            battle_property_system.
+            player_monster_additional_property_record.update_player_monster_additional_property_record()
             print("欢迎进入世界！")
             return
         else:

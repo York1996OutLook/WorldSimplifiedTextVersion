@@ -5,7 +5,7 @@ from sqlalchemy import Column, Integer, String, Float, Boolean
 
 Base = declarative_base()
 
-from ..session import session
+from DBHelper.session import session
 
 
 class Gem(Base):
@@ -118,3 +118,11 @@ def get_gems_by_increase(increase: int):
     """
     gems = session.query(Gem).filter_by(increase=increase).all()
     return gems
+if __name__ == '__main__':
+    gem1 = Gem(base_property_type=1, increase=2)
+    gem2 = Gem(base_property_type=2, increase=3)
+    gem3 = Gem(base_property_type=3, increase=1)
+    gem4 = Gem(base_property_type=4, increase=5)
+
+    session.add_all([gem1, gem2, gem3, gem4])
+    session.commit()

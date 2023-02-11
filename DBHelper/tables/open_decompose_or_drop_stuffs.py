@@ -5,7 +5,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from typing import List
 
 Base = declarative_base()
-from ..session import session
+from DBHelper.session import session
 
 class OpenDecomposeOrDropStuffs(Base):
     """

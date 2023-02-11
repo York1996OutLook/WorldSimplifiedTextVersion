@@ -2,12 +2,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float, Boolean
-
 from typing import Optional, List
 
 Base = declarative_base()
 
-from ..session import session
+from DBHelper.session import session
 
 
 class Player(Base):
@@ -33,24 +32,27 @@ class Player(Base):
 
 
 # 增
-def add_player(player_id: str, nickname: str, current_level: int, current_experience: int,
-               game_sign: str, pk_rank: int) -> Player:
+def add_player(*,
+               player_id: str,
+               nickname: str,
+               current_level: int,
+               game_sign: str
+               ) -> Player:
     """
     新增玩家记录
     :param player_id: qq
     :param nickname: 昵称（QQ昵称）
-    :param current_level: 当前等级
-    :param current_experience: 当前经验值
-    :param game_sign: 游戏中的签名
-    :param pk_rank: 在pk中的排名
+    :param current_level: 昵称（QQ昵称）
+    :param game_sign: 昵称（QQ昵称）
     :return:
     """
     player = Player(player_id=player_id,
                     nickname=nickname,
                     current_level=current_level,
-                    current_experience=current_experience,
+                    current_experience=0,
                     game_sign=game_sign,
-                    pk_rank=pk_rank,
+                    pk_rank=0,
+                    gold_num=0,
                     )
     session.add(player)
     session.commit()

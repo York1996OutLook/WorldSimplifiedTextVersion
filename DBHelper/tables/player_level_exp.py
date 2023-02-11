@@ -7,7 +7,7 @@ from typing import Optional, List
 
 Base = declarative_base()
 
-from ..session import session
+from DBHelper.session import session
 
 
 
