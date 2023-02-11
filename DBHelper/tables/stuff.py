@@ -1,5 +1,5 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+
+
 from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from typing import List
@@ -61,7 +61,7 @@ class Stuff(Base):
 # 改
 
 # 查
-def get_stuff_by_stuff_id(stuff_id: int):
+def get_stuff_by_stuff_id(*,stuff_id: int):
     """
     根据物品的id查询物品的详细信息
 

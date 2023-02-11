@@ -25,7 +25,7 @@ class Achievement(Base):
 
 
 # 增
-def add_achievement(name: str, condition: str) -> Achievement:
+def add_achievement(*,name: str, condition: str) -> Achievement:
     """
     创建成就
 
@@ -39,11 +39,11 @@ def add_achievement(name: str, condition: str) -> Achievement:
     achievement = Achievement(name=name, condition=condition)
     session.add(achievement)
     session.commit()
-    return Achievement
+    return achievement
 
 
 # 删
-def delete_achievement(achievement_id: int) -> bool:
+def delete_achievement(*,achievement_id: int) -> bool:
     """
     删除成就
 
@@ -64,7 +64,7 @@ def delete_achievement(achievement_id: int) -> bool:
 
 # 改
 
-def update_achievement(achievement_id: int, new_name: str, new_condition: str) -> Achievement:
+def update_achievement(*,achievement_id: int, new_name: str, new_condition: str) -> Achievement:
     """
     更新成就信息
 
@@ -85,7 +85,7 @@ def update_achievement(achievement_id: int, new_name: str, new_condition: str) -
 
 
 # 查
-def get_achievement_by_achievement_id(achievement_id: int) -> Achievement:
+def get_achievement_by_achievement_id(*,achievement_id: int) -> Achievement:
     """
     根据id查询成就
 
@@ -124,14 +124,13 @@ if __name__ == '__main__':
                          "introduce": "您已经成为一名学习精英！"}]
 
     # 插入数据
-    for achievement in achievement_list:
+    for one_achievement in achievement_list:
         new_achievement = Achievement(
-            name=achievement["name"],
-            achievement_type=achievement["achievement_type"],
-            condition=achievement["condition"],
-            introduce=achievement["introduce"]
+            name=one_achievement["name"],
+            achievement_type=one_achievement["achievement_type"],
+            condition=one_achievement["condition"],
+            introduce=one_achievement["introduce"]
         )
         session.add(new_achievement)
 
     session.commit()
-    session.close()

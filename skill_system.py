@@ -1,14 +1,14 @@
 import time
 from typing import List, Optional
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+
+
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float, Boolean
 from DBHelper.tables.player_skill_record import PlayerSkillRecord, \
     get_player_skill_record_by_character_id_and_skill_id, add_player_skill_record, \
     delete_learned_skill_record_bt_skill_record_id
-from DBHelper.tables.skill_point import get_kill_point_by_level
+from DBHelper.tables.skill_cost_point import get_kill_point_by_level
 from DBHelper.tables.skill_book import get_skill_book_by_skill_id_skill_level, get_skill_id_by_skill_book_id, \
     get_skill_book_by_skill_book_id
 from DBHelper.tables.player_skill_record import update_player_skill_record_level_by_character_id, \
@@ -20,7 +20,7 @@ from Utils.tools import find_smallest_missing
 Base = declarative_base()
 
 
-def learn_skill_from_skill_book(character_id: int, skill_book_id: int):
+def learn_skill_from_skill_book(*,character_id: int, skill_book_id: int):
     """
     学习某个新的技能
     """
@@ -47,7 +47,7 @@ def learn_skill_from_skill_book(character_id: int, skill_book_id: int):
                                                          )
 
 
-def abandon_skill(character_id: int, skill_id: int, abandon_levels: int):
+def abandon_skill(*,character_id: int, skill_id: int, abandon_levels: int):
     """
     放弃技能
     """

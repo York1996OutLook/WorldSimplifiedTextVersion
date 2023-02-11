@@ -32,7 +32,7 @@ from Utils import tools
 from DBHelper.session import session
 
 
-def player_sort_bag(character_id: int):
+def player_sort_bag(*,character_id: int):
     """
     对玩家的背包进行排序，重新安排背包中物品的位置；
     :param character_id:

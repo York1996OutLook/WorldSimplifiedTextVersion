@@ -1,10 +1,6 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from typing import List, Optional
-
-import DBHelper.tables.player_initial_properties as player_initial_properties
 
 from Enums import BeingType, AdditionalPropertyType
 
@@ -46,6 +42,7 @@ class PlayerMonsterAdditionalPropertyRecord(Base):
 
 # 增
 def add_player_monster_additional_property_record(
+        *,
         being_type: BeingType,
         being_id: int,
         attack_speed: int,
@@ -104,52 +101,8 @@ def add_player_monster_additional_property_record(
     return new_additional_property_record
 
 
-def add_new_player_additional_property_record(
-        *,character_id: int,
-) -> PlayerMonsterAdditionalPropertyRecord:
-    """
-    新增新玩家的额外属性记录，由于是新的玩家，所以所有属性都是初始值；
-    :param character_id: 玩家的character_id
-    :return 返回该属性的id
-    """
-    new_additional_property_record = PlayerMonsterAdditionalPropertyRecord(
-        being_type=BeingType.PLAYER,
-        being_id=character_id,
-        attack=player_initial_properties.get_player_property_by_type(
-            additional_property_type=AdditionalPropertyType.ATTACK),
-        attack_speed=player_initial_properties.get_player_property_by_type(
-            additional_property_type=AdditionalPropertyType.ATTACK_SPEED),
-        health=player_initial_properties.get_player_property_by_type(
-            additional_property_type=AdditionalPropertyType.HEALTH),
-        health_recovery=player_initial_properties.get_player_property_by_type(
-            additional_property_type=AdditionalPropertyType.HEALTH_RECOVERY),
-        health_absorption=player_initial_properties.get_player_property_by_type(
-            additional_property_type=AdditionalPropertyType.HEALTH_ABSORPTION),
-        mana=player_initial_properties.get_player_property_by_type(
-            additional_property_type=AdditionalPropertyType.MANA),
-        mana_recovery=player_initial_properties.get_player_property_by_type(
-            additional_property_type=AdditionalPropertyType.MANA_RECOVERY),
-        mana_absorption=player_initial_properties.get_player_property_by_type(
-            additional_property_type=AdditionalPropertyType.MANA_ABSORPTION),
-        counterattack=player_initial_properties.get_player_property_by_type(
-            additional_property_type=AdditionalPropertyType.COUNTERATTACK),
-        ignore_counterattack=player_initial_properties.get_player_property_by_type(
-            additional_property_type=AdditionalPropertyType.IGNORE_COUNTERATTACK),
-        critical_point=player_initial_properties.get_player_property_by_type(
-            additional_property_type=AdditionalPropertyType.CRITICAL_POINT),
-        damage_shield=player_initial_properties.get_player_property_by_type(
-            additional_property_type=AdditionalPropertyType.DAMAGE_SHIELD),
-        exp_add_percent=player_initial_properties.get_player_property_by_type(
-            additional_property_type=AdditionalPropertyType.EXP_ADD_PERCENT)
-    )
-
-    session.add(new_additional_property_record)
-    session.commit()
-    return new_additional_property_record
-
-
 # 删
-def delete_player_monster_additional_property_record(record_id: int) -> None:
+def delete_player_monster_additional_property_record(*, record_id: int) -> None:
     """
     删除人物额外属性记录
     :param record_id: 记录ID
@@ -162,7 +115,8 @@ def delete_player_monster_additional_property_record(record_id: int) -> None:
 
 # 改
 
-def update_player_monster_additional_property_record(record_id: int,
+def update_player_monster_additional_property_record(*,
+                                                     record_id: int,
                                                      being_type: Optional[int] = None,
                                                      being_id: Optional[int] = None,
                                                      attack_speed: Optional[int] = None,
@@ -236,7 +190,7 @@ def update_player_monster_additional_property_record(record_id: int,
 
 
 # 查
-def get_player_monster_additional_property_record(record_id: int) -> Optional[PlayerMonsterAdditionalPropertyRecord]:
+def get_player_monster_additional_property_record(*,record_id: int) -> Optional[PlayerMonsterAdditionalPropertyRecord]:
     """
     获取人物或者怪物额外属性记录
     :param record_id: 记录ID

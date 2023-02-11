@@ -1,7 +1,5 @@
 from typing import List, Optional
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float, Boolean
 
@@ -39,7 +37,8 @@ class PlayerMailRecord(Base):
 
 
 # 增
-def add_player_mail_record(send_character_id: int,
+def add_player_mail_record(*,
+                           send_character_id: int,
                            received_character_id: int,
                            mail_position_index: int,
                            give_stuff_id: int,
@@ -80,7 +79,7 @@ def add_player_mail_record(send_character_id: int,
 
 
 # 删
-def delete_player_mail_record_by_mail_id(mail_id: int):
+def delete_player_mail_record_by_mail_id(*, mail_id: int):
     """
     删除指定的邮件记录
     :param mail_id: 邮件记录的ID
@@ -90,7 +89,7 @@ def delete_player_mail_record_by_mail_id(mail_id: int):
 
 
 # 改
-def update_mail_read_status(mail_id: int, is_read: bool) -> PlayerMailRecord:
+def update_mail_read_status(*, mail_id: int, is_read: bool) -> PlayerMailRecord:
     """
     修改某个邮件的已读状态
     :param mail_id: 邮件id
@@ -103,7 +102,7 @@ def update_mail_read_status(mail_id: int, is_read: bool) -> PlayerMailRecord:
     return mail
 
 
-def update_mail_type_by_mail_record_id(mail_record_id: int, new_mail_type: MailType):
+def update_mail_type_by_mail_record_id(*, mail_record_id: int, new_mail_type: MailType):
     """
     修改某个邮件的类型
     :param mail_record_id: 邮件id
@@ -117,19 +116,20 @@ def update_mail_type_by_mail_record_id(mail_record_id: int, new_mail_type: MailT
 
 
 # 查
-def get_all_mails_for_character(character_id: int) -> List[PlayerMailRecord]:
+def get_all_mails_for_character(*, character_id: int) -> List[PlayerMailRecord]:
     """
     获取某个人所有可见的邮件，包括发送的（一直可见），接受的（收到邮件后选择了拒收，则后续将看不到这个邮件）
     :param character_id:
     :return:
     """
     return session.query(PlayerMailRecord).filter(
-        (PlayerMailRecord.received_character_id == character_id and PlayerMailRecord.mail_type != MailType.SEND_TO_OTHER_PLAYER_GET_REJECT)
-          |
+        (
+                    PlayerMailRecord.received_character_id == character_id and PlayerMailRecord.mail_type != MailType.SEND_TO_OTHER_PLAYER_GET_REJECT)
+        |
         (PlayerMailRecord.send_character_id == character_id)).all()
 
 
-def get_player_mail_record_by_player_mail_record_id(player_mail_id: int) -> PlayerMailRecord:
+def get_player_mail_record_by_player_mail_record_id(*, player_mail_id: int) -> PlayerMailRecord:
     """
     根据玩家邮件记录来查询
     :param player_mail_id:
@@ -146,7 +146,7 @@ def get_min_unused_mail_position(character_id: int):
     """
     获取某个角色未用的邮箱位置
     """
-    mails = get_all_mails_for_character(character_id)
+    mails = get_all_mails_for_character(character_id=character_id)
 
     positions = []
     for mail in mails:
@@ -156,7 +156,8 @@ def get_min_unused_mail_position(character_id: int):
     return available_position
 
 
-def insert_player_mail_record_to_available_position(send_character_id: int,
+def insert_player_mail_record_to_available_position(*,
+                                                    send_character_id: int,
                                                     received_character_id: int,
                                                     give_stuff_id: int,
                                                     charge: int,

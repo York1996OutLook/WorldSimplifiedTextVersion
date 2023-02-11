@@ -1,7 +1,5 @@
 from typing import List
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float, Boolean
 
@@ -17,7 +15,7 @@ class PlayerSellStoreRecord(Base):
 
     owner_character_id = Column(Integer, comment="参考player表")
 
-    stuff_record_id = Column(Integer,comment="物品记录ID")
+    stuff_record_id = Column(Integer, comment="物品记录ID")
 
     original_price = Column(Integer, comment='原始售价')
     initial_sell_timestamp = Column(Integer, comment='初始挂售时间')
@@ -30,7 +28,7 @@ class PlayerSellStoreRecord(Base):
 
 
 # 增
-def add_sell_store_record(owner_character_id: int, stuff_name: str, stuff_count: int, original_price: int,
+def add_sell_store_record(*, owner_character_id: int, stuff_name: str, stuff_count: int, original_price: int,
                           initial_sell_timestamp: int, tax_rate: float) -> PlayerSellStoreRecord:
     """
     增加一条交易所记录
@@ -50,11 +48,11 @@ def add_sell_store_record(owner_character_id: int, stuff_name: str, stuff_count:
                                        is_sold=False, deal_timestamp=None, tax_rate=tax_rate, taxed_price=taxed_price)
     session.add(new_record)
     session.commit()
-    return PlayerSellStoreRecord
+    return new_record
 
 
 # 删除
-def delete_sell_store_record(*,sell_store_record_id: int):
+def delete_sell_store_record(*, sell_store_record_id: int):
     """
     删除一条交易所记录
 
@@ -67,7 +65,7 @@ def delete_sell_store_record(*,sell_store_record_id: int):
 
 
 # 改
-def update_sell_store_record(record_id: int, new_owner_character_id: int = None, new_stuff_name: str = None,
+def update_sell_store_record(*, record_id: int, new_owner_character_id: int = None, new_stuff_name: str = None,
                              new_stuff_count: int = None, new_original_price: int = None,
                              new_initial_sell_timestamp: int = None, new_tax_rate: float = None):
     """
@@ -101,9 +99,7 @@ def update_sell_store_record(record_id: int, new_owner_character_id: int = None,
 # 查
 
 
-
-
-def query_sell_store_records(owner_character_id: int = None, stuff_name: str = None, is_sold: bool = None):
+def query_sell_store_records(*, owner_character_id: int = None, stuff_name: str = None, is_sold: bool = None):
     """
     查询交易所记录
 
@@ -125,7 +121,7 @@ def query_sell_store_records(owner_character_id: int = None, stuff_name: str = N
     return query.all()
 
 
-def get_sell_store_record_by_record_id(record_id: int)->PlayerSellStoreRecord:
+def get_sell_store_record_by_record_id(*, record_id: int) -> PlayerSellStoreRecord:
     """
     根据id查询交易所记录
 
@@ -138,7 +134,7 @@ def get_sell_store_record_by_record_id(record_id: int)->PlayerSellStoreRecord:
     return session.query(PlayerSellStoreRecord).filter_by(id=record_id).first()
 
 
-def get_all_sell_store_records_by_timestamp(start_timestamp: int = None, end_timestamp: int = None):
+def get_all_sell_store_records_by_timestamp(*, start_timestamp: int = None, end_timestamp: int = None):
     """
     根据时间查询交易所记录
 
@@ -157,8 +153,9 @@ def get_all_sell_store_records_by_timestamp(start_timestamp: int = None, end_tim
     return query.all()
 
 
-def get_expired_records(current_timestamp: int,
-                        expired_milliseconds:int
+def get_expired_records(*,
+                        current_timestamp: int,
+                        expired_milliseconds: int
                         ) -> List[PlayerSellStoreRecord]:
     """
 

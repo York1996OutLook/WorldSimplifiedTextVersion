@@ -1,10 +1,9 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Float, Boolean
+from sqlalchemy import Column, Integer, String
+
+from DBHelper.session import session
 
 Base = declarative_base()
-from DBHelper.session import session
 
 
 class BattleStatus(Base):
@@ -19,7 +18,7 @@ class BattleStatus(Base):
 
 
 # 增
-def add_battle_status(name: str, effect: str) -> BattleStatus:
+def add_battle_status(*,name: str, effect: str) -> BattleStatus:
     """
     新增战斗状态
     :param name:
@@ -33,7 +32,7 @@ def add_battle_status(name: str, effect: str) -> BattleStatus:
 
 
 # 删
-def delete_battle_status(battle_status_id: int):
+def delete_battle_status(*,battle_status_id: int):
     battle_status = session.query(BattleStatus).filter(BattleStatus.id == battle_status_id).first()
     if battle_status:
         session.delete(battle_status)
@@ -44,7 +43,7 @@ def delete_battle_status(battle_status_id: int):
 
 
 # 改
-def update_battle_status(id, name=None, effect=None):
+def update_battle_status(*, battle_status_id: int, name: str = None, effect: str = None):
     """
     Update a BattleStatus record in the database.
 
@@ -57,10 +56,7 @@ def update_battle_status(id, name=None, effect=None):
     Returns:
     None
     """
-    battle_status = session.query(BattleStatus).filter_by(id=id).first()
-    if not battle_status:
-        raise ValueError(f"BattleStatus with id {id} not found.")
-
+    battle_status = session.query(BattleStatus).filter_by(id=battle_status_id).first()
     if name:
         battle_status.name = name
     if effect:
@@ -79,7 +75,7 @@ def get_all_battle_statuses():
     return session.query(BattleStatus).all()
 
 
-def get_battle_status_by_id(status_id: int):
+def get_battle_status_by_id(*,status_id: int):
     """
     通过 id 获取 BattleStatus 信息
     :param status_id: BattleStatus 的 id
@@ -88,7 +84,7 @@ def get_battle_status_by_id(status_id: int):
     return session.query(BattleStatus).filter(BattleStatus.id == status_id).first()
 
 
-def get_battle_status_by_name(status_name: str):
+def get_battle_status_by_name(*,status_name: str):
     """
     通过名称获取 BattleStatus 信息
     :param status_name: BattleStatus 的名称
@@ -98,15 +94,13 @@ def get_battle_status_by_name(status_name: str):
 
 
 if __name__ == '__main__':
-    # insert data
-
     # 假设名称和效果已经定义好
-    names = ["中毒", "火烧", "冰冻", "沉默", "昏睡"]
-    effects = ["生命值每回合减少5%", "受到的伤害增加25%", "攻击速度减少50%", "无法使用技能", "回合数+1"]
+    status_names = ["中毒", "火烧", "冰冻", "沉默", "昏睡"]
+    status_effects = ["生命值每回合减少5%", "受到的伤害增加25%", "攻击速度减少50%", "无法使用技能", "回合数+1"]
 
     # 插入数据
-    for name, effect in zip(names, effects):
-        new_record = BattleStatus(name=name, effect=effect)
+    for status_name, status_effect in zip(status_names, status_effects):
+        new_record = BattleStatus(name=status_name, effect=status_effect)
         session.add(new_record)
 
     session.commit()

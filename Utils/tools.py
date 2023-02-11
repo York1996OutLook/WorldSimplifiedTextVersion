@@ -4,14 +4,14 @@ import datetime
 import time
 
 # 时间相关
-def get_today_timestamp(hour):
+def get_today_timestamp(*,hour:int):
     today = datetime.datetime.now().date()
     specific_time = datetime.datetime.combine(today, datetime.time(hour))
     timestamp = int(time.mktime(specific_time.timetuple()))
     return timestamp
 
 
-def convert_to_milliseconds(days: int=0, hours: int=0, minutes: int=0, seconds: int=0) -> int:
+def convert_to_milliseconds(*,days: int=0, hours: int=0, minutes: int=0, seconds: int=0) -> int:
     """Convert time in days, hours, minutes, and seconds to milliseconds.
 
     Args:
@@ -27,7 +27,7 @@ def convert_to_milliseconds(days: int=0, hours: int=0, minutes: int=0, seconds: 
     return milliseconds
 
 
-def timestamp_to_date_string(timestamp: int) -> str:
+def timestamp_to_date_string(*,timestamp: int) -> str:
     """
     将时间戳转换成日期字符串
 
@@ -38,7 +38,7 @@ def timestamp_to_date_string(timestamp: int) -> str:
 
 
 # alg
-def find_smallest_missing(positions: List[int]):
+def find_smallest_missing(*,positions: List[int]):
     """
     给定一个数字数组（positions），该数组存储了一些数字，找到其中最小的不存在的数字。
     数字数组;

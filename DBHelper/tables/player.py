@@ -1,5 +1,3 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float, Boolean
 from typing import Optional, List
@@ -33,7 +31,7 @@ class Player(Base):
 
 # 增
 def add_player(*,
-               player_id: str,
+               player_id: int,
                nickname: str,
                current_level: int,
                game_sign: str
@@ -60,7 +58,7 @@ def add_player(*,
 
 
 # 删
-def delete_player_by_player_id(player_id: int) -> None:
+def delete_player_by_player_id(*, player_id: int) -> None:
     """
     根据player_id删除人物
 
@@ -73,7 +71,7 @@ def delete_player_by_player_id(player_id: int) -> None:
         session.commit()
 
 
-def delete_player_by_id(character_id: int) -> None:
+def delete_player_by_id(*, character_id: int) -> None:
     """
     根据player_id删除人物
 
@@ -87,7 +85,8 @@ def delete_player_by_id(character_id: int) -> None:
 
 
 # 改
-def update_player(character_id: int,
+def update_player(*,
+                  character_id: int,
                   nickname: Optional[str] = None,
                   current_level: Optional[int] = None,
                   current_experience: Optional[int] = None,
@@ -121,7 +120,7 @@ def update_player(character_id: int,
 
 
 # 查
-def is_player_exists_by_player_id(player_id: int) -> bool:
+def is_player_exists_by_player_id(*,player_id: int) -> bool:
     """
     检查玩家是否存在
 
@@ -138,7 +137,7 @@ def is_player_exists_by_player_id(player_id: int) -> bool:
     return player is not None
 
 
-def get_player_by_player_id(player_id: int) -> Player:
+def get_player_by_player_id(*,player_id: int) -> Player:
     """
     根据人物ID查询人物信息
 
@@ -149,7 +148,7 @@ def get_player_by_player_id(player_id: int) -> Player:
     return player
 
 
-def get_player_by_character_id(character_id: int) -> Player:
+def get_player_by_character_id(*,character_id: int) -> Player:
     """
     根据人物ID查询人物信息
 
@@ -160,7 +159,7 @@ def get_player_by_character_id(character_id: int) -> Player:
     return player
 
 
-def query_player_by_nickname(nickname: str) -> Player:
+def query_player_by_nickname(*,nickname: str) -> Player:
     """
     根据昵称查询人物信息
 
@@ -171,7 +170,7 @@ def query_player_by_nickname(nickname: str) -> Player:
     return player
 
 
-def query_player_by_level(level: int) -> List[Player]:
+def query_player_by_level(*,level: int) -> List[Player]:
     """
     根据等级查询人物信息
     :param level: 等级

@@ -1,14 +1,11 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Float, Boolean, func,desc
+from sqlalchemy import Column, Integer, String, Float, Boolean, func, desc
 
 from typing import Optional, List
 
 Base = declarative_base()
 
 from DBHelper.session import session
-
 
 
 class PlayerLevelExp(Base):
@@ -35,23 +32,24 @@ def add_level_exp(level: int, required_exp: float) -> PlayerLevelExp:
     record = PlayerLevelExp(level=level, required_exp=required_exp)
     session.add(record)
     session.commit()
-    return PlayerLevelExp
+    return record
 
 
 # 删
-def delete_player_level_exp(level_id: int):
+def delete_player_level_exp(level_id: int) -> None:
     """
     删除某个等级的经验需求
 
     :param level_id: 要删除的等级的ID
     :return: None
     """
-    session.query(PlayerLevelExp).filter(PlayerLevelExp.id == level_id).delete()
+    record = session.query(PlayerLevelExp).filter(PlayerLevelExp.id == level_id)
     session.commit()
+    return record
 
 
 # 改
-def update_player_level_exp(level: int, required_exp: int=None,skill_point:int=None) -> None:
+def update_player_level_exp(level: int, required_exp: int = None, skill_point: int = None) -> PlayerLevelExp:
     """
     修改玩家升级所需经验
 
@@ -70,6 +68,7 @@ def update_player_level_exp(level: int, required_exp: int=None,skill_point:int=N
         player_level_exp.skill_point = skill_point
 
     session.commit()
+    return player_level_exp
 
 
 # 查
@@ -79,23 +78,16 @@ def get_required_exp_by_level(level: int) -> PlayerLevelExp:
     :param level: 等级
     :return: 经验信息
     """
-    return session.query(PlayerLevelExp).filter(PlayerLevelExp.level == level).first().required_exp
-
-def get_skill_point_by_level(level: int) -> PlayerLevelExp:
-    """
-    根据等级查询对应的经验信息
-    :param level: 等级
-    :return: 经验信息
-    """
     return session.query(PlayerLevelExp).filter(PlayerLevelExp.level == level).first()
 
 
-def get_max_level():
+def get_max_level() -> int:
     """
     获取总经验值
     """
     max_level = session.query(PlayerLevelExp.level).order_by(desc(PlayerLevelExp.level)).first()
-    return max_level[0]
+    return max_level
+
 
 def get_total_exp():
     """

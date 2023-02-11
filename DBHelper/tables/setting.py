@@ -1,5 +1,5 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+
+
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from typing import List
@@ -36,7 +36,7 @@ class Setting(Base):
 
 
 # 增
-def add_setting(name: str, value: str) -> Setting:
+def add_setting(*,name: str, value: str) -> Setting:
     """
     新增一个设置
 
@@ -51,7 +51,7 @@ def add_setting(name: str, value: str) -> Setting:
 
 
 # 删
-def delete_setting(name: str):
+def delete_setting(*,name: str):
     """删除设置
 
     Args:
@@ -65,7 +65,7 @@ def delete_setting(name: str):
         session.delete(setting)
 
 
-def delete_setting_by_id(setting_id: int):
+def delete_setting_by_id(*,setting_id: int):
     """
     根据id删除设置记录
 
@@ -80,7 +80,7 @@ def delete_setting_by_id(setting_id: int):
 
 # 改
 
-def update_setting(setting_id: int, new_name: str, new_value: str) -> None:
+def update_setting(*,setting_id: int, new_name: str, new_value: str) -> None:
     """
     Update a single record in the 'setting' table based on its id.
 
@@ -89,16 +89,10 @@ def update_setting(setting_id: int, new_name: str, new_value: str) -> None:
         new_name (str): The new name of the setting.
         new_value (str): The new value of the setting.
 
-    Raises:
-        ValueError: If the setting with the specified id does not exist.
     """
 
     # Query the setting with the specified id
     setting = session.query(Setting).get(setting_id)
-
-    # Check if the setting exists
-    if setting is None:
-        raise ValueError(f"Setting with id {setting_id} does not exist.")
 
     # Update the setting
     setting.name = new_name
@@ -123,7 +117,7 @@ def get_settings() -> list:
     return settings
 
 
-def setting_exists(setting_name: str) -> bool:
+def setting_exists(*,setting_name: str) -> bool:
     """
     Check if a setting exists in the 'setting' table based on its name.
 
@@ -141,7 +135,7 @@ def setting_exists(setting_name: str) -> bool:
     return setting is not None
 
 
-def get_setting_by_id(setting_id: int) -> Setting:
+def get_setting_by_id(*,setting_id: int) -> Setting:
     """
     Retrieve a single record from the 'setting' table based on its id.
 
@@ -151,21 +145,15 @@ def get_setting_by_id(setting_id: int) -> Setting:
     Returns:
         dict: A dictionary that represents the setting record and contains keys 'name' and 'value'.
 
-    Raises:
-        ValueError: If the setting with the specified id does not exist.
     """
     # Query the setting with the specified id
     setting = session.query(Setting).get(setting_id)
-
-    # Check if the setting exists
-    if setting is None:
-        raise ValueError(f"Setting with id {setting_id} does not exist.")
 
     # Return the result
     return setting
 
 
-def get_setting_value_by_name(setting_name: str) -> str:
+def get_setting_value_by_name(*,setting_name: str) -> str:
     """
     Retrieve a single record from the 'setting' table based on its name.
 
@@ -175,16 +163,10 @@ def get_setting_value_by_name(setting_name: str) -> str:
     Returns:
         dict: A dictionary that represents the setting record and contains keys 'name' and 'value'.
 
-    Raises:
-        ValueError: If the setting with the specified name does not exist.
     """
 
     # Query the setting with the specified name
     setting = session.query(Setting).filter_by(name=setting_name).first()
-
-    # Check if the setting exists
-    if setting is None:
-        raise ValueError(f"Setting with name '{setting_name}' does not exist.")
 
     return setting.value
 
@@ -207,7 +189,7 @@ def get_initial_player_level() -> int:
     value = get_setting_value_by_name('initial_player_level')
     return int(value)
 
-def get_player_default_game_sign() -> int:
+def get_player_default_game_sign() -> str:
     """
     获取每个升星会获得多少加成。
     :return:

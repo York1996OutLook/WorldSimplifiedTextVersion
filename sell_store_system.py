@@ -69,7 +69,7 @@ def sell_store_return_or_expire_stuffs():
 
 
 # 用户取消 销售某商品之后，物品应该回到邮箱中
-def player_cancel_sell_stuff_send_mail(player_sell_store_record_id: int, ):
+def player_cancel_sell_stuff_send_mail(*,player_sell_store_record_id: int, ):
     # 获得取消售出物品的详细信息
     player_sell_store_record = get_sell_store_record_by_record_id(player_sell_store_record_id)
     stuff = get_stuff_by_stuff_id(player_sell_store_record.give_stuff_record_id)
@@ -99,7 +99,7 @@ def player_cancel_sell_stuff_send_mail(player_sell_store_record_id: int, ):
 
 
 # 购买某物品成功后，物品到买家背包中，所得收益发送到卖家邮箱中
-def player_buy_sell_store_stuff_to_self_bag(buyer_character_id: int, player_sell_store_record_id: int):
+def player_buy_sell_store_stuff_to_self_bag(*,buyer_character_id: int, player_sell_store_record_id: int):
     """
 
     :param buyer_character_id: 买家

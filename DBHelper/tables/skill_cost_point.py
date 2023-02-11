@@ -1,5 +1,5 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+
+
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from typing import List, Optional
@@ -27,7 +27,7 @@ class SkillCostPoint(Base):
 
 # 查
 
-def get_kill_point_by_level(level: int, ):
+def get_kill_point_by_level(*,level: int, ):
     """
     获取某个等级需要的技能点
     """

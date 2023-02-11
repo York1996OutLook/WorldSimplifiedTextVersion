@@ -1,5 +1,5 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+
+
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from typing import List
@@ -28,7 +28,7 @@ class RaiseStarProb(Base):
 
 # 查
 
-def get_success_prob_by_star_count(star_count: str) -> str:
+def get_success_prob_by_star_count(*,star_count: str) -> str:
     """
     根据升星数量查询成功概率
 

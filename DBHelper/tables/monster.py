@@ -1,5 +1,5 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+
+
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float, Boolean
 
@@ -24,7 +24,7 @@ class Monster(Base):
 
 
 # 增
-def add_monster(difficulty: int, name: str, exp_value: int, description: str, ) -> Monster:
+def add_monster(*,difficulty: int, name: str, exp_value: int, description: str, ) -> Monster:
     """
     新增怪物记录
 
@@ -56,7 +56,7 @@ def add_monster(difficulty: int, name: str, exp_value: int, description: str, ) 
 
 
 # 删
-def delete_monster(monster_id: int) -> None:
+def delete_monster(*,monster_id: int) -> None:
     """
     删除怪物信息
 
@@ -70,7 +70,7 @@ def delete_monster(monster_id: int) -> None:
 
 
 # 改
-def update_monster(monster_id: int, difficulty: int, name: str, exp_value: int, weekday: str, monthday: str,
+def update_monster(*,monster_id: int, difficulty: int, name: str, exp_value: int, weekday: str, monthday: str,
                    attack_property_id: int,
                    active_skill_id: int, description: str, drop_stuffs: str):
     """
@@ -102,7 +102,7 @@ def update_monster(monster_id: int, difficulty: int, name: str, exp_value: int, 
 
 
 # 查
-def get_monster_by_id(id: int):
+def get_monster_by_id(*,id: int):
     """
     根据ID查询怪物
 

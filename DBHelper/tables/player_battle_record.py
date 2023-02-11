@@ -1,10 +1,10 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Float,Boolean
-Base = declarative_base()
-
+from sqlalchemy import Column, Integer, String, Float, Boolean
 from DBHelper.session import session
+
+from Enums import BattleType
+
+Base = declarative_base()
 
 
 class PlayerBattleRecord(Base):
@@ -22,9 +22,8 @@ class PlayerBattleRecord(Base):
     battle_text = Column(String, comment="战斗产生的文字说明")
 
 
-
 # 增
-def add_battle_record(battle_type: int, positive_id: int, passive_id: int, positive_won: bool,
+def add_battle_record(*, battle_type: int, positive_id: int, passive_id: int, positive_won: bool,
                       battle_text: str) -> PlayerBattleRecord:
     """
     向战斗记录表中添加一条记录
@@ -41,7 +40,10 @@ def add_battle_record(battle_type: int, positive_id: int, passive_id: int, posit
 
     """
     new_record = PlayerBattleRecord(
-        battle_type=battle_type, positive_id=positive_id, passive_id=passive_id, positive_won=positive_won,
+        battle_type=battle_type,
+        positive_id=positive_id,
+        passive_id=passive_id,
+        positive_won=positive_won,
         battle_text=battle_text
     )
     session.add(new_record)
@@ -50,7 +52,7 @@ def add_battle_record(battle_type: int, positive_id: int, passive_id: int, posit
 
 
 # 删
-def delete_battle_record(record_id: int) -> None:
+def delete_battle_record(*, record_id: int) -> None:
     """
     删除战斗记录表中的一条记录
 
@@ -67,7 +69,7 @@ def delete_battle_record(record_id: int) -> None:
 
 
 # 改
-def update_battle_record_won(record_id: int, positive_won: bool) -> None:
+def update_battle_record_won(*, record_id: int, positive_won: bool) -> None:
     """
     修改战斗记录表中的主动攻击是否获胜
 
@@ -84,7 +86,7 @@ def update_battle_record_won(record_id: int, positive_won: bool) -> None:
     session.commit()
 
 
-def update_battle_record_text(record_id: int, battle_text: str) -> None:
+def update_battle_record_text(*, record_id: int, battle_text: str) -> None:
     """
     修改战斗记录表中的战斗产生的文字说明
 
@@ -101,7 +103,7 @@ def update_battle_record_text(record_id: int, battle_text: str) -> None:
     session.commit()
 
 
-def update_battle_record_positive_id(record_id: int, positive_character_id: int) -> None:
+def update_battle_record_positive_id(*, record_id: int, positive_character_id: int) -> None:
     """
     修改战斗记录表中的主动攻击characterID
 
@@ -120,28 +122,28 @@ def update_battle_record_positive_id(record_id: int, positive_character_id: int)
 
 # 查询
 
-def get_battles_by_positive_id(positive_id):
+def get_battles_by_positive_id(*, positive_id:int):
     """
     查询主动攻击者是positive_id的所有战斗记录
     """
     return session.query(PlayerBattleRecord).filter_by(positive_id=positive_id).all()
 
 
-def get_battles_by_passive_id(passive_id):
+def get_battles_by_passive_id(*, passive_id:int):
     """
     查询被动攻击者是passive_id的所有战斗记录
     """
     return session.query(PlayerBattleRecord).filter_by(passive_id=passive_id).all()
 
 
-def get_battles_by_battle_type(battle_type):
+def get_battles_by_battle_type(*, battle_type: BattleType):
     """
     查询战斗类型为battle_type的所有战斗记录
     """
     return session.query(PlayerBattleRecord).filter_by(battle_type=battle_type).all()
 
 
-def get_battles_by_result(positive_won):
+def get_battles_by_result(*, positive_won: bool):
     """
     查询主动攻击者胜利/失败的所有战斗记录
     """

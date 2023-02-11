@@ -1,5 +1,5 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+
+
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from typing import List, Optional
@@ -28,7 +28,7 @@ class SkillBook(Base):
 
 # 查
 
-def get_skill_book_by_skill_book_id(skill_book_id:int)->SkillBook:
+def get_skill_book_by_skill_book_id(*,skill_book_id:int)->SkillBook:
     """
     根据技能书的id查询技能书
 
@@ -41,7 +41,7 @@ def get_skill_book_by_skill_book_id(skill_book_id:int)->SkillBook:
     skill_book = session.query(SkillBook).filter_by(skill_book_id=skill_book_id).first()
     return skill_book
 
-def get_skill_id_by_skill_book_id(skill_book_id: int) -> SkillBook:
+def get_skill_id_by_skill_book_id(*,skill_book_id: int) -> SkillBook:
     """
     查询技能书的记录
 
@@ -56,7 +56,7 @@ def get_skill_id_by_skill_book_id(skill_book_id: int) -> SkillBook:
     return query.first()
 
 
-def get_skill_book_by_skill_id_skill_level(skill_id: int, level: int) -> SkillBook:
+def get_skill_book_by_skill_id_skill_level(*,skill_id: int, level: int) -> SkillBook:
     """
     查询技能书的记录
 

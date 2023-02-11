@@ -1,7 +1,7 @@
 from typing import List
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+
+
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float, Boolean
 
@@ -19,7 +19,7 @@ class EquipmentGemRecord(Base):
     gem_id = Column(Integer, comment="当前宝石的类型，参考BasePropertyType")
 
 # 查询
-def get_all_gems_by_equipment_id(equipment_id: int) -> List[EquipmentGemRecord]:
+def get_all_gems_by_equipment_id(*,equipment_id: int) -> List[EquipmentGemRecord]:
     """根据装备id查询所有宝石记录
 
     Args:

@@ -75,7 +75,7 @@ class Part:
     LEG = 11  # "腿"
     FOOT = 12  # "脚"
 
-    weapon = 13  # "武器"
+    WEAPON = 13  # "武器"
 
 
 class StuffStatus:
@@ -96,6 +96,7 @@ class StuffType:
     IDENTIFY_BOOK = 5  # 鉴定卷轴
     EXP_BOOK = 6  # 经验书  允许一次性使用多个
     SKILL_BOOK = 7  # 技能书 允许一次性使用多个
+    Potion = 8  # 药水 使用后可以临时提高某个属性；
 
 
 class BeingType:
@@ -115,6 +116,7 @@ class AdditionSourceType:
     ACHIEVEMENT = 3  # 成就称号
     SKILL = 4  # 技能
     EQUIPMENT = 5  # 装备
+    POTION = 6  # 临时药剂
 
 
 class AdditionalPropertyType:

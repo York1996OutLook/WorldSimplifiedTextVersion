@@ -31,6 +31,7 @@ from Utils import tools
 
 
 def send_email(
+        *,
         send_character_id: int,
         received_character_id: int,
         give_stuff_record_id: int,
@@ -53,8 +54,13 @@ def send_email(
 
 
 # 通过邮件将背包中的物品发送给其它玩家；
-def send_bag_stuff_to_other_player(send_character_id, bag_stuff_id: int, received_character_id: int, charge: int,
-                                   give: int):
+def send_bag_stuff_to_other_player(*,
+                                   send_character_id: int,
+                                   bag_stuff_id: int,
+                                   received_character_id: int,
+                                   charge: int,
+                                   give: int
+                                   ):
     # 首先，这个邮件会发送给自己。在对方未查收之前，这个邮件会一直存在；
     send_email(
         send_character_id=send_character_id,
@@ -79,7 +85,10 @@ def send_bag_stuff_to_other_player(send_character_id, bag_stuff_id: int, receive
 
 
 # 接受某个发给自己的邮件
-def accept_a_mail(character_id: int, player_mail_record_id: int):
+def accept_a_mail(*,
+                  character_id: int,
+                  player_mail_record_id: int
+                  ):
     player = get_player_by_character_id(character_id)
 
     player_mail_record = get_player_mail_record_by_player_mail_record_id(player_mail_record_id)
@@ -99,8 +108,9 @@ def accept_a_mail(character_id: int, player_mail_record_id: int):
 
 
 # 拒绝某个发给自己的邮件
-def reject_a_mail(player_mail_record_id: int):
-
+def reject_a_mail(*,
+                  player_mail_record_id: int
+                  ):
     # 邮件发送者会看到这个邮件的状态是被拒收了，并且是未读状态；
     player_mail_record = get_player_mail_record_by_player_mail_record_id(player_mail_record_id)
     update_mail_type_by_mail_record_id(player_mail_record, new_mail_type=MailType.SEND_TO_OTHER_PLAYER_GET_REJECT)

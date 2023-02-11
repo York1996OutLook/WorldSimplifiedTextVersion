@@ -1,5 +1,5 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+
+
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float, Boolean
 
@@ -17,7 +17,7 @@ class Gem(Base):
 
 
 # 增
-def add_gem(base_property_id: int, increase: int)->Gem:
+def add_gem(*,base_property_id: int, increase: int)->Gem:
     """
     新增宝石
 
@@ -35,7 +35,7 @@ def add_gem(base_property_id: int, increase: int)->Gem:
 
 
 # 删
-def delete_gem(gem_id: int):
+def delete_gem(*,gem_id: int):
     """
     删除宝石
 
@@ -54,7 +54,7 @@ def delete_gem(gem_id: int):
 
 
 # 改
-def update_gem(gem_id: int, base_property_id: int = None, increase: int = None):
+def update_gem(*,gem_id: int, base_property_id: int = None, increase: int = None):
     """
     修改宝石
 
@@ -78,7 +78,7 @@ def update_gem(gem_id: int, base_property_id: int = None, increase: int = None):
 
 
 # 查
-def get_gem_by_gem_id(gem_id: int):
+def get_gem_by_gem_id(*,gem_id: int):
     """
     根据ID查询宝石
 
@@ -92,7 +92,7 @@ def get_gem_by_gem_id(gem_id: int):
     return gem
 
 
-def get_gem_by_base_property_id(base_property_id: int):
+def get_gem_by_base_property_id(*,base_property_id: int):
     """
     根据base_property_id查询宝石
 
@@ -106,7 +106,7 @@ def get_gem_by_base_property_id(base_property_id: int):
     return gem
 
 
-def get_gems_by_increase(increase: int):
+def get_gems_by_increase(*,increase: int):
     """
     根据increase查询宝石
 
