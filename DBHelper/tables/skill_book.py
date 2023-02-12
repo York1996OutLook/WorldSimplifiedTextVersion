@@ -1,12 +1,10 @@
-
-
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String,Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from typing import List, Optional
 
-Base = declarative_base()
-
 from DBHelper.session import session
+
+Base = declarative_base()
 
 
 class SkillBook(Base):
@@ -18,6 +16,7 @@ class SkillBook(Base):
     skill_id = Column(Integer, comment="参考技能表")
     level = Column(Integer, comment="技能书的等级，高等级技能书可以学习低等级技能，但是反过来不行")
 
+    is_bind = Column(Boolean, comment="刚出来的时候是否已经绑定")
 
 # 增
 
@@ -28,7 +27,9 @@ class SkillBook(Base):
 
 # 查
 
-def get_skill_book_by_skill_book_id(*,skill_book_id:int)->SkillBook:
+def get_skill_book_by_skill_book_id(*,
+                                    skill_book_id: int
+                                    ) -> SkillBook:
     """
     根据技能书的id查询技能书
 
@@ -41,7 +42,10 @@ def get_skill_book_by_skill_book_id(*,skill_book_id:int)->SkillBook:
     skill_book = session.query(SkillBook).filter_by(skill_book_id=skill_book_id).first()
     return skill_book
 
-def get_skill_id_by_skill_book_id(*,skill_book_id: int) -> SkillBook:
+
+def get_skill_id_by_skill_book_id(*,
+                                  skill_book_id: int
+                                  ) -> SkillBook:
     """
     查询技能书的记录
 
@@ -56,7 +60,10 @@ def get_skill_id_by_skill_book_id(*,skill_book_id: int) -> SkillBook:
     return query.first()
 
 
-def get_skill_book_by_skill_id_skill_level(*,skill_id: int, level: int) -> SkillBook:
+def get_skill_book_by_skill_id_skill_level(*,
+                                           skill_id: int,
+                                           level: int
+                                           ) -> SkillBook:
     """
     查询技能书的记录
 

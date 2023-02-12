@@ -1,12 +1,9 @@
-
-
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from typing import List, Optional
+from DBHelper.session import session
 
 Base = declarative_base()
-
-from DBHelper.session import session
 
 
 class PositiveSkillCostMana(Base):
@@ -29,7 +26,9 @@ class PositiveSkillCostMana(Base):
 
 # 查
 
-def get_kill_cost_mana_by_level(*,skill_id: int, level: int, ):
+def get_kill_cost_mana_by_level(*,
+                                skill_id: int,
+                                level: int, ):
     """
     获取某个技能等级需要的法力值记录
     """

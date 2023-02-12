@@ -36,7 +36,10 @@ class Setting(Base):
 
 
 # 增
-def add_setting(*,name: str, value: str) -> Setting:
+def add_setting(*,
+                name: str,
+                value: str
+                ) -> Setting:
     """
     新增一个设置
 
@@ -51,7 +54,8 @@ def add_setting(*,name: str, value: str) -> Setting:
 
 
 # 删
-def delete_setting(*,name: str):
+def delete_setting(*,
+                   name: str):
     """删除设置
 
     Args:
@@ -65,7 +69,9 @@ def delete_setting(*,name: str):
         session.delete(setting)
 
 
-def delete_setting_by_id(*,setting_id: int):
+def delete_setting_by_id(*,
+                         setting_id: int
+                         ):
     """
     根据id删除设置记录
 
@@ -80,7 +86,11 @@ def delete_setting_by_id(*,setting_id: int):
 
 # 改
 
-def update_setting(*,setting_id: int, new_name: str, new_value: str) -> None:
+def update_setting(*,
+                   setting_id: int,
+                   new_name: str,
+                   new_value: str
+                   ) -> Setting:
     """
     Update a single record in the 'setting' table based on its id.
 
@@ -100,10 +110,11 @@ def update_setting(*,setting_id: int, new_name: str, new_value: str) -> None:
 
     # Commit the changes to the database
     session.commit()
+    return setting
 
 
 # 查
-def get_settings() -> list:
+def get_settings() -> List[Setting]:
     """
     Retrieve all records from the 'setting' table.
 
@@ -117,7 +128,9 @@ def get_settings() -> list:
     return settings
 
 
-def setting_exists(*,setting_name: str) -> bool:
+def setting_exists(*,
+                   setting_name: str
+                   ) -> bool:
     """
     Check if a setting exists in the 'setting' table based on its name.
 
@@ -127,7 +140,6 @@ def setting_exists(*,setting_name: str) -> bool:
     Returns:
         bool: True if the setting exists, False otherwise.
     """
-    # Create a SQLAlchemy engine that connects to the database file
     # Query the setting with the specified name
     setting = session.query(Setting).filter_by(name=setting_name).first()
 
@@ -135,7 +147,9 @@ def setting_exists(*,setting_name: str) -> bool:
     return setting is not None
 
 
-def get_setting_by_id(*,setting_id: int) -> Setting:
+def get_setting_by_id(*,
+                      setting_id: int
+                      ) -> Setting:
     """
     Retrieve a single record from the 'setting' table based on its id.
 
@@ -153,7 +167,9 @@ def get_setting_by_id(*,setting_id: int) -> Setting:
     return setting
 
 
-def get_setting_value_by_name(*,setting_name: str) -> str:
+def get_setting_value_by_name(*,
+                              setting_name: str
+                              ) -> str:
     """
     Retrieve a single record from the 'setting' table based on its name.
 
@@ -178,7 +194,7 @@ def get_per_star_improved_percent() -> int:
     获取每个升星会获得多少加成。
     :return:
     """
-    value = get_setting_value_by_name('per_star_improved_percent')
+    value = get_setting_value_by_name(setting_name='per_star_improved_percent')
     return int(value)
 
 def get_initial_player_level() -> int:
@@ -186,7 +202,7 @@ def get_initial_player_level() -> int:
     获取每个升星会获得多少加成。
     :return:
     """
-    value = get_setting_value_by_name('initial_player_level')
+    value = get_setting_value_by_name(setting_name='initial_player_level')
     return int(value)
 
 def get_player_default_game_sign() -> str:
@@ -194,7 +210,7 @@ def get_player_default_game_sign() -> str:
     获取每个升星会获得多少加成。
     :return:
     """
-    value = get_setting_value_by_name('player_default_game_sign')
+    value = get_setting_value_by_name(setting_name='player_default_game_sign')
     return value
 
 
@@ -203,7 +219,7 @@ def get_lottery_start_hour():
     获取开始抽奖的时间
     :return:
     """
-    value = get_setting_value_by_name('lottery_start_hour')
+    value = get_setting_value_by_name(setting_name='lottery_start_hour')
     return int(value)
 
 
@@ -212,7 +228,7 @@ def get_lottery_end_hour():
     获取结束抽奖的时间
     :return:
     """
-    value = get_setting_value_by_name('lottery_end_hour')
+    value = get_setting_value_by_name(setting_name='lottery_end_hour')
     return int(value)
 
 
@@ -221,7 +237,7 @@ def get_lottery_lucky_num():
     获取结束抽奖的时间
     :return:
     """
-    value = get_setting_value_by_name('lottery_lucky_num')
+    value = get_setting_value_by_name(setting_name='lottery_lucky_num')
     return int(value)
 
 
@@ -231,7 +247,7 @@ def get_sell_expire_hours():
     获取结束抽奖的时间
     :return:
     """
-    value = get_setting_value_by_name('sell_expire_hours')
+    value = get_setting_value_by_name(setting_name='sell_expire_hours')
     return int(value)
 
 
@@ -241,7 +257,7 @@ def get_game_master_id():
     获取结束抽奖的时间
     :return:
     """
-    value = get_setting_value_by_name('game_master_id')
+    value = get_setting_value_by_name(setting_name='game_master_id')
     return int(value)
 
 
@@ -249,5 +265,5 @@ def get_full_critical_point():
     """
     :return: 获取最大致命点，预计为 1000
     """
-    value = get_setting_value_by_name('最大致命点')
+    value = get_setting_value_by_name(setting_name='full_critical_point')
     return int(value)

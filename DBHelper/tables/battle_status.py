@@ -18,7 +18,7 @@ class BattleStatus(Base):
 
 
 # 增
-def add_battle_status(*,name: str, effect: str) -> BattleStatus:
+def add_battle_status(*, name: str, effect: str) -> BattleStatus:
     """
     新增战斗状态
     :param name:
@@ -32,7 +32,7 @@ def add_battle_status(*,name: str, effect: str) -> BattleStatus:
 
 
 # 删
-def delete_battle_status(*,battle_status_id: int):
+def delete_battle_status(*, battle_status_id: int):
     battle_status = session.query(BattleStatus).filter(BattleStatus.id == battle_status_id).first()
     if battle_status:
         session.delete(battle_status)
@@ -75,7 +75,7 @@ def get_all_battle_statuses():
     return session.query(BattleStatus).all()
 
 
-def get_battle_status_by_id(*,status_id: int):
+def get_battle_status_by_id(*, status_id: int):
     """
     通过 id 获取 BattleStatus 信息
     :param status_id: BattleStatus 的 id
@@ -84,13 +84,13 @@ def get_battle_status_by_id(*,status_id: int):
     return session.query(BattleStatus).filter(BattleStatus.id == status_id).first()
 
 
-def get_battle_status_by_name(*,status_name: str):
+def get_battle_status_by_name(*, name: str):
     """
     通过名称获取 BattleStatus 信息
-    :param status_name: BattleStatus 的名称
+    :param name: BattleStatus 的名称
     :return: BattleStatus
     """
-    return session.query(BattleStatus).filter(BattleStatus.name == status_name).first()
+    return session.query(BattleStatus).filter(BattleStatus.name == name).first()
 
 
 if __name__ == '__main__':

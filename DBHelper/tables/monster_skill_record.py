@@ -1,13 +1,11 @@
 from typing import List, Optional
 
-
-
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float, Boolean
 
-Base = declarative_base()
-
 from DBHelper.session import session
+
+Base = declarative_base()
 
 
 class MonsterSkillRecord(Base):
@@ -22,7 +20,6 @@ class MonsterSkillRecord(Base):
 
     skill_id = Column(Integer, comment="技能ID")  # ForeignKey(Skill.id)
     skill_level = Column(Integer, comment="已经学习的技能等级")
-
 
 # 增
 

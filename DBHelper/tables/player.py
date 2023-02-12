@@ -120,7 +120,7 @@ def update_player(*,
 
 
 # 查
-def is_player_exists_by_player_id(*,player_id: int) -> bool:
+def is_player_exists_by_player_id(*, player_id: int) -> bool:
     """
     检查玩家是否存在
 
@@ -137,7 +137,7 @@ def is_player_exists_by_player_id(*,player_id: int) -> bool:
     return player is not None
 
 
-def get_player_by_player_id(*,player_id: int) -> Player:
+def get_player_by_player_id(*, player_id: int) -> Player:
     """
     根据人物ID查询人物信息
 
@@ -148,7 +148,7 @@ def get_player_by_player_id(*,player_id: int) -> Player:
     return player
 
 
-def get_player_by_character_id(*,character_id: int) -> Player:
+def get_player_by_character_id(*, character_id: int) -> Player:
     """
     根据人物ID查询人物信息
 
@@ -159,7 +159,7 @@ def get_player_by_character_id(*,character_id: int) -> Player:
     return player
 
 
-def query_player_by_nickname(*,nickname: str) -> Player:
+def query_player_by_nickname(*, nickname: str) -> Player:
     """
     根据昵称查询人物信息
 
@@ -170,7 +170,7 @@ def query_player_by_nickname(*,nickname: str) -> Player:
     return player
 
 
-def query_player_by_level(*,level: int) -> List[Player]:
+def query_player_by_level(*, level: int) -> List[Player]:
     """
     根据等级查询人物信息
     :param level: 等级

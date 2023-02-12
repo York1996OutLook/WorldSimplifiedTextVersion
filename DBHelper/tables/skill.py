@@ -1,5 +1,4 @@
-
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from typing import List
 
@@ -21,7 +20,11 @@ class Skill(Base):
 
 
 # 增
-def add_skill(*,skill_name: str, is_positive: bool, effect_expression: str)->Skill:
+def add_skill(*,
+              skill_name: str,
+              is_positive: bool,
+              effect_expression: str
+              ) -> Skill:
     """
     Add a new skill to the 'skill' table.
 
@@ -39,8 +42,12 @@ def add_skill(*,skill_name: str, is_positive: bool, effect_expression: str)->Ski
     # Commit the transaction
     session.commit()
     return new_skill
+
+
 # 删
-def delete_skill(*,skill_id: int):
+def delete_skill(*,
+                 skill_id: int
+                 ):
     """
     Delete a skill from the 'skill' table based on its ID.
 

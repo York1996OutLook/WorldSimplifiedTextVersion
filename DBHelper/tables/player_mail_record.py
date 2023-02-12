@@ -124,7 +124,7 @@ def get_all_mails_for_character(*, character_id: int) -> List[PlayerMailRecord]:
     """
     return session.query(PlayerMailRecord).filter(
         (
-                    PlayerMailRecord.received_character_id == character_id and PlayerMailRecord.mail_type != MailType.SEND_TO_OTHER_PLAYER_GET_REJECT)
+                PlayerMailRecord.received_character_id == character_id and PlayerMailRecord.mail_type != MailType.SEND_TO_OTHER_PLAYER_GET_REJECT)
         |
         (PlayerMailRecord.send_character_id == character_id)).all()
 
@@ -152,7 +152,7 @@ def get_min_unused_mail_position(character_id: int):
     for mail in mails:
         positions.append(mail.mail_position_index)
 
-    available_position = find_smallest_missing(positions)
+    available_position = find_smallest_missing(positions=positions)
     return available_position
 
 

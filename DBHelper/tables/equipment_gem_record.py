@@ -1,13 +1,11 @@
 from typing import List
 
-
-
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float, Boolean
 
-Base = declarative_base()
-
 from DBHelper.session import session
+
+Base = declarative_base()
 
 
 class EquipmentGemRecord(Base):
@@ -16,10 +14,13 @@ class EquipmentGemRecord(Base):
     id = Column(Integer, primary_key=True)
 
     equipment_id = Column(Integer, comment="装备id")
-    gem_id = Column(Integer, comment="当前宝石的类型，参考BasePropertyType")
+    gem_id = Column(Integer, comment="当前宝石的id")
+
 
 # 查询
-def get_all_gems_by_equipment_id(*,equipment_id: int) -> List[EquipmentGemRecord]:
+def get_all_gems_by_equipment_id(*,
+                                 equipment_id: int
+                                 ) -> List[EquipmentGemRecord]:
     """根据装备id查询所有宝石记录
 
     Args:

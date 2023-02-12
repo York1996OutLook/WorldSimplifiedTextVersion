@@ -38,7 +38,7 @@ def add_player_achievement_record(*,achievement_id: int, character_id: int, achi
     )
     session.add(record)
     session.commit()
-    return PlayerAchievementRecord
+    return record
 
 
 # 删

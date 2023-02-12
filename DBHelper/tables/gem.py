@@ -1,23 +1,25 @@
-
-
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float, Boolean
 
-Base = declarative_base()
-
 from DBHelper.session import session
+
+from Enums import AdditionalPropertyType
+
+Base = declarative_base()
 
 
 class Gem(Base):
     __tablename__ = 'gem'
 
     id = Column(Integer, primary_key=True)
-    base_property_type = Column(Integer, comment="参考BasePropertyType.暂时不考虑加入其它属性的宝石")
+    additional_property_type = Column(Integer, comment="参考AdditionalPropertyType")
     increase = Column(Integer, comment="+1还是+2，3，4，5等")
+
+    is_bind = Column(Boolean, comment="刚出来的时候是否已经绑定")
 
 
 # 增
-def add_gem(*,base_property_id: int, increase: int)->Gem:
+def add_gem(*, base_property_id: int, increase: int) -> Gem:
     """
     新增宝石
 
@@ -35,7 +37,7 @@ def add_gem(*,base_property_id: int, increase: int)->Gem:
 
 
 # 删
-def delete_gem(*,gem_id: int):
+def delete_gem(*, gem_id: int):
     """
     删除宝石
 
@@ -54,7 +56,7 @@ def delete_gem(*,gem_id: int):
 
 
 # 改
-def update_gem(*,gem_id: int, base_property_id: int = None, increase: int = None):
+def update_gem(*, gem_id: int, base_property_id: int = None, increase: int = None):
     """
     修改宝石
 
@@ -78,7 +80,7 @@ def update_gem(*,gem_id: int, base_property_id: int = None, increase: int = None
 
 
 # 查
-def get_gem_by_gem_id(*,gem_id: int):
+def get_gem_by_gem_id(*, gem_id: int) -> Gem:
     """
     根据ID查询宝石
 
@@ -92,7 +94,7 @@ def get_gem_by_gem_id(*,gem_id: int):
     return gem
 
 
-def get_gem_by_base_property_id(*,base_property_id: int):
+def get_gem_by_base_property_id(*, base_property_id: int):
     """
     根据base_property_id查询宝石
 
@@ -106,7 +108,7 @@ def get_gem_by_base_property_id(*,base_property_id: int):
     return gem
 
 
-def get_gems_by_increase(*,increase: int):
+def get_gems_by_increase(*, increase: int):
     """
     根据increase查询宝石
 
@@ -118,11 +120,52 @@ def get_gems_by_increase(*,increase: int):
     """
     gems = session.query(Gem).filter_by(increase=increase).all()
     return gems
-if __name__ == '__main__':
-    gem1 = Gem(base_property_type=1, increase=2)
-    gem2 = Gem(base_property_type=2, increase=3)
-    gem3 = Gem(base_property_type=3, increase=1)
-    gem4 = Gem(base_property_type=4, increase=5)
 
-    session.add_all([gem1, gem2, gem3, gem4])
+
+if __name__ == '__main__':
+    gem_list = [
+        Gem(additional_property_type=AdditionalPropertyType.PHYSIQUE, increase=1, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.PHYSIQUE, increase=2, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.PHYSIQUE, increase=3, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.PHYSIQUE, increase=4, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.PHYSIQUE, increase=5, is_bind=False),
+
+        Gem(additional_property_type=AdditionalPropertyType.STRENGTH, increase=1, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.STRENGTH, increase=2, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.STRENGTH, increase=3, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.STRENGTH, increase=4, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.STRENGTH, increase=5, is_bind=False),
+
+        Gem(additional_property_type=AdditionalPropertyType.AGILITY, increase=1, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.AGILITY, increase=2, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.AGILITY, increase=3, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.AGILITY, increase=4, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.AGILITY, increase=5, is_bind=False),
+
+        Gem(additional_property_type=AdditionalPropertyType.INTELLIGENCE, increase=1, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.INTELLIGENCE, increase=2, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.INTELLIGENCE, increase=3, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.INTELLIGENCE, increase=4, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.INTELLIGENCE, increase=5, is_bind=False),
+
+        Gem(additional_property_type=AdditionalPropertyType.PERCEPTION, increase=1, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.PERCEPTION, increase=2, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.PERCEPTION, increase=3, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.PERCEPTION, increase=4, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.PERCEPTION, increase=5, is_bind=False),
+
+        Gem(additional_property_type=AdditionalPropertyType.CRITICAL_POINT, increase=1, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.CRITICAL_POINT, increase=2, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.CRITICAL_POINT, increase=3, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.CRITICAL_POINT, increase=4, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.CRITICAL_POINT, increase=5, is_bind=False),
+
+        Gem(additional_property_type=AdditionalPropertyType.HEALTH, increase=20, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.HEALTH, increase=50, is_bind=False),
+
+        Gem(additional_property_type=AdditionalPropertyType.MANA, increase=20, is_bind=False),
+        Gem(additional_property_type=AdditionalPropertyType.MANA, increase=50, is_bind=False),
+    ]
+
+    session.add_all(gem_list)
     session.commit()

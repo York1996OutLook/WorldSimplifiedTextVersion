@@ -8,7 +8,7 @@ from DBHelper.session import session
 from Utils import tools
 
 
-def get_player_unexpired_potion_record_by_record_id(*,
+def get_player_unexpired_potion_record_by_character_id(*,
                                                     character_id: int
                                                     )->player_potion_record.PlayerPotionRecord:
     """

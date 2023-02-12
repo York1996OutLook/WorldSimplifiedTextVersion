@@ -1,7 +1,5 @@
 from typing import List, Optional
 
-
-
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float, Boolean
 
@@ -16,13 +14,13 @@ class PlayerOrMonsterSkillSetting(Base):
     """
     用户设置的技能释放顺序，每回合只能设置一个主动技能
     """
-    __tablename__ = 'player_skill_setting'
+    __tablename__ = 'player_or_monster_skill_setting'
 
     id = Column(Integer, primary_key=True)
     being_type = Column(Integer, comment="参考枚举类型，being_type")
     character_or_monster_id = Column(Integer, comment="character_id or monster_id")  # 参考人物表
 
-    round_index=Column(Integer,comment="第n回合要释放的技能id")
-    round_skill=Column(Integer,comment="第n回合要释放的技能id")
+    round_index = Column(Integer, comment="第n回合")
+    round_skill = Column(Integer, comment="第n回合要释放的技能id。参考 MonsterSkillRecord")
 
     setting_timestamp = Column(Integer, comment="技能设置的时间戳")

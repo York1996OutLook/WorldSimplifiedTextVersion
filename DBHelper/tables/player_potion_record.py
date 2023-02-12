@@ -24,7 +24,7 @@ class PlayerPotionRecord(Base):
 
 
 # 增
-def add_player_potion_record(*,potion_id: int, character_id: int, tack_timestamp: int) -> PlayerPotionRecord:
+def add_player_potion_record(*, potion_id: int, character_id: int, tack_timestamp: int) -> PlayerPotionRecord:
     """
     Insert a new record of an potion
 
@@ -44,7 +44,7 @@ def add_player_potion_record(*,potion_id: int, character_id: int, tack_timestamp
 
 
 # 删
-def delete_player_potion_record(*,record_id: int) -> None:
+def delete_player_potion_record(*, record_id: int) -> None:
     """
     Delete an existing record of an potion
 
@@ -58,7 +58,7 @@ def delete_player_potion_record(*,record_id: int) -> None:
 
 
 # 改
-def update_player_potion_record(*,record_id: int, potion_id: int = None, character_id: int = None,
+def update_player_potion_record(*, record_id: int, potion_id: int = None, character_id: int = None,
                                 tack_timestamp: int = None) -> None:
     """
     Update an existing record of an potion
@@ -96,7 +96,7 @@ def get_player_potion_record_by_character_id(*, character_id: int) -> PlayerPoti
     return record
 
 
-def is_player_potion_record_exist(*,record_id: int) -> bool:
+def is_player_potion_record_exist(*, record_id: int) -> bool:
     """
     Check if a record of an potion exists
 

@@ -25,7 +25,7 @@ class Achievement(Base):
 
 
 # 增
-def add_achievement(*,name: str, condition: str) -> Achievement:
+def add_achievement(*, name: str, condition: str) -> Achievement:
     """
     创建成就
 
@@ -43,7 +43,7 @@ def add_achievement(*,name: str, condition: str) -> Achievement:
 
 
 # 删
-def delete_achievement(*,achievement_id: int) -> bool:
+def delete_achievement(*, achievement_id: int) -> bool:
     """
     删除成就
 
@@ -64,7 +64,7 @@ def delete_achievement(*,achievement_id: int) -> bool:
 
 # 改
 
-def update_achievement(*,achievement_id: int, new_name: str, new_condition: str) -> Achievement:
+def update_achievement(*, achievement_id: int, new_name: str, new_condition: str) -> Achievement:
     """
     更新成就信息
 
@@ -85,7 +85,7 @@ def update_achievement(*,achievement_id: int, new_name: str, new_condition: str)
 
 
 # 查
-def get_achievement_by_achievement_id(*,achievement_id: int) -> Achievement:
+def get_achievement_by_achievement_id(*, achievement_id: int) -> Achievement:
     """
     根据id查询成就
 

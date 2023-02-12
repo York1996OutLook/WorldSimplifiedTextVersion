@@ -1,12 +1,3 @@
-class BattleType:
-    """
-    战斗类型
-    """
-    WITH_OTHER_PLAYER = 1  # 和其他玩家
-    WITH_MONSTER = 2  # 和怪物Boss等
-    WITH_SELF = 3  # 和自己战斗？？
-
-
 class BasePropertyType:  # 目前宝石和基础属性公用一套属性。所以宝石的类型也仅仅限于这些类型。
     """
     1 3 5 7 9的原因是为了和附加属性一致
@@ -60,7 +51,7 @@ class EquipmentQuality:
     ETERNAL = 8  # 4个属性
 
 
-class Part:
+class PartType:
     CLOAK = 1  # "披风"
     NECKLACE = 2  # "项链"
     COSTUME = 3  # "时装"
@@ -119,6 +110,15 @@ class AdditionSourceType:
     POTION = 6  # 临时药剂
 
 
+class GemInlayingStatus:
+    """
+    宝石镶嵌的状态。一般只有装备可以镶嵌宝石；
+    """
+    NOT_INLAYING = 1  # 还未镶嵌宝石
+    INLAYING = 2  # 宝石镶嵌中
+    DAMAGED_INLAYING = 3  # 镶嵌破损
+
+
 class AdditionalPropertyType:
     """
     装备、技能、称号所有可能的属性
@@ -127,16 +127,16 @@ class AdditionalPropertyType:
     PHYSIQUE_ADD_PERCENT = 2  # "体质增加百分比"
 
     STRENGTH = 3  # "力量"
-    STRENGTH_ADD_PERCENT = 4  # "力量"
+    STRENGTH_ADD_PERCENT = 4  # "力量增加百分比"
 
     AGILITY = 5  # "敏捷"
-    AGILITY_ADD_PERCENT = 6  # "敏捷"
+    AGILITY_ADD_PERCENT = 6  # "敏捷增加百分比"
 
     INTELLIGENCE = 7  # "智力"
-    INTELLIGENCE_ADD_PERCENT = 8  # "智力"
+    INTELLIGENCE_ADD_PERCENT = 8  # "智力增加百分比"
 
     PERCEPTION = 9  # "感知"
-    PERCEPTION_ADD_PERCENT = 10  # "感知"
+    PERCEPTION_ADD_PERCENT = 10  # "感知增加百分比"
 
     ATTACK_SPEED = 11  # 攻击速度
     ATTACK_SPEED_ADD_PERCENT = 12  # 攻击速度增加百分比
@@ -147,17 +147,17 @@ class AdditionalPropertyType:
     HEALTH = 15  # 生命值
     HEALTH_ADD_PERCENT = 16  # 生命值增加百分比
 
-    HEALTH_RECOVERY = 17  # 生命值回复
-    HEALTH_RECOVERY_ADD_PERCENT = 18  # 生命值回复增加百分比
+    HEALTH_RECOVERY = 17  # 生命值恢复(每回合)
+    HEALTH_RECOVERY_ADD_PERCENT = 18  # 生命值恢复增加百分比
 
     HEALTH_ABSORPTION = 19  # 生命吸收
     HEALTH_ABSORPTION_ADD_PERCENT = 20  # 生命吸收增加百分比
 
     MANA = 21  # 法力值
-    MANA_ADD_PERCENT = 22  # 法力值增加百分比
+    MANA_ADD_PERCENT = 22  # 法力值增加百分比(每回合)
 
-    MANA_RECOVERY = 23  # 法力值回复
-    MANA_RECOVERY_ADD_PERCENT = 24  # 法力值回复百分比
+    MANA_RECOVERY = 23  # 法力值恢复
+    MANA_RECOVERY_ADD_PERCENT = 24  # 法力值恢复百分比
 
     MANA_ABSORPTION = 25  # 法力值吸收
     MANA_ABSORPTION_ADD_PERCENT = 26  # 法力值吸收增加百分比
@@ -196,6 +196,23 @@ class CalendarType:
     GREGORIAN = 2  # 公历
 
 
+class EquipmentPropertyAvailability:
+    MIN = 1  # 最小属性
+    MAX = 2  # 最大属性
+    CURRENT = 3  # 当前属性
+    IDENTIFY_TEMP = 4  # 鉴定得到的临时属性
+
+
+class ExpBookType:
+    CHARACTER = 1  # 角色
+
+
+class DateType:
+    HOUR_OF_DAY = 1  # 每天的几点会出现；对应的值为0到24
+    DAY_OF_WEEK = 2  # 每周几；对应的值为1-7
+    DAY_OF_MONTH = 3  # 每周几；对应的值为1-31
+    HOLIDAY = 4  # 特殊节日会出现；参考表holiday
+
+
 if __name__ == '__main__':
-    var = AdditionalPropertyType.DAMAGE_SHIELD
     print()

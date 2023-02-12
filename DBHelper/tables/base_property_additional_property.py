@@ -23,7 +23,7 @@ class BasePropertyAdditionalProperty(Base):
 
 
 # 增
-def add_base_property_additional_property(*,base_property_name: int,
+def add_base_property_additional_property(*, base_property_name: int,
                                           attack_increase: int,
                                           health_increase: int,
                                           mana_increase: int,
@@ -50,7 +50,7 @@ def add_base_property_additional_property(*,base_property_name: int,
 
 
 # 删
-def delete_property_add_record_by_id(*,record_id: int):
+def delete_property_add_record_by_id(*, record_id: int):
     """
     通过附加属性提升记录ID删除记录
     :param record_id: 附加属性提升记录ID
@@ -61,7 +61,7 @@ def delete_property_add_record_by_id(*,record_id: int):
 
 
 # 改
-def update_base_property_add_record(*,record_id: int, base_property_name: str = None,
+def update_base_property_add_record(*, record_id: int, base_property_name: str = None,
                                     attack_increase: int = None, health_increase: int = None, mana_increase: int = None,
                                     attack_speed_increase: int = None):
     """

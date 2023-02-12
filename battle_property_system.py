@@ -1,7 +1,7 @@
 from collections import defaultdict
-from typing import List
+from typing import List, DefaultDict
 
-from Enums import AdditionSourceType, AdditionalPropertyType, BeingType
+from Enums import AdditionSourceType, AdditionalPropertyType, BeingType, EquipmentPropertyAvailability
 from DBHelper.db import *
 
 from DBHelper.session import session
@@ -18,7 +18,7 @@ def add_new_player_additional_property_record(
     :param character_id: 玩家的character_id
     :return 返回该属性的id
     """
-    properties_dict = misc_properties.get_properties_dict_by_source_type(source_type=AdditionSourceType.INITIAL)
+    properties_dict = misc_properties.get_properties_dict_by(source_type=AdditionSourceType.INITIAL)
 
     new_additional_property_record = player_monster_additional_property_record.PlayerMonsterAdditionalPropertyRecord(
         being_type=BeingType.PLAYER,
@@ -56,7 +56,9 @@ def add_new_player_additional_property_record(
     return new_additional_property_record
 
 
-def sum_all_additional_properties(*,additional_properties_dicts: List[defaultdict[int]], ) -> defaultdict[int]:
+def sum_all_additional_properties(*,
+                                  additional_properties_dicts: List[defaultdict[int]]
+                                  ) -> DefaultDict[int, int]:
     """
     通用函数
     :param additional_properties_dicts:  字典们，方便循环进行累加，不用写大量的键
@@ -69,7 +71,10 @@ def sum_all_additional_properties(*,additional_properties_dicts: List[defaultdic
     return sum_result_dict
 
 
-def get_equipment_improved_properties(*,equipment_additional_properties_dict: defaultdict[int], improve_rate: float):
+def get_equipment_improved_properties(*,
+                                      equipment_additional_properties_dict: defaultdict[int],
+                                      improve_rate: float
+                                      ) -> DefaultDict[int, int]:
     """
     获取经过百分比提升之后的属性效果（目前只有装备升星这个途径；）
     :param equipment_additional_properties_dict:
@@ -83,86 +88,66 @@ def get_equipment_improved_properties(*,equipment_additional_properties_dict: de
     return equipment_additional_properties_dict
 
 
-def get_player_achievement_title_additional_properties_dict_by_character_id(*,character_id: int):
+def get_player_achievement_title_additional_properties_dict_by_character_id(*, character_id: int) -> DefaultDict[
+    int, int]:
     """
     获取所有属性。玩家->成就对应的称号->属性
     :param character_id:
     :return:
     """
-    record = player_achievement_record.get_player_achievement_title_by_character_id(character_id)
+    record = player_achievement_record.get_player_achievement_title_by_character_id(character_id=character_id)
 
-    achievement_properties_dict = misc_properties.get_properties_dict_by_source_type_and_source_id(
+    achievement_properties_dict = misc_properties.get_properties_dict_by(
         source_type=AdditionSourceType.ACHIEVEMENT,
         source_id=record.achievement_id
     )
     return achievement_properties_dict
 
 
-def get_player_potion_additional_properties_dict(*,character_id: int):
+def get_player_potion_additional_properties_dict(*,
+                                                 character_id: int
+                                                 ) -> DefaultDict[int, int]:
     """
     获取所有属性。玩家->临时药剂->临时属性
     :param character_id:
     :return:
     """
 
-    potion_record = potion_system.get_player_unexpired_potion_record_by_record_id(character_id=character_id)
+    potion_record = potion_system.get_player_unexpired_potion_record_by_character_id(character_id=character_id)
 
-    potion_properties_dict = misc_properties.get_properties_dict_by_source_type_and_source_id(
+    potion_properties_dict = misc_properties.get_properties_dict_by(
         source_type=AdditionSourceType.POTION,
         source_id=potion_record.potion_id
     )
     return potion_properties_dict
 
 
-def get_all_player_base_properties_dict_by_character_id(*, character_id: int) -> dict:
+def get_all_player_base_properties_dict_by_character_id(*, character_id: int) -> DefaultDict[int, int]:
     """
     玩家->基础属性->属性
     获取所有基础属性加点带来的属性提升
     :param character_id:
     :return:
     """
-    all_player_base_properties_dict = misc_properties.get_properties_dict_by_source_type_and_source_id(
+    all_player_base_properties_dict = misc_properties.get_properties_dict_by(
         source_type=AdditionSourceType.BASE_PROPERTY_POINT,  # 基础属性加点
         source_id=character_id,
     )
     return all_player_base_properties_dict
 
 
-def get_all_initial_properties_dict() -> dict:
+def get_all_initial_properties_dict() -> DefaultDict[int, int]:
     """
-     ->初始属性（每个玩家都一样,所以不需要任何）
+     ->初始属性（每个玩家都一样,所以不需要任何参数）
     :return:
     """
-    all_player_initial_properties_dict = misc_properties.get_properties_dict_by_source_type(
+    all_player_initial_properties_dict = misc_properties.get_properties_dict_by(
         source_type=AdditionSourceType.INITIAL,  # 基础属性加点
     )
     return all_player_initial_properties_dict
 
 
-def get_all_player_initial_additional_property(*,character_id: int):
-    """
-    获取所有属性
-    :param character_id:
-    :return:
-    """
-    dicts = []
-
-    all_player_achievement_records = player_achievement_record.get_all_achievements_records_by_character_id(
-        character_id)
-    for record in all_player_achievement_records:
-        achievement_properties_dict = misc_properties.get_properties_dict_by_source_type_and_source_id(
-            source_type=AdditionSourceType.ACHIEVEMENT,
-            source_id=record.achievement_id)
-        dicts.append(achievement_properties_dict)
-
-    all_achievements_addition_properties_dict = sum_all_additional_properties(
-        dicts,
-    )
-
-    return all_achievements_addition_properties_dict
-
-
-def get_all_skills_additional_properties_by_character_id(*,character_id: int):
+def get_all_skills_additional_properties_by_character_id(*, character_id: int) -> DefaultDict[int, int]:
     """
     根据人物id查询所有技能的附加属性
     :param character_id:
@@ -170,20 +155,21 @@ def get_all_skills_additional_properties_by_character_id(*,character_id: int):
     """
     dicts = []
 
-    skills = player_skill_record.get_player_all_skill_record_by_character_id(character_id)
+    skills = player_skill_record.get_player_all_skill_record_by_character_id(character_id=character_id)
     for one_skill in skills:
-        one_skill_book = skill_book.get_skill_book_by_skill_id_skill_level(one_skill.id, one_skill.skill_level)
+        one_skill_book = skill_book.get_skill_book_by_skill_id_skill_level(skill_id=one_skill.id,
+                                                                           level=one_skill.skill_level)
 
-        skill_additional_properties_dict = misc_properties.get_properties_dict_by_source_type_and_source_id(
+        skill_additional_properties_dict = misc_properties.get_properties_dict_by(
             source_type=AdditionSourceType.SKILL,
             source_id=one_skill_book.id)
         dicts.append(skill_additional_properties_dict)
 
-    result_properties_dict = sum_all_additional_properties(dicts)
+    result_properties_dict = sum_all_additional_properties(additional_properties_dicts=dicts)
     return result_properties_dict
 
 
-def get_all_equipments_additional_properties_by_character_id(*,character_id: int):
+def get_all_equipments_additional_properties_by_character_id(*, character_id: int) -> DefaultDict[int, int]:
     """
     根据人物id查询所有装备的附加属性。并且计算装备上的宝石、升星。
     :param character_id:
@@ -191,13 +177,17 @@ def get_all_equipments_additional_properties_by_character_id(*,character_id: int
     """
     dicts = []
 
-    equipments = player_stuff_record.get_all_wearing_stuffs_by_character_id(character_id)
+    equipments = player_stuff_record.get_all_wearing_stuffs_by_character_id(character_id=character_id)
     for equipment in equipments:
 
-        # 获取装备升星带来的属性提升
-        equipment_additional_properties_dict = misc_properties.get_properties_dict_by_source_type_and_source_id(
+        # 获取装备当前属性
+        equipment_additional_properties_dict = misc_properties.get_properties_dict_by(
             source_type=AdditionSourceType.EQUIPMENT,
-            source_id=equipment.id)
+            source_id=equipment.id,
+            property_availability=EquipmentPropertyAvailability.CURRENT,
+        )
+
+        # 获取装备升星带来的属性提升
         cur_star_improve_rate = (equipment.current_stars_num * setting.get_per_star_improved_percent()) / 100
         equipment_properties_dict = get_equipment_improved_properties(
             equipment_additional_properties_dict=equipment_additional_properties_dict,
@@ -207,18 +197,18 @@ def get_all_equipments_additional_properties_by_character_id(*,character_id: int
 
         # 获取装备宝石带来的属性提升；
         gems_properties_dict = []
-        equipment_gems = equipment_gem_record.get_all_gems_by_equipment_id(equipment.id)
-        for equipment_gem in equipment_gems:  # 一个装备有若干个宝石
-            one_gem = equipment_gem.gem_idget_gem_by_gem_id(equipment_gem.gem_id)
+        equipment_gem_records = equipment_gem_record.get_all_gems_by_equipment_id(equipment_id=equipment.id)
+        for gem_record in equipment_gem_records:  # 一个装备有若干个宝石
+            one_gem = gem.get_gem_by_gem_id(gem_id=gem_record.gem_id)
             gems_properties_dict[one_gem.base_property_type] += one_gem.increase
         dicts.append(gems_properties_dict)
 
     # 计算所有属性加成
-    result_properties_dict = sum_all_additional_properties(dicts)
+    result_properties_dict = sum_all_additional_properties(additional_properties_dicts=dicts)
     return result_properties_dict
 
 
-def get_player_initial_skills_achievements_equipments_properties_dict(*,character_id: int):
+def get_player_initial_skills_achievements_equipments_properties_dict(*, character_id: int) -> DefaultDict[int, int]:
     """
     获取人物初始、技能、成就称号、装备所获得的所有属性
     :param character_id:
@@ -254,4 +244,4 @@ def get_player_initial_skills_achievements_equipments_properties_dict(*,characte
 
 
 if __name__ == '__main__':
-    get_player_initial_skills_achievements_equipments_properties_dict(1)
+    get_player_initial_skills_achievements_equipments_properties_dict(character_id=1)

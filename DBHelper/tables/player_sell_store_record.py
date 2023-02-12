@@ -28,8 +28,13 @@ class PlayerSellStoreRecord(Base):
 
 
 # 增
-def add_sell_store_record(*, owner_character_id: int, stuff_name: str, stuff_count: int, original_price: int,
-                          initial_sell_timestamp: int, tax_rate: float) -> PlayerSellStoreRecord:
+def add_sell_store_record(*,
+                          owner_character_id: int,
+                          stuff_name: str,
+                          stuff_count: int,
+                          original_price: int,
+                          initial_sell_timestamp: int,
+                          tax_rate: float) -> PlayerSellStoreRecord:
     """
     增加一条交易所记录
 
@@ -65,9 +70,14 @@ def delete_sell_store_record(*, sell_store_record_id: int):
 
 
 # 改
-def update_sell_store_record(*, record_id: int, new_owner_character_id: int = None, new_stuff_name: str = None,
-                             new_stuff_count: int = None, new_original_price: int = None,
-                             new_initial_sell_timestamp: int = None, new_tax_rate: float = None):
+def update_sell_store_record(*,
+                             record_id: int,
+                             new_owner_character_id: int = None,
+                             new_stuff_name: str = None,
+                             new_stuff_count: int = None,
+                             new_original_price: int = None,
+                             new_initial_sell_timestamp: int = None,
+                             new_tax_rate: float = None):
     """
     修改交易所记录
 
@@ -99,7 +109,10 @@ def update_sell_store_record(*, record_id: int, new_owner_character_id: int = No
 # 查
 
 
-def query_sell_store_records(*, owner_character_id: int = None, stuff_name: str = None, is_sold: bool = None):
+def query_sell_store_records(*,
+                             owner_character_id: int = None,
+                             stuff_name: str = None,
+                             is_sold: bool = None):
     """
     查询交易所记录
 
@@ -134,7 +147,9 @@ def get_sell_store_record_by_record_id(*, record_id: int) -> PlayerSellStoreReco
     return session.query(PlayerSellStoreRecord).filter_by(id=record_id).first()
 
 
-def get_all_sell_store_records_by_timestamp(*, start_timestamp: int = None, end_timestamp: int = None):
+def get_all_sell_store_records_by_timestamp(*,
+                                            start_timestamp: int = None,
+                                            end_timestamp: int = None):
     """
     根据时间查询交易所记录
 
