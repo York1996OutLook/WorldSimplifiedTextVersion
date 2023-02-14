@@ -59,26 +59,29 @@ class App:
             if used_points + change_point_num > total_points:
                 print(f"剩余点数不够，您最多加点{total_points - used_points}")
                 return
-            # 更新或者新插入加点
-            misc_properties.update_or_add_new_base_property(character_id=cur_player.id,
-                                                            base_property_type=property_type,
-                                                            base_property_value=
-                                                            base_properties_dict[property_type] + change_point_num)
-
-            # 输出当前加点信息
-            used_points = misc_properties.get_used_base_property_points_num(character_id=cur_player.id)
-            total_points = cur_player.current_level * setting.get_per_level_base_point_num()
-
-            base_properties_dict = misc_properties.get_base_property_dict_by(character_id=cur_player.id)
-            points_signed_string = "\n".join([f"{property_type_cn_dict[key]}+{base_properties_dict[key]}" for key in
-                                    base_properties_dict])
-            print(f'加点成功，你当前的加点分配是:\n{points_signed_string},未分配点数: {total_points - used_points}')
-            return
 
         # is minus
         cur_value = base_properties_dict[property_type]
         if change_point_num > cur_value:
             print(f'当前{property_type_cn_dict[property_type]}+{cur_value},无法 - {change_point_num}')
+            return
+        if not is_plus:
+            change_point_num = -change_point_num
+
+        # 更新或者新插入加点
+        misc_properties.update_or_add_new_base_property(character_id=cur_player.id,
+                                                        base_property_type=property_type,
+                                                        base_property_value=
+                                                        base_properties_dict[property_type] + change_point_num)
+
+        # 输出当前加点信息
+        used_points = misc_properties.get_used_base_property_points_num(character_id=cur_player.id)
+        total_points = cur_player.current_level * setting.get_per_level_base_point_num()
+
+        base_properties_dict = misc_properties.get_base_property_dict_by(character_id=cur_player.id)
+        points_signed_string = "\n".join([f"{property_type_cn_dict[key]}+{base_properties_dict[key]}" for key in
+                                          base_properties_dict])
+        print(f'属性点分配成功，你当前的属性点分配是:\n{points_signed_string},未分配点数: {total_points - used_points}')
 
     def handle_player_get_unsigned_point(self):
         cur_player = player.get_player_by_player_id(player_id=self.player_id)
