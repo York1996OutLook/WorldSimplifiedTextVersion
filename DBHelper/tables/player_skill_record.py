@@ -70,10 +70,9 @@ def update_learned_skill_record_by_character_id_skill_id(*,
     """
     record = session.query(PlayerSkillRecord).filter(PlayerSkillRecord.character_id == character_id,
                                                      PlayerSkillRecord.skill_id == skill_id).first()
-    if record:
-        record.skill_level = new_skill_level
-        record.learning_timestamp = new_learning_timestamp
-        session.commit()
+    record.skill_level = new_skill_level
+    record.learning_timestamp = new_learning_timestamp
+    session.commit()
 
 
 def update_learned_skill_record_by_character_id(*,
@@ -92,8 +91,6 @@ def update_learned_skill_record_by_character_id(*,
     :return: None
     """
     record = session.query(PlayerSkillRecord).filter(PlayerSkillRecord.id == record_id).first()
-    if record is None:
-        return None
     record.character_id = character_id
     record.skill_id = skill_id
     record.skill_level = skill_level
@@ -113,8 +110,6 @@ def update_player_skill_record_level_by_character_id(*,
     :return: None
     """
     record = session.query(PlayerSkillRecord).filter(PlayerSkillRecord.id == record_id).first()
-    if record is None:
-        return None
     record.skill_level = skill_level
     record.learning_timestamp = learning_timestamp
     session.commit()

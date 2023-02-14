@@ -34,12 +34,8 @@ def add_battle_status(*, name: str, effect: str) -> BattleStatus:
 # 删
 def delete_battle_status(*, battle_status_id: int):
     battle_status = session.query(BattleStatus).filter(BattleStatus.id == battle_status_id).first()
-    if battle_status:
-        session.delete(battle_status)
-        session.commit()
-        print("删除成功")
-    else:
-        print("记录不存在")
+    session.delete(battle_status)
+    session.commit()
 
 
 # 改
@@ -96,7 +92,7 @@ def get_battle_status_by_name(*, name: str):
 if __name__ == '__main__':
     # 假设名称和效果已经定义好
     status_names = ["中毒", "火烧", "冰冻", "沉默", "昏睡"]
-    status_effects = ["生命值每回合减少5%", "受到的伤害增加25%", "攻击速度减少50%", "无法使用技能", "回合数+1"]
+    status_effects = ["生命值每回合减少5%", "受到的伤害增加25%", "出手速度减少50%", "无法使用技能", "回合数+1"]
 
     # 插入数据
     for status_name, status_effect in zip(status_names, status_effects):

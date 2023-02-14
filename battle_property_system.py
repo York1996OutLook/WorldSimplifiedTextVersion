@@ -12,7 +12,7 @@ import potion_system
 def add_new_player_additional_property_record(
         *,
         character_id: int,
-) -> player_monster_additional_property_record.PlayerMonsterAdditionalPropertyRecord:
+) -> DefaultDict[int, int]:
     """
     新增新玩家的额外属性记录，由于是新的玩家，所以所有属性都是初始值；
     :param character_id: 玩家的character_id
@@ -20,44 +20,25 @@ def add_new_player_additional_property_record(
     """
     properties_dict = misc_properties.get_properties_dict_by(source_type=AdditionSourceType.INITIAL)
 
-    new_additional_property_record = player_monster_additional_property_record.PlayerMonsterAdditionalPropertyRecord(
-        being_type=BeingType.PLAYER,
-        being_id=character_id,
+    additional_properties_record_list = []
+    for additional_property_type in properties_dict:
+        new_additional_property_record = player_monster_additional_property_record.PlayerMonsterAdditionalPropertyRecord(
+            being_type=BeingType.PLAYER,
+            being_id=character_id,
 
-        attack=properties_dict[AdditionalPropertyType.ATTACK],
+            additional_property_type=additional_property_type,
+            additional_property_value=properties_dict[additional_property_type]
+        )
+        additional_properties_record_list.append(new_additional_property_record)
 
-        attack_speed=properties_dict[AdditionalPropertyType.ATTACK_SPEED],
-
-        health=properties_dict[AdditionalPropertyType.HEALTH],
-
-        health_recovery=properties_dict[AdditionalPropertyType.HEALTH_RECOVERY],
-
-        health_absorption=properties_dict[AdditionalPropertyType.HEALTH_ABSORPTION],
-
-        mana=properties_dict[AdditionalPropertyType.MANA],
-
-        mana_recovery=properties_dict[AdditionalPropertyType.MANA_RECOVERY],
-
-        mana_absorption=properties_dict[AdditionalPropertyType.MANA_ABSORPTION],
-
-        counterattack=properties_dict[AdditionalPropertyType.COUNTERATTACK],
-
-        ignore_counterattack=properties_dict[AdditionalPropertyType.IGNORE_COUNTERATTACK],
-
-        critical_point=properties_dict[AdditionalPropertyType.CRITICAL_POINT],
-
-        damage_shield=properties_dict[AdditionalPropertyType.DAMAGE_SHIELD],
-
-        exp_add_percent=properties_dict[AdditionalPropertyType.EXP_ADD_PERCENT],
-    )
-    session.add(new_additional_property_record)
+    session.add_all(additional_properties_record_list)
     session.commit()
 
-    return new_additional_property_record
+    return properties_dict
 
 
 def sum_all_additional_properties(*,
-                                  additional_properties_dicts: List[defaultdict[int]]
+                                  additional_properties_dicts: List[DefaultDict[int, int]]
                                   ) -> DefaultDict[int, int]:
     """
     通用函数
@@ -67,12 +48,14 @@ def sum_all_additional_properties(*,
     sum_result_dict = defaultdict(int)
     # 由于是从1开始的这样刚好包含所有的键
     for key in range(AdditionalPropertyType.min_num, AdditionalPropertyType.max_num + 1):
-        sum_result_dict[key] = sum([dic[key] for dic in additional_properties_dicts])
+        sums = sum([dic[key] for dic in additional_properties_dicts])
+        if sums!=0: # 等于0的不进行统计
+            sum_result_dict[key] = sums
     return sum_result_dict
 
 
 def get_equipment_improved_properties(*,
-                                      equipment_additional_properties_dict: defaultdict[int],
+                                      equipment_additional_properties_dict: DefaultDict[int, int],
                                       improve_rate: float
                                       ) -> DefaultDict[int, int]:
     """
@@ -95,11 +78,10 @@ def get_player_achievement_title_additional_properties_dict_by_character_id(*, c
     :param character_id:
     :return:
     """
-    record = player_achievement_record.get_player_achievement_title_by_character_id(character_id=character_id)
+    one_player = player.get_player_by_character_id(character_id=character_id)
 
-    achievement_properties_dict = misc_properties.get_properties_dict_by(
-        source_type=AdditionSourceType.ACHIEVEMENT,
-        source_id=record.achievement_id
+    achievement_properties_dict = misc_properties.get_properties_dict_by_achievement_id(
+        achievement_id = one_player.achievement_id
     )
     return achievement_properties_dict
 
@@ -115,6 +97,9 @@ def get_player_potion_additional_properties_dict(*,
 
     potion_record = potion_system.get_player_unexpired_potion_record_by_character_id(character_id=character_id)
 
+    if potion_record is None:
+        return defaultdict(int)
+    # 说明没有查到对应未过期的药剂记录；
     potion_properties_dict = misc_properties.get_properties_dict_by(
         source_type=AdditionSourceType.POTION,
         source_id=potion_record.potion_id
@@ -141,8 +126,7 @@ def get_all_initial_properties_dict() -> DefaultDict[int, int]:
      ->初始属性（每个玩家都一样,所以不需要任何参数）
     :return:
     """
-    all_player_initial_properties_dict = misc_properties.get_properties_dict_by(
-        source_type=AdditionSourceType.INITIAL,  # 基础属性加点
+    all_player_initial_properties_dict = misc_properties.get_properties_dict_by_initial(
     )
     return all_player_initial_properties_dict
 
@@ -160,9 +144,8 @@ def get_all_skills_additional_properties_by_character_id(*, character_id: int) -
         one_skill_book = skill_book.get_skill_book_by_skill_id_skill_level(skill_id=one_skill.id,
                                                                            level=one_skill.skill_level)
 
-        skill_additional_properties_dict = misc_properties.get_properties_dict_by(
-            source_type=AdditionSourceType.SKILL,
-            source_id=one_skill_book.id)
+        skill_additional_properties_dict = misc_properties.get_properties_dict_by_skill(
+            skill_book_id=one_skill_book.id)
         dicts.append(skill_additional_properties_dict)
 
     result_properties_dict = sum_all_additional_properties(additional_properties_dicts=dicts)
@@ -178,17 +161,14 @@ def get_all_equipments_additional_properties_by_character_id(*, character_id: in
     dicts = []
 
     equipments = player_stuff_record.get_all_wearing_stuffs_by_character_id(character_id=character_id)
-    for equipment in equipments:
+    for one_equipment in equipments:
 
         # 获取装备当前属性
-        equipment_additional_properties_dict = misc_properties.get_properties_dict_by(
-            source_type=AdditionSourceType.EQUIPMENT,
-            source_id=equipment.id,
-            property_availability=EquipmentPropertyAvailability.CURRENT,
+        equipment_additional_properties_dict = misc_properties.get_properties_dict_by_equipment_record(
+            stuff_record_id=one_equipment.id,
         )
-
         # 获取装备升星带来的属性提升
-        cur_star_improve_rate = (equipment.current_stars_num * setting.get_per_star_improved_percent()) / 100
+        cur_star_improve_rate = (one_equipment.current_stars_num * setting.get_per_star_improved_percent()) / 100
         equipment_properties_dict = get_equipment_improved_properties(
             equipment_additional_properties_dict=equipment_additional_properties_dict,
             improve_rate=cur_star_improve_rate
@@ -197,7 +177,7 @@ def get_all_equipments_additional_properties_by_character_id(*, character_id: in
 
         # 获取装备宝石带来的属性提升；
         gems_properties_dict = []
-        equipment_gem_records = equipment_gem_record.get_all_gems_by_equipment_id(equipment_id=equipment.id)
+        equipment_gem_records = equipment_gem_record.get_all_gems_by_equipment_id(equipment_id=one_equipment.id)
         for gem_record in equipment_gem_records:  # 一个装备有若干个宝石
             one_gem = gem.get_gem_by_gem_id(gem_id=gem_record.gem_id)
             gems_properties_dict[one_gem.base_property_type] += one_gem.increase
@@ -217,9 +197,9 @@ def get_player_initial_skills_achievements_equipments_properties_dict(*, charact
     additional_properties = defaultdict(int)
 
     # 初始属性。每个玩家都一样，所以不需要任何参数就可以查询到；
-    initial_additional_properties = get_all_initial_properties_dict()
+    initial_additional_properties = misc_properties.get_properties_dict_by_initial()
     # 玩家->基础属性加点->属性提升
-    base_property_point_properties_dict = get_all_player_base_properties_dict_by_character_id(character_id=character_id)
+    base_property_point_properties_dict = misc_properties.get_base_property_dict_by(character_id=character_id)
     # 玩家->技能->属性提升
     skill_properties_dict = get_all_skills_additional_properties_by_character_id(character_id=character_id)
     # 玩家->成就称号->属性提升
@@ -237,9 +217,11 @@ def get_player_initial_skills_achievements_equipments_properties_dict(*, charact
                 equipment_properties_dict,
                 potion_properties_dict]:
 
-        for key in range(AdditionalPropertyType.min_num, AdditionalPropertyType.max_num + 1):
+        if dic is None:
+            # 如果某些dic的值为空，则需要跳过；
+            continue
+        for key in dic:
             additional_properties[key] += dic[key]
-
     return additional_properties
 
 

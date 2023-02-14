@@ -12,7 +12,7 @@ class PlayerLevelExpSkillPoint(Base):
     """
     升级所需经验
     """
-    __tablename__ = "player_level_exp"
+    __tablename__ = "player_level_exp_skill_point"
 
     id = Column(Integer, primary_key=True)
 

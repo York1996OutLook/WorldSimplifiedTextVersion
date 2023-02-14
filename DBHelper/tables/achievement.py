@@ -4,6 +4,7 @@ from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
 from DBHelper.session import session
+from Enums import AchievementType, AdditionalPropertyType
 
 Base = declarative_base()
 
@@ -23,20 +24,28 @@ class Achievement(Base):
     condition = Column(String, comment="达成条件")
     introduce = Column(String, comment="对于成就的介绍")
 
+    def __init__(self, *, name: str, achievement_type: AchievementType, condition: str, introduce: str):
+        self.name = name
+        self.achievement_type = achievement_type
+        self.condition = condition
+        self.introduce = introduce
+
 
 # 增
-def add_achievement(*, name: str, condition: str) -> Achievement:
+def add_achievement(*, name: str, achievement_type: AchievementType, condition: str, introduce: str) -> Achievement:
     """
     创建成就
 
     Args:
         name (str): 成就名称
+        achievement_type (str): 成就名称
         condition (str): 达成条件
+        introduce (str): 成就的介绍
 
     Returns:
         Achievement: 创建的成就
     """
-    achievement = Achievement(name=name, condition=condition)
+    achievement = Achievement(name=name, achievement_type=achievement_type, condition=condition, introduce=introduce)
     session.add(achievement)
     session.commit()
     return achievement
@@ -54,33 +63,42 @@ def delete_achievement(*, achievement_id: int) -> bool:
         bool: 删除是否成功
     """
     achievement = session.query(Achievement).filter_by(id=achievement_id).first()
-    if achievement:
-        session.delete(achievement)
-        session.commit()
-        return True
-    else:
-        return False
+    session.delete(achievement)
+    session.commit()
 
 
 # 改
 
-def update_achievement(*, achievement_id: int, new_name: str, new_condition: str) -> Achievement:
+def update_achievement(*,
+                       achievement_id: int,
+                       new_achievement_type: AchievementType = None,
+                       new_name: str = None,
+                       new_condition: str = None,
+                       new_introduce: str = None,
+                       ) -> Achievement:
     """
     更新成就信息
 
     Args:
         achievement_id (int): 成就id
+        new_achievement_type (int): 成就的类型。
         new_name (str): 新的成就名称
         new_condition (str): 新的达成条件
+        new_introduce (str): 新的达成条件
 
     Returns:
         Achievement: 更新后的成就
     """
     achievement = session.query(Achievement).filter_by(id=achievement_id).first()
-    if achievement:
+    if new_achievement_type:
+        achievement.achievement_type = new_achievement_type
+    if new_name:
         achievement.name = new_name
+    if new_condition:
         achievement.condition = new_condition
-        session.commit()
+    if new_introduce:
+        achievement.introduce = new_introduce
+    session.commit()
     return achievement
 
 
@@ -99,6 +117,31 @@ def get_achievement_by_achievement_id(*, achievement_id: int) -> Achievement:
     return achievement
 
 
+def get_achievement_by_achievement_name(*, name: str) -> Achievement:
+    """
+    根据id查询成就
+
+    Args:
+        name (str): 成就名字
+
+    Returns:
+        Achievement: 查询到的成就
+    """
+    achievement = session.query(Achievement).filter_by(name=name).first()
+    return achievement
+
+
+def is_achievement_exists_by_name(*,
+                                  name: str
+                                  ) -> bool:
+    """
+    根据name查询是否存在；
+    :param name:
+    :return:
+    """
+    return session.query(Achievement).filter_by(name=name).scalar() is not None
+
+
 def get_all_achievements() -> List[Achievement]:
     """
     查询所有成就
@@ -109,28 +152,3 @@ def get_all_achievements() -> List[Achievement]:
     """
     achievements = session.query(Achievement).all()
     return achievements
-
-
-if __name__ == '__main__':
-    # 连接数据库
-    import random
-
-    # 随机生成成就记录
-    achievement_list = [{"name": "学习高手", "achievement_type": random.randint(1, 10), "condition": "完成 10 个学习任务",
-                         "introduce": "您已经成为一名学习高手！"},
-                        {"name": "技能大师", "achievement_type": random.randint(1, 10), "condition": "完成 20 个学习任务",
-                         "introduce": "您已经成为一名技能大师！"},
-                        {"name": "学习精英", "achievement_type": random.randint(1, 10), "condition": "完成 30 个学习任务",
-                         "introduce": "您已经成为一名学习精英！"}]
-
-    # 插入数据
-    for one_achievement in achievement_list:
-        new_achievement = Achievement(
-            name=one_achievement["name"],
-            achievement_type=one_achievement["achievement_type"],
-            condition=one_achievement["condition"],
-            introduce=one_achievement["introduce"]
-        )
-        session.add(new_achievement)
-
-    session.commit()

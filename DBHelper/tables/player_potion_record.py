@@ -52,9 +52,8 @@ def delete_player_potion_record(*, record_id: int) -> None:
     :return: None
     """
     record = PlayerPotionRecord.query.get(record_id)
-    if record:
-        session.delete(record)
-        session.commit()
+    session.delete(record)
+    session.commit()
 
 
 # 改
@@ -92,7 +91,7 @@ def get_player_potion_record_by_character_id(*, character_id: int) -> PlayerPoti
     """
     根据记录id获取player_potion
     """
-    record = session.query(PlayerPotionRecord).filter(PlayerPotionRecord.character_id == character_id)
+    record = session.query(PlayerPotionRecord).filter(PlayerPotionRecord.character_id == character_id).first()
     return record
 
 

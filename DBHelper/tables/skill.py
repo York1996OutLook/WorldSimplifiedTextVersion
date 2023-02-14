@@ -57,13 +57,11 @@ def delete_skill(*,
     # Get the skill with the specified ID
     skill = session.query(Skill).filter_by(id=skill_id).first()
 
-    # If the skill with the specified ID exists
-    if skill:
-        # Delete the skill from the session
-        session.delete(skill)
+    # Delete the skill from the session
+    session.delete(skill)
 
-        # Commit the transaction
-        session.commit()
+    # Commit the transaction
+    session.commit()
 # 改
 
 # 查

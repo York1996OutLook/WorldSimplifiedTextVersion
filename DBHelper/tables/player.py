@@ -27,6 +27,7 @@ class Player(Base):
     gold_num = Column(Integer, comment="黄金数量，游戏唯一游戏币")
 
     pk_rank = Column(Integer, comment="pk排名次")
+    achievement_id = Column(Integer, comment="成就id")
 
 
 # 增
@@ -66,9 +67,8 @@ def delete_player_by_player_id(*, player_id: int) -> None:
     :return: None
     """
     player = session.query(Player).filter(Player.player_id == player_id).first()
-    if player:
-        session.delete(player)
-        session.commit()
+    session.delete(player)
+    session.commit()
 
 
 def delete_player_by_id(*, character_id: int) -> None:
@@ -78,13 +78,14 @@ def delete_player_by_id(*, character_id: int) -> None:
     :param character_id: 人物的id，非player ID
     :return: None
     """
-    player = session.query(Player).filter(Player.character_id == character_id).first()
-    if player:
-        session.delete(player)
-        session.commit()
+    player = session.query(Player).filter(Player.id == character_id).first()
+    session.delete(player)
+    session.commit()
 
 
 # 改
+
+
 def update_player(*,
                   character_id: int,
                   nickname: Optional[str] = None,
@@ -92,6 +93,7 @@ def update_player(*,
                   current_experience: Optional[int] = None,
                   game_sign: Optional[str] = None,
                   pk_rank: Optional[int] = None,
+                  achievement_id: int = None
                   ):
     """
     更新人物属性
@@ -101,11 +103,10 @@ def update_player(*,
     :param current_experience: 当前经验值
     :param game_sign: 游戏中的签名
     :param pk_rank: pk排名名次
+    :param achievement_id: pk排名名次
     :return: None
     """
-    player = session.query(Player).filter(Player.character_id == character_id).first()
-    if player is None:
-        return
+    player = session.query(Player).filter(Player.id == character_id).first()
     if nickname is not None:
         player.nickname = nickname
     if current_level is not None:
@@ -116,6 +117,23 @@ def update_player(*,
         player.game_sign = game_sign
     if pk_rank is not None:
         player.pk_rank = pk_rank
+    if achievement_id is None:
+        player.achievement_id = achievement_id
+    session.commit()
+
+
+def update_player_achievement_id(*,
+                                 character_id: int,
+                                 achievement_id: int,
+                                 ):
+    """
+    更新人物属性
+    :param character_id: 人物ID
+    :param achievement_id: pk排名名次
+    :return: None
+    """
+    player = session.query(Player).filter(Player.id == character_id).first()
+    player.achievement_id = achievement_id
     session.commit()
 
 

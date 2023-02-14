@@ -48,8 +48,6 @@ def delete_gem(*, gem_id: int):
         bool: 是否删除成功
     """
     gem = session.query(Gem).filter_by(id=gem_id).first()
-    if not gem:
-        return False
     session.delete(gem)
     session.commit()
     return True
@@ -69,8 +67,6 @@ def update_gem(*, gem_id: int, base_property_id: int = None, increase: int = Non
         Gem: 修改后的宝石
     """
     gem = session.query(Gem).filter_by(id=gem_id).first()
-    if not gem:
-        return None
     if base_property_id is not None:
         gem.base_property_id = base_property_id
     if increase is not None:

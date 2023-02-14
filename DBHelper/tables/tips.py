@@ -12,7 +12,7 @@ class Tips(Base):
     """
     某些情况下，关于整个游戏的小技巧和知识点提示；
     """
-    __tablename__ = 'skill'
+    __tablename__ = 'tips'
     id = Column(Integer, primary_key=True)
 
     tip = Column(String, comment="提示的具体内容")

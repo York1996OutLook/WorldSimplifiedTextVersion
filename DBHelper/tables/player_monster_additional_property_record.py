@@ -22,6 +22,17 @@ class PlayerMonsterAdditionalPropertyRecord(Base):
     additional_property_type = Column(Integer, comment="附加属性的类型")
     additional_property_value = Column(Integer, comment="附加属性的值")
 
+    def __init__(self, *,
+                 being_type: int,
+                 being_id: int = None,
+                 additional_property_type: int = None,
+                 additional_property_value: int = None,
+                 ):
+        self.being_type = being_type
+        self.being_id = being_id
+        self.additional_property_type = additional_property_type
+        self.additional_property_value = additional_property_value
+
 
 # 增
 def add_player_monster_additional_property_record(
@@ -349,7 +360,7 @@ def update_player_monster_additional_properties_record_by_being_and_properties_d
     :return: None
     """
     for additional_property_type in properties_dict:
-        record = session.query(PlayerMonsterAdditionalPropertyRecord).filter(
+        record = session.query(PlayerMonsterAdditionalPropertyRecord).filter_by(
             being_type=being_type,
             being_id=being_id,
             additional_property_type=additional_property_type,
@@ -368,3 +379,5 @@ def get_player_monster_additional_property_record(*, record_id: int) -> Optional
     """
     return session.query(PlayerMonsterAdditionalPropertyRecord).filter(
         PlayerMonsterAdditionalPropertyRecord.id == record_id).first()
+
+

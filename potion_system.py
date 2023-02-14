@@ -19,6 +19,10 @@ def get_player_unexpired_potion_record_by_character_id(*,
     """
     current_timestamp = int(time.time())
     potion_record = player_potion_record.get_player_potion_record_by_character_id(character_id=character_id)
+
+    # 如果没有对应的记录，返回None
+    if potion_record is None:
+        return None
     one_potion = potion.get_potion_by_potion_id(potion_id=potion_record.potion_id)
     duration_by_timestamp = tools.convert_to_milliseconds(minutes=one_potion.duration_by_min)
 

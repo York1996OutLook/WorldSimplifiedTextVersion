@@ -16,8 +16,8 @@ class PlayerAchievementRecord(Base):
 
     id = Column(Integer, primary_key=True, comment="成就记录ID")
 
-    achievement_id = Column(Integer, comment="成就ID")  # ForeignKey(Achievement.id)
-    character_id = Column(Integer, comment="成就达成人物ID")  # ForeignKey(CharacterProperty.id),
+    achievement_id = Column(Integer, comment="成就ID")
+    character_id = Column(Integer, comment="成就达成人物ID")
     achieve_timestamp = Column(Integer, comment="成就达成时间")
 
 
@@ -50,9 +50,8 @@ def delete_player_achievement_record(*,record_id: int) -> None:
     :return: None
     """
     record = PlayerAchievementRecord.query.get(record_id)
-    if record:
-        session.delete(record)
-        session.commit()
+    session.delete(record)
+    session.commit()
 
 
 
@@ -68,14 +67,13 @@ def update_player_achievement_record(*,record_id: int, achievement_id: int = Non
     :return: None
     """
     record = PlayerAchievementRecord.query.get(record_id)
-    if record:
-        if achievement_id:
-            record.achievement_id = achievement_id
-        if character_id:
-            record.character_id = character_id
-        if achieve_timestamp:
-            record.achieve_timestamp = achieve_timestamp
-        session.commit()
+    if achievement_id:
+        record.achievement_id = achievement_id
+    if character_id:
+        record.character_id = character_id
+    if achieve_timestamp:
+        record.achieve_timestamp = achieve_timestamp
+    session.commit()
 
 # 查
 def get_player_achievement_record_by_record_id(*,record_id: int):

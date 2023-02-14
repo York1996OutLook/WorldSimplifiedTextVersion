@@ -22,7 +22,7 @@ class IdentifyBook(Base):
 if __name__ == '__main__':
     books = [
         IdentifyBook(name="鉴定卷轴",
-                     introduce="对装备使用鉴定卷轴，可以获得全新属性。",
+                     introduce="使用鉴定卷轴，可以使装备获得全新属性。",
                      ),
     ]
     session.add_all(books)

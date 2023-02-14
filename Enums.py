@@ -38,8 +38,7 @@ class EquipmentQuality:
         LEGENDARY (int): Representing legendary equipment quality. # 极品
         EPIC (int): Representing epic equipment quality. # 史诗
         MYTHIC (int): Representing mythic equipment quality. # 传说
-        ULTIMATE (int): Representing ultimate equipment quality. # 终极
-        ETERNAL (int): Representing eternal equipment quality. # 永恒
+        ULTIMATE (int): Representing ultimate equipment quality. # 神话
     """
     COMMON = 1  # 1个属性
     EXCELLENT = 2  # 1个属性
@@ -47,8 +46,7 @@ class EquipmentQuality:
     LEGENDARY = 4  # 2个属性
     EPIC = 5  # 3个属性
     MYTHIC = 6  # 3个属性
-    ULTIMATE = 7  # 4个属性
-    ETERNAL = 8  # 4个属性
+    MYTHOLOGY = 7  # 4个属性
 
 
 class PartType:
@@ -106,8 +104,9 @@ class AdditionSourceType:
     BASE_PROPERTY_POINT = 2  # 基础属性加点
     ACHIEVEMENT = 3  # 成就称号
     SKILL = 4  # 技能
-    EQUIPMENT = 5  # 装备
-    POTION = 6  # 临时药剂
+    EQUIPMENT_PROTOTYPE = 5  # 装备原型
+    EQUIPMENT_RECORD = 6  # 装备记录
+    POTION = 7  # 临时药剂
 
 
 class GemInlayingStatus:
@@ -138,8 +137,8 @@ class AdditionalPropertyType:
     PERCEPTION = 9  # "感知"
     PERCEPTION_ADD_PERCENT = 10  # "感知增加百分比"
 
-    ATTACK_SPEED = 11  # 攻击速度
-    ATTACK_SPEED_ADD_PERCENT = 12  # 攻击速度增加百分比
+    ATTACK_SPEED = 11  # 出手速度
+    ATTACK_SPEED_ADD_PERCENT = 12  # 出手速度增加百分比
 
     ATTACK = 13  # 攻击力
     ATTACK_ADD_PERCENT = 14  # 攻击力增加百分比
@@ -178,6 +177,64 @@ class AdditionalPropertyType:
     max_num = 34
 
 
+property_type_cn_dict = {
+    AdditionalPropertyType.PHYSIQUE: "体质",
+    AdditionalPropertyType.PHYSIQUE_ADD_PERCENT: "体质增加百分比",
+
+    AdditionalPropertyType.STRENGTH: "力量",
+    AdditionalPropertyType.STRENGTH_ADD_PERCENT: "力量增加百分比",
+
+    AdditionalPropertyType.AGILITY: "敏捷",
+    AdditionalPropertyType.AGILITY_ADD_PERCENT: "敏捷增加百分比",
+
+    AdditionalPropertyType.INTELLIGENCE: "智力",
+    AdditionalPropertyType.INTELLIGENCE_ADD_PERCENT: "智力增加百分比",
+
+    AdditionalPropertyType.PERCEPTION: "感知",
+    AdditionalPropertyType.PERCEPTION_ADD_PERCENT: "感知增加百分比",
+
+    AdditionalPropertyType.ATTACK_SPEED: "出手速度",
+    AdditionalPropertyType.ATTACK_SPEED_ADD_PERCENT: "出手速度增加百分比",
+
+    AdditionalPropertyType.ATTACK: "攻击力",
+    AdditionalPropertyType.ATTACK_ADD_PERCENT: "攻击力增加百分比",
+
+    AdditionalPropertyType.HEALTH: "生命值",
+    AdditionalPropertyType.HEALTH_ADD_PERCENT: "生命值增加百分比",
+
+    AdditionalPropertyType.HEALTH_RECOVERY: "生命值恢复(每回合)",
+    AdditionalPropertyType.HEALTH_RECOVERY_ADD_PERCENT: "生命值恢复增加百分比",
+
+    AdditionalPropertyType.HEALTH_ABSORPTION: "生命吸收",
+    AdditionalPropertyType.HEALTH_ABSORPTION_ADD_PERCENT: "生命吸收增加百分比",
+
+    AdditionalPropertyType.MANA: "法力值",
+    AdditionalPropertyType.MANA_ADD_PERCENT: "法力值增加百分比(每回合)",
+
+    AdditionalPropertyType.MANA_RECOVERY: "法力值恢复",
+    AdditionalPropertyType.MANA_RECOVERY_ADD_PERCENT: "法力值恢复百分比",
+
+    AdditionalPropertyType.MANA_ABSORPTION: "法力值吸收",
+    AdditionalPropertyType.MANA_ABSORPTION_ADD_PERCENT: "法力值吸收增加百分比",
+
+    AdditionalPropertyType.COUNTERATTACK: "反击值",
+    AdditionalPropertyType.COUNTERATTACK_ADD_PERCENT: "反击值增加百分比",
+    AdditionalPropertyType.IGNORE_COUNTERATTACK: "无视反击值",
+    AdditionalPropertyType.IGNORE_COUNTERATTACK_ADD_PERCENT: "无视反击值增加百分比",
+
+    AdditionalPropertyType.CRITICAL_POINT: "致命点",
+    AdditionalPropertyType.CRITICAL_POINT_ADD_PERCENT: "致命点增加百分比",
+
+    AdditionalPropertyType.DAMAGE_SHIELD: "免伤护盾",
+
+    AdditionalPropertyType.EXP_ADD_PERCENT: "经验增加百分比"
+    # ，有些装备可以增加经验值获得,
+}
+property_cn_type_dict = {property_type_cn_dict[key]: key for key in property_type_cn_dict}
+base_property_cn_type_dict = {key:property_cn_type_dict[key] for key in property_cn_type_dict if
+                              key in {"体质", "力量", "敏捷", "智力", "感知", }}
+
+
 class MailType:
     """
     收到的邮件类型
@@ -212,6 +269,11 @@ class DateType:
     DAY_OF_WEEK = 2  # 每周几；对应的值为1-7
     DAY_OF_MONTH = 3  # 每周几；对应的值为1-31
     HOLIDAY = 4  # 特殊节日会出现；参考表holiday
+
+
+class BattleType:
+    WITH_OTHER_PLAYER = 1
+    WITH_MONSTER = 2
 
 
 if __name__ == '__main__':

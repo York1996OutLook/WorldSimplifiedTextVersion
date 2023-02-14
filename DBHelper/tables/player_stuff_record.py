@@ -1,4 +1,4 @@
-from typing import List
+from typing import List,Tuple
 
 from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
@@ -71,7 +71,7 @@ def add_player_stuff_record(*,
 
 # 改
 def update_bag_stuffs_position(*,
-                               stuff_position_list: List[PlayerStuffRecord, int]
+                               stuff_position_list: List[Tuple[PlayerStuffRecord,int]]
                                ):
     """
 

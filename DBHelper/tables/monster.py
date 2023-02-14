@@ -49,9 +49,8 @@ def delete_monster(*, monster_id: int) -> None:
     :return: None
     """
     monster = session.query(Monster).filter(Monster.id == monster_id).first()
-    if monster:
-        session.delete(monster)
-        session.commit()
+    session.delete(monster)
+    session.commit()
 
 
 # 改
