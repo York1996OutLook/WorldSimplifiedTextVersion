@@ -10,6 +10,11 @@ from Utils import tools
 
 class App:
     def __init__(self, *, player_id: int, nick_name: str):
+        """
+
+        :param player_id: qq号，非系统自动生成的id
+        :param nick_name: 昵称
+        """
         super(App, self).__init__()
         self.player_id = player_id
         self.nick_name = nick_name
@@ -27,22 +32,48 @@ class App:
             self.handle_player_query_self_property(player_id=self.player_id)
         elif player_input == "未分配点数":
             self.handle_player_get_unsigned_point()
-        elif player_input[:2] in set(base_property_cn_type_dict.keys()) and player_input[2] in {"+", "-"}:
+        elif player_input[:2] in set(base_property_cn_type_dict.keys()):
+
+            # 基础属性名称
             property_type = base_property_cn_type_dict[player_input[:2]]
-            if player_input[2] == "+":
+            std_format = f"{property_type}+1 或者 {property_type}+1"
+            # 判断是加还是-属性。后期准备如果-属性，需要扣除对应的黄金
+            if len(player_input)<3:
+                print(f"您输入的长度是{len(player_input)},正确的格式是{std_format}。")
+                return
+            operator = player_input[2]
+            if operator== "+":
                 is_plus = True
-            elif player_input[2] == '-':
+            elif operator == '-':
                 is_plus = False
             else:
-                raise ValueError()
+                print(f'第三个字符请输入+或-，您输入的是{operator}。正确的格式是{std_format}。')
+                return
 
             s = player_input[3:]
             if not tools.is_non_negative_integer(s=s):
                 raise ValueError()
 
             points_num = int(s)
+            if points_num == 0:
+                print(f"您分配的点数是{points_num},没有意义。正确的格式是{std_format}。")
+                return
+
             self.handle_player_add_or_minus_base_point(property_type=property_type, is_plus=is_plus,
                                                        change_point_num=points_num)
+            self.print_cur_base_property_points()
+
+    def print_cur_base_property_points(self):
+        cur_player = player.get_player_by_player_id(player_id=self.player_id)
+        # 获取已经使用了多少点数
+        used_points = misc_properties.get_used_base_property_points_num(character_id=cur_player.id)
+        # 根据玩家等级，获取当前一共可以分配多少点数。
+        total_points = cur_player.current_level * setting.get_per_level_base_point_num()
+        base_properties_dict = misc_properties.get_base_property_dict_by(character_id=cur_player.id)
+
+        points_signed_string = "\n".join([f"{key} +{base_properties_dict[base_property_cn_type_dict[key]]}" for key in
+                                          base_property_cn_type_dict])
+        print(f'您当前的属性点分配是:\n\n{points_signed_string}\n\n未分配点数: {total_points - used_points}')
 
     def handle_player_add_or_minus_base_point(self,
                                               *,
@@ -51,37 +82,32 @@ class App:
                                               change_point_num: int):
         cur_player = player.get_player_by_player_id(player_id=self.player_id)
 
+        # 获取已经使用了多少点数
         used_points = misc_properties.get_used_base_property_points_num(character_id=cur_player.id)
+        # 根据玩家等级，获取当前一共可以分配多少点数。
         total_points = cur_player.current_level * setting.get_per_level_base_point_num()
         base_properties_dict = misc_properties.get_base_property_dict_by(character_id=cur_player.id)
+        cur_value = base_properties_dict[property_type]
 
         if is_plus:
-            if used_points + change_point_num > total_points:
+            # 无可分配点数可用
+            if total_points - used_points == 0:
+                print(f"无可分配点数可用")
+                return
+            elif used_points + change_point_num > total_points:
                 print(f"剩余点数不够，您最多加点{total_points - used_points}")
                 return
-
-        # is minus
-        cur_value = base_properties_dict[property_type]
-        if change_point_num > cur_value:
-            print(f'当前{property_type_cn_dict[property_type]}+{cur_value},无法 - {change_point_num}')
-            return
-        if not is_plus:
+        else:
+            # is minus
+            if change_point_num > cur_value:
+                print(f'当前{property_type_cn_dict[property_type]}+{cur_value},无法 - {change_point_num}')
+                return
             change_point_num = -change_point_num
 
         # 更新或者新插入加点
         misc_properties.update_or_add_new_base_property(character_id=cur_player.id,
                                                         base_property_type=property_type,
-                                                        base_property_value=
-                                                        base_properties_dict[property_type] + change_point_num)
-
-        # 输出当前加点信息
-        used_points = misc_properties.get_used_base_property_points_num(character_id=cur_player.id)
-        total_points = cur_player.current_level * setting.get_per_level_base_point_num()
-
-        base_properties_dict = misc_properties.get_base_property_dict_by(character_id=cur_player.id)
-        points_signed_string = "\n".join([f"{property_type_cn_dict[key]}+{base_properties_dict[key]}" for key in
-                                          base_properties_dict])
-        print(f'属性点分配成功，你当前的属性点分配是:\n{points_signed_string},未分配点数: {total_points - used_points}')
+                                                        base_property_value=cur_value + change_point_num)
 
     def handle_player_get_unsigned_point(self):
         cur_player = player.get_player_by_player_id(player_id=self.player_id)

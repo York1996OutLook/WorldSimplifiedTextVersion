@@ -30,39 +30,24 @@ if __name__ == '__main__':
     ]
 
     for achievement_dict in achievement_list:
-        # 如果某个称号的名字已经存在，则跳过；
-        if achievement.is_achievement_exists_by_name(name=achievement_dict['name']):
-            one_achievement = achievement.get_achievement_by_achievement_name(name=achievement_dict['name'])
+        # 如果存在则更新，不存在则新建
+        one_achievement = achievement.add_or_update_achievement(
+            name=achievement_dict['name'],
+            achievement_type=achievement_dict['achievement_type'],
+            condition=achievement_dict['condition'],
+            introduce=achievement_dict['introduce'],
+        )
 
-            achievement.update_achievement(achievement_id=one_achievement.id,
-                                           new_achievement_type=achievement_dict['achievement_type'],
-                                           new_name=achievement_dict['name'],
-                                           new_condition=achievement_dict['condition'],
-                                           new_introduce=achievement_dict['introduce']
-                                           )
-            for property_index, additional_property in enumerate(achievement_dict['additional_properties']):
-                # 不管是否存在，执行删除操作语句
-                misc_properties.del_achievement_properties(
-                    achievement_id=one_achievement.id,
-                )
-        else:
-            # 添加新的成就
-            one_achievement = achievement.Achievement(
-                name=achievement_dict["name"],
-                achievement_type=achievement_dict["achievement_type"],
-                condition=achievement_dict["condition"],
-                introduce=achievement_dict["introduce"]
-            )
-            session.add(one_achievement)
+        # 删除原有成就对应的属性
+        misc_properties.del_achievement_properties(
+            achievement_id=one_achievement.id,
+        )
 
-        # 添加成就对应的属性加成
+        # 添加成就对应的属性加成。一个成就可能有多条属性加成；
         for property_index, additional_property in enumerate(achievement_dict['additional_properties']):
-            properties_record = misc_properties.InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(
-                additional_source_type=AdditionSourceType.ACHIEVEMENT,
-                additional_source_id=one_achievement.id,
+            misc_properties.add_achievement_properties(
+                achievement_id=one_achievement.id,
                 additional_source_property_index=property_index,
                 additional_property_type=additional_property['additional_property_type'],
                 additional_property_value=additional_property['additional_property_value'],
             )
-            session.add(properties_record)
-    session.commit()

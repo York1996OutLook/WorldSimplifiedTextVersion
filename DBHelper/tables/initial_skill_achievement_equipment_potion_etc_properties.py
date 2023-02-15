@@ -96,6 +96,21 @@ def add_additional_property(
     session.commit()
 
 
+def add_achievement_properties(*,
+                               achievement_id: int,
+                               additional_source_property_index: int,
+                               additional_property_type: AdditionalPropertyType,
+                               additional_property_value: int,
+                               ):
+    add_additional_property(
+        additional_source_type=AdditionSourceType.ACHIEVEMENT,
+        additional_property_type=additional_property_type,
+        additional_property_value=additional_property_value,
+        additional_source_id=achievement_id,
+        additional_source_property_index=additional_source_property_index,
+    )
+
+
 def add_base_property(
         *,
         character_id: int = None,

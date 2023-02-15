@@ -51,6 +51,30 @@ def add_achievement(*, name: str, achievement_type: AchievementType, condition: 
     return achievement
 
 
+def add_or_update_achievement(*, name: str, achievement_type: AchievementType, condition: str, introduce: str):
+    """
+
+    :param name:
+    :param achievement_type:
+    :param condition:
+    :param introduce:
+    :return:
+    """
+    if is_achievement_exists_by_name(name=name):
+        return update_achievement_by_name(name=name,
+                                   new_achievement_type=achievement_type,
+                                   new_condition=condition,
+                                   new_introduce=introduce,
+                                   )
+    else:
+        return add_achievement(
+            name=name,
+            achievement_type=achievement_type,
+            condition=condition,
+            introduce=introduce,
+        )
+
+
 # 删
 def delete_achievement(*, achievement_id: int) -> bool:
     """
@@ -98,6 +122,27 @@ def update_achievement(*,
         achievement.condition = new_condition
     if new_introduce:
         achievement.introduce = new_introduce
+    session.commit()
+    return achievement
+
+
+def update_achievement_by_name(
+        name: str,
+        new_achievement_type: AchievementType,
+        new_condition: str,
+        new_introduce: str, ):
+    """
+
+    :param name:
+    :param new_achievement_type:
+    :param new_condition:
+    :param new_introduce:
+    :return:
+    """
+    achievement = session.query(Achievement).filter_by(name=name).first()
+    achievement.achievement_type = new_achievement_type
+    achievement.condition = new_condition
+    achievement.introduce = new_introduce
     session.commit()
     return achievement
 

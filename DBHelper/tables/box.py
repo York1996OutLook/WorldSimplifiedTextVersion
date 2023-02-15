@@ -15,9 +15,10 @@ class Box(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String, comment="箱子的中文名字")
+    is_bind = Column(Boolean, comment="是否已经绑定")
 
     introduction = Column(String, comment="说明")
-    is_bind = Column(Boolean, comment="是否已经绑定")
+
 
 
 

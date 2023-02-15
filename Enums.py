@@ -35,18 +35,16 @@ class EquipmentQuality:
         COMMON (int): Representing common equipment quality. # 普通
         EXCELLENT (int): Representing excellent equipment quality. # 优秀
         RARE (int): Representing rare equipment quality. # 稀有
-        LEGENDARY (int): Representing legendary equipment quality. # 极品
         EPIC (int): Representing epic equipment quality. # 史诗
         MYTHIC (int): Representing mythic equipment quality. # 传说
         ULTIMATE (int): Representing ultimate equipment quality. # 神话
     """
     COMMON = 1  # 1个属性
-    EXCELLENT = 2  # 1个属性
+    EXCELLENT = 2  # 2个属性
     RARE = 3  # 2个属性
-    LEGENDARY = 4  # 2个属性
-    EPIC = 5  # 3个属性
-    MYTHIC = 6  # 3个属性
-    MYTHOLOGY = 7  # 4个属性
+    EPIC = 4  # 3个属性    带技能
+    MYTHIC = 5 # 4个属性  带技能
+    MYTHOLOGY = 6  # 4个属性   带技能
 
 
 class PartType:
@@ -231,7 +229,7 @@ property_type_cn_dict = {
     # ，有些装备可以增加经验值获得,
 }
 property_cn_type_dict = {property_type_cn_dict[key]: key for key in property_type_cn_dict}
-base_property_cn_type_dict = {key:property_cn_type_dict[key] for key in property_cn_type_dict if
+base_property_cn_type_dict = {key: property_cn_type_dict[key] for key in property_cn_type_dict if
                               key in {"体质", "力量", "敏捷", "智力", "感知", }}
 
 

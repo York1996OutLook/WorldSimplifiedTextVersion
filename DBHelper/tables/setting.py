@@ -54,6 +54,17 @@ def add_setting(*,
     return new_setting
 
 
+def add_or_update(*,
+                  name: str,
+                  value: str,
+                  comment: str, ):
+    if is_exist_by_name(name=name):
+        setting = update_setting_by_name(name=name, new_value=value, new_comment=comment)
+    else:
+        setting = add_setting(name=name, value=value, comment=comment)
+    return setting
+
+
 # 删
 def delete_setting(*,
                    name: str):
@@ -85,29 +96,27 @@ def delete_setting_by_id(*,
 
 # 改
 
-def update_setting(*,
-                   setting_id: int,
-                   new_name: str,
-                   new_value: str,
-                   new_comment: str,
-                   ) -> Setting:
+def update_setting_by_name(*,
+                           name: str,
+                           new_value: str,
+                           new_comment: str,
+                           ) -> Setting:
     """
     Update a single record in the 'setting' table based on its id.
 
     Args:
-        setting_id (int): The id of the setting to update.
-        new_name (str): The new name of the setting.
+        name (str): The new name of the setting.
         new_value (str): The new value of the setting.
         new_comment (str): The new value of the setting.
 
     """
 
     # Query the setting with the specified id
-    setting = session.query(Setting).get(setting_id)
+    setting = session.query(Setting).filter(Setting.name == name).first()
 
     # Update the setting
-    setting.name = new_name
     setting.value = new_value
+    setting.new_comment = new_comment
 
     # Commit the changes to the database
     session.commit()
@@ -233,6 +242,13 @@ def get_setting_value_by_name(*,
     setting = session.query(Setting).filter_by(name=setting_name).first()
 
     return setting.value
+
+
+def is_exist_by_name(*,
+                     name: str
+                     ) -> bool:
+    setting = session.query(Setting).filter_by(name=name).first()
+    return setting is not None
 
 
 # other
@@ -383,11 +399,6 @@ if __name__ == '__main__':
     ]
 
     for setting_dic in settings:
-        if setting_exists(setting_name=setting_dic['name']):
-            update_setting_by_setting_name(name=setting_dic['name'],
-                                           new_value=setting_dic['value'],
-                                           new_comment=setting_dic['comment'])
-            continue
-        add_setting(name=setting_dic['name'],
-                    value=setting_dic['value'],
-                    comment=setting_dic['comment'])
+        add_or_update(name=setting_dic['name'],
+                      value=setting_dic['value'],
+                      comment=setting_dic['comment'])

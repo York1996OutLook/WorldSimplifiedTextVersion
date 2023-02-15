@@ -37,6 +37,7 @@ def add_new_monster_and_etc():
         ],
 
         "skill_round_skill_dict": {
+
         }
         # about drop stuffs
 
