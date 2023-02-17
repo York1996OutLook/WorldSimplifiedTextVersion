@@ -28,7 +28,7 @@ class RaiseStarBook(Base):
 
 # 增
 
-def add_raise_star_book(*, name: str, introduce: str, is_bind: bool):
+def add(*, name: str, introduce: str, is_bind: bool):
     """
 
     :param name:
@@ -42,7 +42,7 @@ def add_raise_star_book(*, name: str, introduce: str, is_bind: bool):
     return book
 
 
-def add_or_update_raise_star_book_by_name(*, name: str, is_bind: bool, introduce: str) -> RaiseStarBook:
+def add_or_update_by_name(*, name: str, is_bind: bool, introduce: str) -> RaiseStarBook:
     """
     根据raise_star_book_name判断是否存在。如果已经存在，则更新，如果不存在，则新建记录；
     :param name:
@@ -56,7 +56,7 @@ def add_or_update_raise_star_book_by_name(*, name: str, is_bind: bool, introduce
                                               introduce=introduce)
     else:
         # 新增
-        book = add_raise_star_book(name=name, is_bind=is_bind, introduce=introduce)
+        book = add(name=name, is_bind=is_bind, introduce=introduce)
     return book
 
 
@@ -64,7 +64,7 @@ def add_or_update_raise_star_book_by_name(*, name: str, is_bind: bool, introduce
 
 # 改
 
-def update_raise_star_book_by_name(*, name: str, is_bind: bool, introduce: str) -> RaiseStarBook:
+def update_by_name(*, name: str, is_bind: bool, introduce: str) -> RaiseStarBook:
     """
     更新记录
     :param name:
@@ -88,17 +88,3 @@ def is_exists_by_name(*, name: str) -> bool:
     book = session.query(RaiseStarBook).filter(RaiseStarBook.name == name).first()
     return book is not None
 
-
-if __name__ == '__main__':
-    books = [
-        {"name": "升星卷轴",
-         "introduce": "",
-         "is_bind": True,
-         },
-    ]
-    for one_book in books:
-        add_or_update_raise_star_book_by_name(
-            name=one_book['name'],
-            introduce=one_book['introduce'],
-            is_bind=one_book['is_bind'],
-        )

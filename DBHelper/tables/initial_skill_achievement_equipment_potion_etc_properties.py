@@ -74,7 +74,7 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Base):
 
 
 # 增
-def add_additional_property(
+def add(
         *,
         additional_source_type: AdditionSourceType,
         additional_property_type: AdditionalPropertyType,
@@ -83,7 +83,7 @@ def add_additional_property(
         additional_source_id: int = None,
         additional_source_property_index: int = None,
         property_availability: EquipmentPropertyAvailability = None,
-):
+) -> InitialSkillAchievementEquipmentPotionEtcPropertiesRecord:
     record = InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(
         additional_source_type=additional_source_type,
         additional_property_type=additional_property_type,
@@ -94,6 +94,36 @@ def add_additional_property(
     )
     session.add(record)
     session.commit()
+    return InitialSkillAchievementEquipmentPotionEtcPropertiesRecord
+
+
+def add_initial_properties(*,
+                           additional_property_type: AdditionalPropertyType,
+                           additional_property_value: int,
+
+                           ):
+    add(additional_source_type=AdditionSourceType.INITIAL,
+        additional_property_type=additional_property_type,
+        additional_property_value=additional_property_value)
+
+
+def add_equipment_properties(*,
+                             additional_property_type: AdditionalPropertyType,
+                             additional_property_value: int,
+
+                             achievement_id: int = None,
+                             property_index: int = None,
+                             property_availability: EquipmentPropertyAvailability = None,
+                             ):
+    record = add(
+        additional_source_type=AdditionSourceType.EQUIPMENT_PROTOTYPE,
+        additional_property_type=additional_property_type,
+        additional_property_value=additional_property_value,
+        additional_source_id=achievement_id,
+        additional_source_property_index=property_index,
+        property_availability=property_availability,
+    )
+    return record
 
 
 def add_achievement_properties(*,
@@ -102,7 +132,7 @@ def add_achievement_properties(*,
                                additional_property_type: AdditionalPropertyType,
                                additional_property_value: int,
                                ):
-    add_additional_property(
+    add(
         additional_source_type=AdditionSourceType.ACHIEVEMENT,
         additional_property_type=additional_property_type,
         additional_property_value=additional_property_value,
@@ -126,7 +156,7 @@ def add_base_property(
     :param base_property_value:
     :return:
     """
-    add_additional_property(
+    add(
         additional_source_id=character_id,
 
         additional_source_type=AdditionSourceType.BASE_PROPERTY_POINT,
@@ -136,6 +166,20 @@ def add_base_property(
 
 
 # 删
+
+def del_initial_properties() -> bool:
+    """
+    删除成就对应的所有属性加成
+    :return:
+    """
+    session.query(InitialSkillAchievementEquipmentPotionEtcPropertiesRecord).filter(
+        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_type == AdditionSourceType.INITIAL,
+    ).delete(synchronize_session=True)
+
+    session.commit()
+    return True
+
+
 def del_achievement_properties(*,
                                achievement_id: int = None,
                                ):
@@ -152,6 +196,38 @@ def del_achievement_properties(*,
     session.commit()
     return True
 
+
+def del_equipment_prototype_properties(*,
+                                       equipment_id: int,
+                                       ):
+    """
+    删除某个装备原型的所有属性。
+    :param equipment_id:
+    :return:
+    """
+    session.query(InitialSkillAchievementEquipmentPotionEtcPropertiesRecord).filter(
+        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_type == AdditionSourceType.EQUIPMENT_PROTOTYPE,
+        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_id == equipment_id,
+    ).delete(synchronize_session=False)
+
+    session.commit()
+    return True
+
+def del_monster_prototype_properties(*,
+                                       monster_id: int,
+                                       ):
+    """
+    删除某个装备原型的所有属性。
+    :param monster_id:
+    :return:
+    """
+    session.query(InitialSkillAchievementEquipmentPotionEtcPropertiesRecord).filter(
+        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_type == AdditionSourceType.EQUIPMENT_PROTOTYPE,
+        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_id == monster_id,
+    ).delete(synchronize_session=False)
+
+    session.commit()
+    return True
 
 # 改
 def update_or_add_new_base_property(
@@ -182,7 +258,7 @@ def update_base_property_by(*,
     :param base_property_value:
     :return:
     """
-    update_additional_property_by(
+    update_by(
         source_type=AdditionSourceType.BASE_PROPERTY_POINT,
         source_id=character_id,
         additional_property_type=base_property_type,
@@ -190,7 +266,7 @@ def update_base_property_by(*,
     )
 
 
-def update_additional_property_by(
+def update_by(
         *,
         source_type: AdditionSourceType,
         additional_property_type: AdditionalPropertyType,
@@ -233,6 +309,7 @@ def update_additional_property_by(
     record = query.first()
     record.additional_property_value = additional_property_value
     session.commit()
+    session.refresh(record)
     return record
 
 
@@ -459,21 +536,11 @@ if __name__ == '__main__':
         },
     ]
 
+    # 删除所有初始属性后再进行添加；
+    del_initial_properties()
     for player_initial_property in player_initial_properties_list:
-        # 如果已经添加过了，则进行更新。否则，新建；
-        if is_exists_by_properties_additional_source_type_additional_property_type(
-                additional_source_type=AdditionSourceType.INITIAL,
-                additional_property_type=player_initial_property['additional_property_type'],
-        ):
-            # 如果存在则更新
-            update_additional_property_by(
-                source_type=AdditionSourceType.INITIAL,
-                additional_property_type=player_initial_property['additional_property_type'],
-                additional_property_value=player_initial_property['additional_property_value'],
-            )
-        else:
-            # 添加新的初始属性
-            add_additional_property(additional_source_type=AdditionSourceType.INITIAL,
-                                    additional_property_type=player_initial_property['additional_property_type'],
-                                    additional_property_value=player_initial_property['additional_property_value']
-                                    )
+        # 添加新的初始属性
+        add_initial_properties(
+            additional_property_type=player_initial_property['additional_property_type'],
+            additional_property_value=player_initial_property['additional_property_value']
+        )

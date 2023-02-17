@@ -25,7 +25,7 @@ class PlayerLotteryRecord(Base):
 
 
 # 增
-def add_player_lottery_record(*, character_id: int,
+def add(*, character_id: int,
                               lottery_num: int,
                               lottery_timestamp: int,
                               lucky_num: int
@@ -50,7 +50,7 @@ def add_player_lottery_record(*, character_id: int,
 
 
 # 删
-def delete_player_lottery_record(*, record_id: int):
+def delete(*, record_id: int):
     """
     删除玩家抽奖记录
     :param record_id: 记录ID
@@ -62,7 +62,7 @@ def delete_player_lottery_record(*, record_id: int):
 
 
 # 改
-def update_player_lottery_record(*, record_id: int, lottery_num: int, lottery_timestamp: int,
+def update(*, record_id: int, lottery_num: int, lottery_timestamp: int,
                                  lucky_num: int) -> PlayerLotteryRecord:
     """
     修改玩家抽奖记录
@@ -70,18 +70,19 @@ def update_player_lottery_record(*, record_id: int, lottery_num: int, lottery_ti
     :param lottery_num: 抽奖获得的数字
     :param lottery_timestamp: 最后一次抽奖的时间戳
     :param lucky_num: 当天设置的幸运数字
-    :return: None
+    :return: PlayerLotteryRecord
     """
     record = session.query(PlayerLotteryRecord).filter_by(id=record_id).first()
     record.lottery_num = lottery_num
     record.lottery_timestamp = lottery_timestamp
     record.lucky_num = lucky_num
     session.commit()
+    session.refresh(record)
     return record
 
 
 # 查
-def get_all_player_lottery_records(
+def get_all_by_timestamp_range(
         *,
         start_timestamp: int,
         end_timestamp: int
@@ -97,7 +98,7 @@ def get_all_player_lottery_records(
     return records
 
 
-def get_all_is_lucky_num_player_lottery_records_by_timestamp(
+def get_all_is_lucky_num_records_by_timestamp_range(
         *,
         start_timestamp: int,
         end_timestamp: int
@@ -114,7 +115,7 @@ def get_all_is_lucky_num_player_lottery_records_by_timestamp(
     return records
 
 
-def get_all_player_lottery_records_with_max_lucky_num_by_timestamp(
+def get_all_records_with_max_num_by_timestamp_range(
         *,
         start_timestamp: int,
         end_timestamp: int

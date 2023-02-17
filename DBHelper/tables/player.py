@@ -31,7 +31,7 @@ class Player(Base):
 
 
 # 增
-def add_player(*,
+def add(*,
                player_id: int,
                nickname: str,
                current_level: int,
@@ -59,7 +59,7 @@ def add_player(*,
 
 
 # 删
-def delete_player_by_player_id(*, player_id: int) -> None:
+def delete_by_player_id(*, player_id: int) -> None:
     """
     根据player_id删除人物
 
@@ -71,7 +71,7 @@ def delete_player_by_player_id(*, player_id: int) -> None:
     session.commit()
 
 
-def delete_player_by_id(*, character_id: int) -> None:
+def delete_by_id(*, character_id: int) -> None:
     """
     根据player_id删除人物
 
@@ -94,7 +94,7 @@ def update_player(*,
                   game_sign: Optional[str] = None,
                   pk_rank: Optional[int] = None,
                   achievement_id: int = None
-                  ):
+                  )->Player:
     """
     更新人物属性
     :param character_id: 人物ID
@@ -120,12 +120,14 @@ def update_player(*,
     if achievement_id is None:
         player.achievement_id = achievement_id
     session.commit()
+    session.refresh(player)
+    return player
 
 
-def update_player_achievement_id(*,
+def update_achievement_id(*,
                                  character_id: int,
                                  achievement_id: int,
-                                 ):
+                                 )->Player:
     """
     更新人物属性
     :param character_id: 人物ID
@@ -135,10 +137,12 @@ def update_player_achievement_id(*,
     player = session.query(Player).filter(Player.id == character_id).first()
     player.achievement_id = achievement_id
     session.commit()
+    session.refresh(player)
+
 
 
 # 查
-def is_player_exists_by_player_id(*, player_id: int) -> bool:
+def is_exists_by_player_id(*, player_id: int) -> bool:
     """
     检查玩家是否存在
 
@@ -155,7 +159,7 @@ def is_player_exists_by_player_id(*, player_id: int) -> bool:
     return player is not None
 
 
-def get_player_by_player_id(*, player_id: int) -> Player:
+def get_by_player_id(*, player_id: int) -> Player:
     """
     根据人物ID查询人物信息
 
@@ -166,7 +170,7 @@ def get_player_by_player_id(*, player_id: int) -> Player:
     return player
 
 
-def get_player_by_character_id(*, character_id: int) -> Player:
+def get_by_character_id(*, character_id: int) -> Player:
     """
     根据人物ID查询人物信息
 
@@ -176,23 +180,3 @@ def get_player_by_character_id(*, character_id: int) -> Player:
     player = session.query(Player).filter_by(id=character_id).first()
     return player
 
-
-def query_player_by_nickname(*, nickname: str) -> Player:
-    """
-    根据昵称查询人物信息
-
-    :param nickname: 人物昵称
-    :return: Player对象
-    """
-    player = session.query(Player).filter_by(nickname=nickname).first()
-    return player
-
-
-def query_player_by_level(*, level: int) -> List[Player]:
-    """
-    根据等级查询人物信息
-    :param level: 等级
-    :return: 人物信息列表
-    """
-    result = session.query(Player).filter(Player.current_level == level).all()
-    return result

@@ -1,10 +1,11 @@
-from typing import List,Tuple
+from typing import List, Tuple
 
 from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 
 from DBHelper.session import session
 from Utils.tools import find_smallest_missing
+from Enums import StuffType
 
 Base = declarative_base()
 
@@ -17,7 +18,8 @@ class PlayerStuffRecord(Base):
     id = Column(Integer, primary_key=True)
 
     character_id = Column(Integer, comment="人物id")
-    stuff_id = Column(Integer, comment="物品id")
+    stuff_type = Column(Integer, comment="物品的类型，参考StuffType")
+    stuff_id = Column(Integer, comment="物品id")  # 根据类型去找ID
 
     stuff_num = Column(Integer, comment="数量")
     is_bind = Column(Boolean, comment="是否已经绑定")
@@ -31,19 +33,25 @@ class PlayerStuffRecord(Base):
 
 
 # 增
-def add_player_stuff_record(*,
-                            character_id: int,
-                            stuff_id: int,
-                            stuff_num: int,
-                            is_bind: bool,
-                            is_wearing: bool,
-                            position_in_bag: int,
+def add(*,
+        character_id: int,
+        stuff_type: StuffType,
+        stuff_id: int,
 
-                            current_stars_num: int) -> PlayerStuffRecord:
+        stuff_num: int,
+
+        is_bind: bool,
+
+        is_wearing: bool,
+
+        position_in_bag: int,
+
+        current_stars_num: int) -> PlayerStuffRecord:
     """
     新增一条玩家物品记录
     :param character_id: 人物id
     :param stuff_id: 物品id
+    :param stuff_type: 物品类型
     :param stuff_num: 数量
     :param is_bind: 是否已经绑定
     :param is_wearing: 是否穿戴中
@@ -54,6 +62,7 @@ def add_player_stuff_record(*,
     """
     record = PlayerStuffRecord(
         character_id=character_id,
+        stuff_type=stuff_type,
         stuff_id=stuff_id,
         stuff_num=stuff_num,
         is_bind=is_bind,
@@ -71,7 +80,7 @@ def add_player_stuff_record(*,
 
 # 改
 def update_bag_stuffs_position(*,
-                               stuff_position_list: List[Tuple[PlayerStuffRecord,int]]
+                               stuff_position_list: List[Tuple[PlayerStuffRecord, int]]
                                ):
     """
 
@@ -81,6 +90,7 @@ def update_bag_stuffs_position(*,
     for stuff, new_position in stuff_position_list:
         stuff.position_in_bag = new_position
     session.commit()
+
 
 
 def update_stuff_wearing_and_position(*,
@@ -116,9 +126,9 @@ def update_stuff_wearing_and_position(*,
 
 # 查
 
-def get_player_stuff_record_by_record_id(*,
-                                         record_id: int
-                                         ) -> PlayerStuffRecord:
+def get_by_record_id(*,
+                     record_id: int
+                     ) -> PlayerStuffRecord:
     """
     根据 id 查询 player_stuff_record 记录
     :param record_id: 记录的 id
@@ -128,9 +138,9 @@ def get_player_stuff_record_by_record_id(*,
     return record
 
 
-def get_all_wearing_stuffs_by_character_id(*,
-                                           character_id: int
-                                           ) -> List[PlayerStuffRecord]:
+def get_all_wearing_equipments_by_character_id(*,
+                                               character_id: int
+                                               ) -> List[PlayerStuffRecord]:
     """
     查询人物所有正在穿戴着的物品
     :param character_id: 人物ID
@@ -163,7 +173,7 @@ def get_all_in_bag_stuffs_by_character_id(*,
 # 获取当面背包没有被占用的最小位置
 def get_min_unused_bag_position(*,
                                 character_id: int
-                                ):
+                                )->int:
     """
     获取某个角色最小的未用的背包位置。
     """
@@ -191,11 +201,12 @@ def insert_stuff_to_player_bag(*,
     available_position = get_min_unused_bag_position(
         character_id=character_id,
     )
-    player_stuff_record = get_player_stuff_record_by_record_id(record_id=stuff_record_id)
+    player_stuff_record = get_by_record_id(record_id=stuff_record_id)
 
-    record = add_player_stuff_record(
+    record = add(
         character_id=character_id,
         stuff_id=player_stuff_record.stuff_id,
+        stuff_type=player_stuff_record.stuff_type,
         stuff_num=player_stuff_record.stuff_num,
         is_bind=player_stuff_record.is_bind,
         is_wearing=False,
@@ -211,7 +222,7 @@ def insert_stuff_to_player_bag(*,
 def wearing_stuff_to_bag(*,
                          character_id: int,
                          player_stuff_record_id: int
-                         ):
+                         )->PlayerStuffRecord:
     """
     玩家穿着的物品放到背包中；
     :param character_id:
@@ -221,20 +232,23 @@ def wearing_stuff_to_bag(*,
     available_position = get_min_unused_bag_position(
         character_id=character_id,
     )
-    update_stuff_wearing_and_position(stuff_record_id=player_stuff_record_id,
+    record=update_stuff_wearing_and_position(stuff_record_id=player_stuff_record_id,
                                       is_wearing=False,
                                       new_position=available_position)
     session.commit()
-
+    session.refresh(record)
+    return record
 
 def bag_stuff_to_wearing(*,
                          player_stuff_record_id: int
-                         ):
+                         )->PlayerStuffRecord:
     """
 
     :param player_stuff_record_id:
     :return:
     """
-    update_stuff_wearing_and_position(stuff_record_id=player_stuff_record_id,
+    record = update_stuff_wearing_and_position(stuff_record_id=player_stuff_record_id,
                                       is_wearing=False)
     session.commit()
+    session.refresh(record)
+    return record

@@ -1,7 +1,23 @@
-from typing import List
-
 import datetime
+import json
 import time
+from typing import List, Dict
+
+
+# 文件读取相关
+def file2string(*, src: str):
+    return open(src, 'r', encoding="utf-8").read()
+
+
+def file2dict_list(*, src: str) -> List[Dict]:
+    """
+
+    :param src:
+    :return:
+    """
+    text = file2string(src=src)
+    dict_list = json.loads(text)
+    return dict_list
 
 
 # 时间相关
@@ -37,11 +53,13 @@ def timestamp_to_date_string(*, timestamp: int) -> str:
     """
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp))
 
+
 # 验证输入有效性
-def is_non_negative_integer(*,s:str):
+def is_non_negative_integer(*, s: str):
     if s.startswith('-'):
         return False
     return s.isdigit()
+
 
 # alg
 def find_smallest_missing(*, positions: List[int]):

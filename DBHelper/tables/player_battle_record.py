@@ -23,7 +23,7 @@ class PlayerBattleRecord(Base):
 
 
 # 增
-def add_battle_record(*, battle_type: int, positive_id: int, passive_id: int, positive_won: bool,
+def add(*, battle_type: int, positive_id: int, passive_id: int, positive_won: bool,
                       battle_text: str) -> PlayerBattleRecord:
     """
     向战斗记录表中添加一条记录
@@ -52,7 +52,7 @@ def add_battle_record(*, battle_type: int, positive_id: int, passive_id: int, po
 
 
 # 删
-def delete_battle_record(*, record_id: int) -> None:
+def delete(*, record_id: int) -> None:
     """
     删除战斗记录表中的一条记录
 
@@ -69,7 +69,7 @@ def delete_battle_record(*, record_id: int) -> None:
 
 
 # 改
-def update_battle_record_won(*, record_id: int, positive_won: bool) -> None:
+def update_won(*, record_id: int, positive_won: bool) -> PlayerBattleRecord:
     """
     修改战斗记录表中的主动攻击是否获胜
 
@@ -84,9 +84,11 @@ def update_battle_record_won(*, record_id: int, positive_won: bool) -> None:
     record_to_update = session.query(PlayerBattleRecord).filter(PlayerBattleRecord.id == record_id).first()
     record_to_update.positive_won = positive_won
     session.commit()
+    session.refresh(record_to_update)
+    return record_to_update
 
 
-def update_battle_record_text(*, record_id: int, battle_text: str) -> None:
+def update_text(*, record_id: int, battle_text: str) -> PlayerBattleRecord:
     """
     修改战斗记录表中的战斗产生的文字说明
 
@@ -101,9 +103,11 @@ def update_battle_record_text(*, record_id: int, battle_text: str) -> None:
     record_to_update = session.query(PlayerBattleRecord).filter(PlayerBattleRecord.id == record_id).first()
     record_to_update.battle_text = battle_text
     session.commit()
+    session.refresh(record_to_update)
+    return record_to_update
 
 
-def update_battle_record_positive_id(*, record_id: int, positive_character_id: int) -> None:
+def update_positive_id(*, record_id: int, positive_character_id: int) -> PlayerBattleRecord:
     """
     修改战斗记录表中的主动攻击characterID
 
@@ -118,6 +122,8 @@ def update_battle_record_positive_id(*, record_id: int, positive_character_id: i
     record_to_update = session.query(PlayerBattleRecord).filter(PlayerBattleRecord.id == record_id).first()
     record_to_update.positive_id = positive_character_id
     session.commit()
+    session.refresh(record_to_update)
+    return record_to_update
 
 
 # 查询

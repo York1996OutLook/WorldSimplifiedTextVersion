@@ -35,7 +35,7 @@ class PlayerMonsterAdditionalPropertyRecord(Base):
 
 
 # 增
-def add_player_monster_additional_property_record(
+def add(
         *,
         being_type: BeingType,
         being_id: int,
@@ -258,7 +258,7 @@ def add_player_monster_additional_property_record(
 
 
 # 删
-def delete_player_monster_additional_property_record(*, record_id: int) -> None:
+def delete_by_record_id(*, record_id: int) -> None:
     """
     删除人物额外属性记录
     :param record_id: 记录ID
@@ -271,81 +271,8 @@ def delete_player_monster_additional_property_record(*, record_id: int) -> None:
 
 # 改
 
-def update_player_monster_additional_properties_record(*,
-                                                       record_id: int,
-                                                       being_type: Optional[int] = None,
-                                                       being_id: Optional[int] = None,
-                                                       attack_speed: Optional[int] = None,
-                                                       attack: Optional[int] = None,
-                                                       health: Optional[int] = None,
-                                                       health_recovery: Optional[int] = None,
-                                                       health_absorption: Optional[int] = None,
-                                                       mana: Optional[int] = None,
-                                                       mana_recovery: Optional[int] = None,
-                                                       mana_absorption: Optional[int] = None,
-                                                       counterattack: Optional[int] = None,
-                                                       ignore_counterattack: Optional[int] = None,
-                                                       critical_point: Optional[int] = None,
-                                                       damage_shield: Optional[int] = None,
-                                                       exp_add_percent: Optional[int] = None
-                                                       ):
-    """
-    更新附加属性记录
 
-    :param record_id: 记录的唯一标识
-    :param being_type: 生物类型
-    :param being_id: 生物id
-    :param attack_speed: 出手速度
-    :param attack: 攻击力
-    :param health: 生命值
-    :param health_recovery: 生命恢复
-    :param health_absorption: 生命吸收
-    :param mana: 法力值
-    :param mana_recovery: 法力恢复
-    :param mana_absorption: 法力吸收
-    :param counterattack: 反击值
-    :param ignore_counterattack: 无视反击值
-    :param critical_point: 致命点
-    :param damage_shield: 免伤护盾
-    :param exp_add_percent: 免伤护盾
-    :return: None
-    """
-    record = session.query(PlayerMonsterAdditionalPropertyRecord).get(record_id).first()
-
-    if being_type is not None:
-        record.being_type = being_type
-    if being_id is not None:
-        record.being_id = being_id
-    if attack_speed is not None:
-        record.attack_speed = attack_speed
-    if attack is not None:
-        record.attack = attack
-    if health is not None:
-        record.health = health
-    if health_recovery is not None:
-        record.health_recovery = health_recovery
-    if health_absorption is not None:
-        record.health_absorption = health_absorption
-    if mana is not None:
-        record.mana = mana
-    if mana_recovery is not None:
-        record.mana_recovery = mana_recovery
-    if mana_absorption is not None:
-        record.mana_absorption = mana_absorption
-    if counterattack is not None:
-        record.counterattack = counterattack
-    if ignore_counterattack is not None:
-        record.ignore_counterattack = ignore_counterattack
-    if critical_point is not None:
-        record.critical_point = critical_point
-    if damage_shield is not None:
-        record.damage_shield = damage_shield
-    if exp_add_percent is not None:
-        record.exp_add_percent = exp_add_percent
-    session.commit()
-
-
-def update_player_monster_additional_properties_record_by_being_and_properties_dict(
+def update_by_being_and_properties_dict(
         *,
         being_type: int,
         being_id: int,
@@ -371,7 +298,7 @@ def update_player_monster_additional_properties_record_by_being_and_properties_d
 
 
 # 查
-def get_player_monster_additional_property_record(*, record_id: int) -> Optional[PlayerMonsterAdditionalPropertyRecord]:
+def get_by_record_id(*, record_id: int) -> Optional[PlayerMonsterAdditionalPropertyRecord]:
     """
     获取人物或者怪物额外属性记录
     :param record_id: 记录ID

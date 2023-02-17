@@ -1,489 +1,55 @@
 from collections import defaultdict
+import json
+import os.path as osp
 from typing import List, DefaultDict
 
 from Enums import AdditionSourceType, PartType, EquipmentQuality, AdditionalPropertyType, BeingType, \
-    EquipmentPropertyAvailability, StuffType
+    EquipmentPropertyAvailability, StuffType, part_cn_type_dict, equipment_cn_quality_dict, property_cn_type_dict
 from DBHelper.db import *
 
 from DBHelper.session import session
-
-"""
-equipment_list = [
-        {
-            # base
-            'name': "",
-            'part': PartType.LEG,
-            'quality': EquipmentQuality.COMMON,
-            'is_bind': False,
-            'can_be_identified': False,
-            'introduction': '',
-            # properties
-            "additional_properties_dict": {
-                # 第一条属性
-                1:[
-                    {
-                        "min_property_type": AdditionalPropertyType.MANA,
-                        "min_property_value": 1,
-                        
-                        "max_property_type": AdditionalPropertyType.MANA,
-                        "max_property_value": 10,
-                    },
-                ],
-                2:[
-                    {
-                        "min_property_type": AdditionalPropertyType.MANA,
-                        "min_property_value": 1,
-
-                        "max_property_type": AdditionalPropertyType.MANA,
-                        "max_property_value": 10,
-
-                    },
-                ],
-                3: [
-                    {
-                        "min_property_type": AdditionalPropertyType.MANA,
-                        "min_property_value": 1,
-
-                        "max_property_type": AdditionalPropertyType.MANA,
-                        "max_property_value": 1,
-
-                    },
-                ],
-                4: [ 
-                    {
-                        "min_property_type": AdditionalPropertyType.MANA,
-                        "min_property_value": 1,
-
-                        "max_property_type": AdditionalPropertyType.MANA,
-                        "max_property_value": 1,
-
-                    },
-                ]
-            }
-        }
-    ]
-
-"""
+import local_setting
+from Utils import tools
 
 
-def add_equipment():
-    equipment_quality_decompose_stuff_dict = {
-        EquipmentQuality.COMMON: {
-            [
-                # 5*50
-                *[{
-                    'get_stuff_type': StuffType.IDENTIFY_BOOK,
-                    'get_stuff_value': 1,
-                    'get_stuff_prob': 50,
-                }for _ in range(1)],
 
-                # 5*50
-                *[{
-                    'get_stuff_type': StuffType.RAISE_STAR_BOOK,
-                    'get_stuff_value': 1,
-                    'get_stuff_prob': 50,
-                } for _ in range(1)],
-            ]
-        },
-        EquipmentQuality.EXCELLENT: {
-            [
-                # 5*50
-                *[{
-                    'get_stuff_type': StuffType.IDENTIFY_BOOK,
-                    'get_stuff_value': 1,
-                    'get_stuff_prob': 50,
-                }for _ in range(3)],
 
-                # 5*50
-                *[{
-                    'get_stuff_type': StuffType.RAISE_STAR_BOOK,
-                    'get_stuff_value': 1,
-                    'get_stuff_prob': 50,
-                } for _ in range(3)],
-            ]
-        },
-        EquipmentQuality.RARE: {
-            [
-                # 5*50
-                *[{
-                    'get_stuff_type': StuffType.IDENTIFY_BOOK,
-                    'get_stuff_value': 1,
-                    'get_stuff_prob': 50,
-                }for _ in range(5)],
+if __name__ == '__main__':
+    equipment_json_src = osp.join(local_setting.json_data_root,"equipment",'equipment.json')
+    text = tools.file2string(src=equipment_json_src)
+    equipment_dict_list = json.loads(text)
+    for equipment_dict in equipment_dict_list:
+        # 从中文到数字的解析
+        part = part_cn_type_dict[equipment_dict['部位']]
+        quality = equipment_cn_quality_dict[equipment_dict['品质']]
 
-                # 5*50
-                *[{
-                    'get_stuff_type': StuffType.RAISE_STAR_BOOK,
-                    'get_stuff_value': 1,
-                    'get_stuff_prob': 50,
-                } for _ in range(5)],
-            ]
-        },
-        EquipmentQuality.EPIC: {
-            [
-                # 5*50
-                *[{
-                    'get_stuff_type': StuffType.IDENTIFY_BOOK,
-                    'get_stuff_value': 1,
-                    'get_stuff_prob': 50,
-                }for _ in range(7)],
+        # 新增或者更新一个记录；
+        equipment_prototype = equipment.add_or_update(name=equipment_dict['名称'],
+                                                      part=part,
+                                                      quality=quality,
+                                                      can_be_identified=equipment_dict['是否可鉴定'],
+                                                      introduction=equipment_dict['介绍'],
+                                                      is_bind=equipment_dict['是否绑定'],
+                                                      )
 
-                # 5*50
-                *[{
-                    'get_stuff_type': StuffType.RAISE_STAR_BOOK,
-                    'get_stuff_value': 1,
-                    'get_stuff_prob': 50,
-                } for _ in range(7)],
-            ]
-        },
-        EquipmentQuality.MYTHIC: {
-            [
-                # 5*50
-                *[{
-                    'get_stuff_type': StuffType.IDENTIFY_BOOK,
-                    'get_stuff_value': 1,
-                    'get_stuff_prob': 50,
-                }for _ in range(9)],
-
-                # 5*50
-                *[{
-                    'get_stuff_type': StuffType.RAISE_STAR_BOOK,
-                    'get_stuff_value': 1,
-                    'get_stuff_prob': 50,
-                } for _ in range(9)],
-            ]
-        },
-        EquipmentQuality.MYTHOLOGY: {
-            [
-                # 5*50
-                *[{
-                    'get_stuff_type': StuffType.IDENTIFY_BOOK,
-                    'get_stuff_value': 1,
-                    'get_stuff_prob': 50,
-                } for _ in range(11)],
-
-                # 5*50
-                *[{
-                    'get_stuff_type': StuffType.RAISE_STAR_BOOK,
-                    'get_stuff_value': 1,
-                    'get_stuff_prob': 50,
-                } for _ in range(11)],
-            ]
-        },
-    }
-
-    equipment_list = [
-        ###################################################################
-        {
-            # base
-            'name': "木制头盔",
-            'part': PartType.HEAD,
-            'quality': EquipmentQuality.COMMON,
-            'is_bind': False,
-            "can_be_identified": False,
-            'introduction': '木头做的头盔，穿起来感觉很不舒服。',
-            # properties
-            "additional_properties_dict": {
-                # 第一条属性
-                1: [
-                    {
-                        "property_type": AdditionalPropertyType.HEALTH,
-                        "min_property_value": 25,
-                        "max_property_value": 25,
-                    },
-                ],
-            },
-            # 分解获得的装备和概率
-            "decompose_get_stuffs": equipment_quality_decompose_stuff_dict[EquipmentQuality.COMMON]
-        },
-        ########################################################################
-        ###################################################################
-        {
-            # base
-            'name': "木制护肩",
-            'part': PartType.SHOULDER,
-            'quality': EquipmentQuality.COMMON,
-            'is_bind': False,
-            "can_be_identified": False,
-            'introduction': '木头做的护肩，穿起来感觉很不舒服。',
-            # properties
-            "additional_properties_dict": {
-                # 第一条属性
-                1: [
-                    {
-                        "min_property_type": AdditionalPropertyType.HEALTH,
-                        "min_property_value": 25,
-
-                        "max_property_type": AdditionalPropertyType.HEALTH,
-                        "max_property_value": 25,
-                    },
-                ],
-            },
-            # 分解获得的装备和概率
-            "decompose_get_stuffs": equipment_quality_decompose_stuff_dict[EquipmentQuality.COMMON]
-        },
-        ########################################################################
-        ###################################################################
-        {
-            # base
-            'name': "木制盔甲",
-            'part': PartType.CLOTHES,
-            'quality': EquipmentQuality.COMMON,
-            'is_bind': False,
-            "can_be_identified": False,
-            'introduction': '木头做的盔甲，穿起来感觉很不舒服。',
-            # properties
-            "additional_properties_dict": {
-                # 第一条属性
-                1: [
-                    {
-                        "min_property_type": AdditionalPropertyType.HEALTH,
-                        "min_property_value": 25,
-
-                        "max_property_type": AdditionalPropertyType.HEALTH,
-                        "max_property_value": 25,
-                    },
-                ],
-            },
-            # 分解获得的装备和概率
-            "decompose_get_stuffs": equipment_quality_decompose_stuff_dict[EquipmentQuality.COMMON]
-        },
-        ########################################################################
-        ###################################################################
-        {
-            # base
-            'name': "木制护腰",
-            'part': PartType.WAIST,
-            'quality': EquipmentQuality.COMMON,
-            'is_bind': False,
-            "can_be_identified": False,
-            'introduction': '木头做的护腰，穿起来感觉很不舒服。',
-            # properties
-            "additional_properties_dict": {
-                # 第一条属性
-                1: [
-                    {
-                        "min_property_type": AdditionalPropertyType.HEALTH,
-                        "min_property_value": 25,
-
-                        "max_property_type": AdditionalPropertyType.HEALTH,
-                        "max_property_value": 25,
-                    },
-                ],
-            },
-            # 分解获得的装备和概率
-            "decompose_get_stuffs": equipment_quality_decompose_stuff_dict[EquipmentQuality.COMMON]
-        },
-        ########################################################################
-        ###################################################################
-        {
-            # base
-            'name': "木制护手",
-            'part': PartType.HAND,
-            'quality': EquipmentQuality.COMMON,
-            'is_bind': False,
-            "can_be_identified": False,
-            'introduction': '木头做的护手，穿起来感觉很不舒服。',
-            # properties
-            "additional_properties_dict": {
-                # 第一条属性
-                1: [
-                    {
-                        "min_property_type": AdditionalPropertyType.HEALTH,
-                        "min_property_value": 25,
-
-                        "max_property_type": AdditionalPropertyType.HEALTH,
-                        "max_property_value": 25,
-                    },
-                ],
-            },
-            # 分解获得的装备和概率
-            "decompose_get_stuffs": equipment_quality_decompose_stuff_dict[EquipmentQuality.COMMON]
-        },
-        ########################################################################
-        ###################################################################
-        {
-            # base
-            'name': "木制护腿",
-            'part': PartType.HEAD,
-            'quality': EquipmentQuality.COMMON,
-            'is_bind': False,
-            "can_be_identified": False,
-            'introduction': '木头做的护腿，穿起来感觉很不舒服。',
-            # properties
-            "additional_properties_dict": {
-                # 第一条属性
-                1: [
-                    {
-                        "min_property_type": AdditionalPropertyType.HEALTH,
-                        "min_property_value": 25,
-
-                        "max_property_type": AdditionalPropertyType.HEALTH,
-                        "max_property_value": 25,
-                    },
-                ],
-            },
-            # 分解获得的装备和概率
-            "decompose_get_stuffs": equipment_quality_decompose_stuff_dict[EquipmentQuality.COMMON]
-        },
-        ########################################################################
-        ###################################################################
-        {
-            # base
-            'name': "木制护足",
-            'part': PartType.FOOT,
-            'quality': EquipmentQuality.COMMON,
-            'is_bind': False,
-            "can_be_identified": False,
-            'introduction': '木头做的护足，穿起来感觉很不舒服。',
-            # properties
-            "additional_properties_dict": {
-                # 第一条属性
-                1: [
-                    {
-                        "min_property_type": AdditionalPropertyType.HEALTH,
-                        "min_property_value": 25,
-
-                        "max_property_type": AdditionalPropertyType.HEALTH,
-                        "max_property_value": 25,
-                    },
-                ],
-            },
-            # 分解获得的装备和概率
-            "decompose_get_stuffs": equipment_quality_decompose_stuff_dict[EquipmentQuality.COMMON]
-        },
-        ########################################################################
-        ###################################################################
-        {
-            # base
-            'name': "木制短剑",
-            'part': PartType.WEAPON,
-            'quality': EquipmentQuality.COMMON,
-            'is_bind': False,
-            "can_be_identified": False,
-            'introduction': '仅需两块木板和一根木棍，你就能得到一把木制短剑！',
-            # properties
-            "additional_properties_dict": {
-                # 第一条属性
-                1: [
-                    {
-                        "min_property_type": AdditionalPropertyType.ATTACK,
-                        "min_property_value": 5,
-
-                        "max_property_type": AdditionalPropertyType.ATTACK,
-                        "max_property_value": 5,
-                    },
-                ],
-            },
-            # 分解获得的装备和概率
-            "decompose_get_stuffs": equipment_quality_decompose_stuff_dict[EquipmentQuality.COMMON]
-        },
-        ########################################################################
-        {
-            ###################################################################
-            # base
-            'name': "木制盾牌",
-            'part': PartType.WEAPON,
-            'quality': EquipmentQuality.COMMON,
-            'is_bind': False,
-            'introduction': '木制盾牌是一件充满历史色彩的防御装备，它的设计受到古代战士的启发，在保证防御性能的同时，也体现出了高超的手工技艺。',
-            # properties
-            "additional_properties_dict": {
-                # 第一条属性
-                1: [
-                    {
-                        "min_property_type": AdditionalPropertyType.HEALTH,
-                        "min_property_value": 20,
-
-                        "max_property_type": AdditionalPropertyType.HEALTH,
-                        "max_property_value": 20,
-                    },
-                ],
-            },
-            # 分解获得的装备和概率
-            "decompose_get_stuffs": equipment_quality_decompose_stuff_dict[EquipmentQuality.COMMON]
-        },
-        ########################################################################
-
-        ###################################################################
-        {
-            # base
-            'name': "木马",
-            'part': PartType.MOUNT,
-            'quality': EquipmentQuality.COMMON,
-            'is_bind': False,
-            'introduction': '你可以坐上去获得更好的视野，但是好像它并不会移动；',
-            # properties
-            "additional_properties_dict": {
-                # 第一条属性
-                1: [
-                    {
-                        "min_property_type": AdditionalPropertyType.HEALTH_ADD_PERCENT,
-                        "min_property_value": 5,
-
-                        "max_property_type": AdditionalPropertyType.HEALTH_ADD_PERCENT,
-                        "max_property_value": 5,
-                    },
-                ],
-            },
-            "decompose_get_stuffs": equipment_quality_decompose_stuff_dict[EquipmentQuality.COMMON]
-        },
-        ########################################################################
-
-        ###################################################################
-        {
-            # base
-            'name': "木制项链",
-            'part': PartType.NECKLACE,
-            'quality': EquipmentQuality.COMMON,
-            'is_bind': False,
-            'introduction': '你可以坐上去获得更好的视野，但是好像它并不会移动；',
-            # properties
-            "additional_properties_dict": {
-                # 第一条属性
-                1: [
-                    {
-                        "min_property_type": AdditionalPropertyType.PHYSIQUE,
-                        "min_property_value": 5,
-
-                        "max_property_type": AdditionalPropertyType.PHYSIQUE,
-                        "max_property_value": 5,
-                    },
-                    {
-                        "min_property_type": AdditionalPropertyType.PHYSIQUE,
-                        "min_property_value": 5,
-
-                        "max_property_type": AdditionalPropertyType.PHYSIQUE,
-                        "max_property_value": 5,
-                    },
-                    {
-                        "min_property_type": AdditionalPropertyType.PHYSIQUE,
-                        "min_property_value": 5,
-
-                        "max_property_type": AdditionalPropertyType.PHYSIQUE,
-                        "max_property_value": 5,
-                    },
-                    {
-                        "min_property_type": AdditionalPropertyType.PHYSIQUE,
-                        "min_property_value": 5,
-
-                        "max_property_type": AdditionalPropertyType.PHYSIQUE,
-                        "max_property_value": 5,
-                    },
-                ],
-            },
-            "decompose_get_stuffs": equipment_quality_decompose_stuff_dict[EquipmentQuality.COMMON]
-        },
-        ########################################################################
-    ]
-
-    if __name__ == '__main__':
-        exp_books = [
-            ExpBook(base_property_type=ExpBookType.CHARACTER, exp_value=500),
-            ExpBook(base_property_type=ExpBookType.CHARACTER, exp_value=3000),
-            ExpBook(base_property_type=ExpBookType.CHARACTER, exp_value=10000),
-            ExpBook(base_property_type=ExpBookType.CHARACTER, exp_value=20000),
-        ]
-
-        session.add_all(exp_books)
-        session.commit()
+        # 删除原型装备对应的属性，然后再新建；
+        additional_properties_dict = equipment_dict['属性字典']
+        misc_properties.del_equipment_prototype_properties(equipment_id=equipment_prototype.id)
+        for property_index_str in additional_properties_dict:
+            # 解析属性值
+            property_index = int(property_index_str)
+            prototype_property_items = additional_properties_dict[property_index_str]
+            for prototype_property_dict in prototype_property_items:
+                property_type = property_cn_type_dict[prototype_property_dict['属性类型']]
+                misc_properties.add_equipment_properties(
+                    additional_property_type=property_type,
+                    additional_property_value=prototype_property_dict['最小值'],
+                    property_index=property_index,
+                    property_availability=EquipmentPropertyAvailability.MIN,
+                )
+                misc_properties.add_equipment_properties(
+                    additional_property_type=property_type,
+                    additional_property_value=prototype_property_dict['最大值'],
+                    property_index=property_index,
+                    property_availability=EquipmentPropertyAvailability.MAX,
+                )

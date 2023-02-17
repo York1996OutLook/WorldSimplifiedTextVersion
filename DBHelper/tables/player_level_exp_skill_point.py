@@ -22,7 +22,7 @@ class PlayerLevelExpSkillPoint(Base):
 
 
 # 增
-def add_level_exp(level: int, required_exp: float) -> PlayerLevelExpSkillPoint:
+def add(level: int, required_exp: float) -> PlayerLevelExpSkillPoint:
     """
     新增一条升级所需经验
     :param level: 等级
@@ -36,7 +36,7 @@ def add_level_exp(level: int, required_exp: float) -> PlayerLevelExpSkillPoint:
 
 
 # 删
-def delete_player_level_exp(level_id: int) -> None:
+def delete(level_id: int) -> None:
     """
     删除某个等级的经验需求
 
@@ -49,7 +49,7 @@ def delete_player_level_exp(level_id: int) -> None:
 
 
 # 改
-def update_player_level_exp(level: int, required_exp: int = None, skill_point: int = None) -> PlayerLevelExpSkillPoint:
+def update(level: int, required_exp: int = None, skill_point: int = None) -> PlayerLevelExpSkillPoint:
     """
     修改玩家升级所需经验
 
@@ -68,15 +68,15 @@ def update_player_level_exp(level: int, required_exp: int = None, skill_point: i
         player_level_exp.skill_point = skill_point
 
     session.commit()
+    session.refresh(player_level_exp)
     return player_level_exp
 
 
 # 查
-def get_required_exp_by_level(level: int) -> PlayerLevelExpSkillPoint:
+def get_by_level(level: int) -> PlayerLevelExpSkillPoint:
     """
-    根据等级查询对应的经验信息
     :param level: 等级
-    :return: 经验信息
+    :return:
     """
     return session.query(PlayerLevelExpSkillPoint).filter(PlayerLevelExpSkillPoint.level == level).first()
 

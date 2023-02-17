@@ -41,7 +41,7 @@ class Potion(Base):
 
 
 # 增
-def add_potion(*,
+def add(*,
                name: str,
                additional_property_type: AdditionalPropertyType,
                additional_property_value: int,
@@ -65,7 +65,7 @@ def add_potion(*,
     return potion
 
 
-def add_or_update_potion_by_name(*,
+def add_or_update_by_name(*,
                                  name: str,
                                  additional_property_type: AdditionalPropertyType,
                                  additional_property_value: int,
@@ -81,19 +81,19 @@ def add_or_update_potion_by_name(*,
             is_bind=is_bind
         )
     else:
-        potion = add_potion(name=name,
+        potion = add(name=name,
                             additional_property_type=additional_property_type,
                             additional_property_value=additional_property_value,
                             duration_by_min=duration_by_min,
                             is_bind=is_bind
                             )
-        return potion
+    return potion
 
 
 # 删
 
 # 改
-def update_potion_by_name(*,
+def update_by_name(*,
                           name: str,
                           additional_property_type: AdditionalPropertyType = None,
                           additional_property_value: int = None,
@@ -115,7 +115,7 @@ def update_potion_by_name(*,
 
 # 查
 
-def get_potion_by_potion_id(*,
+def get_by_potion_id(*,
                             potion_id: int
                             ) -> Potion:
     """

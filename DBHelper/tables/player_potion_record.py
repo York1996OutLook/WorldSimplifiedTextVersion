@@ -22,21 +22,26 @@ class PlayerPotionRecord(Base):
 
     take_timestamp = Column(Integer, comment="药剂类最新的使用时间")
 
+    def __init__(self, *, character_id: int, potion_id: int, take_timestamp: int):
+        self.character_id = character_id
+        self.potion_id = potion_id
+        self.take_timestamp = take_timestamp
+
 
 # 增
-def add_player_potion_record(*, potion_id: int, character_id: int, tack_timestamp: int) -> PlayerPotionRecord:
+def add(*, potion_id: int, character_id: int, take_timestamp: int) -> PlayerPotionRecord:
     """
     Insert a new record of an potion
 
     :param potion_id: ID of the potion
     :param character_id: ID of the character who achieved the potion
-    :param tack_timestamp: timestamp when the potion was achieved
+    :param take_timestamp: timestamp when the potion was achieved
     :return: None
     """
     record = PlayerPotionRecord(
         potion_id=potion_id,
         character_id=character_id,
-        tack_timestamp=tack_timestamp
+        take_timestamp=take_timestamp
     )
     session.add(record)
     session.commit()
@@ -57,7 +62,10 @@ def delete_player_potion_record(*, record_id: int) -> None:
 
 
 # 改
-def update_player_potion_record(*, record_id: int, potion_id: int = None, character_id: int = None,
+def update_by_record_id(*,
+                                record_id: int,
+                                potion_id: int = None,
+                                character_id: int = None,
                                 tack_timestamp: int = None) -> None:
     """
     Update an existing record of an potion
@@ -79,7 +87,7 @@ def update_player_potion_record(*, record_id: int, potion_id: int = None, charac
 
 
 # 查
-def get_player_potion_record_by_record_id(*, record_id: int) -> PlayerPotionRecord:
+def get_by_record_id(*, record_id: int) -> PlayerPotionRecord:
     """
     根据记录id获取player_potion
     """
@@ -87,7 +95,7 @@ def get_player_potion_record_by_record_id(*, record_id: int) -> PlayerPotionReco
     return record
 
 
-def get_player_potion_record_by_character_id(*, character_id: int) -> PlayerPotionRecord:
+def get_by_character_id(*, character_id: int) -> PlayerPotionRecord:
     """
     根据记录id获取player_potion
     """
@@ -95,7 +103,7 @@ def get_player_potion_record_by_character_id(*, character_id: int) -> PlayerPoti
     return record
 
 
-def is_player_potion_record_exist(*, record_id: int) -> bool:
+def is_exists(*, record_id: int) -> bool:
     """
     Check if a record of an potion exists
 

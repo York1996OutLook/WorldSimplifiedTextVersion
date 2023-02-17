@@ -28,7 +28,7 @@ class PlayerSellStoreRecord(Base):
 
 
 # 增
-def add_sell_store_record(*,
+def add(*,
                           owner_character_id: int,
                           stuff_name: str,
                           stuff_count: int,
@@ -57,7 +57,7 @@ def add_sell_store_record(*,
 
 
 # 删除
-def delete_sell_store_record(*, sell_store_record_id: int):
+def delete_by_record_id(*, sell_store_record_id: int):
     """
     删除一条交易所记录
 
@@ -70,7 +70,7 @@ def delete_sell_store_record(*, sell_store_record_id: int):
 
 
 # 改
-def update_sell_store_record(*,
+def update(*,
                              record_id: int,
                              new_owner_character_id: int = None,
                              new_stuff_name: str = None,
@@ -108,8 +108,7 @@ def update_sell_store_record(*,
 
 # 查
 
-
-def query_sell_store_records(*,
+def get_sell_store_records(*,
                              owner_character_id: int = None,
                              stuff_name: str = None,
                              is_sold: bool = None):
@@ -134,7 +133,7 @@ def query_sell_store_records(*,
     return query.all()
 
 
-def get_sell_store_record_by_record_id(*, record_id: int) -> PlayerSellStoreRecord:
+def get_by_record_id(*, record_id: int) -> PlayerSellStoreRecord:
     """
     根据id查询交易所记录
 
@@ -147,7 +146,7 @@ def get_sell_store_record_by_record_id(*, record_id: int) -> PlayerSellStoreReco
     return session.query(PlayerSellStoreRecord).filter_by(id=record_id).first()
 
 
-def get_all_sell_store_records_by_timestamp(*,
+def get_all_by_timestamp_range(*,
                                             start_timestamp: int = None,
                                             end_timestamp: int = None):
     """

@@ -29,10 +29,10 @@ class RaiseStarProb(Base):
 
 
 # 增
-def add_new(*,
-            star_count: str,
-            success_prob: str
-            ) -> RaiseStarProb:
+def add(*,
+        star_count: str,
+        success_prob: str
+        ) -> RaiseStarProb:
     """
     新增升星概率记录
     :param star_count: 当前升星数量
@@ -58,17 +58,17 @@ def add_or_update(*,
     if is_exists_by_star_count(star_count=star_count):
         raise_star_prob = update_raise_star_prob(star_count=star_count, success_prob=success_prob)
     else:
-        raise_star_prob = add_new(star_count=star_count, success_prob=success_prob)
+        raise_star_prob = add(star_count=star_count, success_prob=success_prob)
     return raise_star_prob
 
 
 # 删
 
 # 改
-def update_raise_star_prob(*,
-                           star_count: str,
-                           success_prob: str
-                           ) -> RaiseStarProb:
+def update_success_prob_by_start_count(*,
+                                       star_count: str,
+                                       success_prob: str
+                                       ) -> RaiseStarProb:
     """
     更新升星概率记录
     :param star_count: 当前升星数量

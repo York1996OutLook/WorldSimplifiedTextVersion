@@ -78,7 +78,7 @@ def get_player_achievement_title_additional_properties_dict_by_character_id(*, c
     :param character_id:
     :return:
     """
-    one_player = player.get_player_by_character_id(character_id=character_id)
+    one_player = player.get_by_character_id(character_id=character_id)
 
     achievement_properties_dict = misc_properties.get_properties_dict_by_achievement_id(
         achievement_id = one_player.achievement_id
@@ -139,7 +139,7 @@ def get_all_skills_additional_properties_by_character_id(*, character_id: int) -
     """
     dicts = []
 
-    skills = player_skill_record.get_player_all_skill_record_by_character_id(character_id=character_id)
+    skills = player_skill_record.get_all_by_character_id(character_id=character_id)
     for one_skill in skills:
         one_skill_book = skill_book.get_skill_book_by_skill_id_skill_level(skill_id=one_skill.id,
                                                                            level=one_skill.skill_level)
@@ -160,7 +160,7 @@ def get_all_equipments_additional_properties_by_character_id(*, character_id: in
     """
     dicts = []
 
-    equipments = player_stuff_record.get_all_wearing_stuffs_by_character_id(character_id=character_id)
+    equipments = player_stuff_record.get_all_wearing_equipments_by_character_id(character_id=character_id)
     for one_equipment in equipments:
 
         # 获取装备当前属性
@@ -179,7 +179,7 @@ def get_all_equipments_additional_properties_by_character_id(*, character_id: in
         gems_properties_dict = []
         equipment_gem_records = equipment_gem_record.get_all_gems_by_equipment_id(equipment_id=one_equipment.id)
         for gem_record in equipment_gem_records:  # 一个装备有若干个宝石
-            one_gem = gem.get_gem_by_gem_id(gem_id=gem_record.gem_id)
+            one_gem = gem.get_by_gem_id(gem_id=gem_record.gem_id)
             gems_properties_dict[one_gem.base_property_type] += one_gem.increase
         dicts.append(gems_properties_dict)
 

@@ -8,8 +8,6 @@ class BasePropertyType:  # 目前宝石和基础属性公用一套属性。所�
     INTELLIGENCE = 7  # "智力"
     PERCEPTION = 9  # "感知"
 
-    items = [PHYSIQUE, STRENGTH, AGILITY, INTELLIGENCE, PERCEPTION]
-
 
 class AchievementType:
     """
@@ -43,8 +41,19 @@ class EquipmentQuality:
     EXCELLENT = 2  # 2个属性
     RARE = 3  # 2个属性
     EPIC = 4  # 3个属性    带技能
-    MYTHIC = 5 # 4个属性  带技能
+    MYTHIC = 5  # 4个属性  带技能
     MYTHOLOGY = 6  # 4个属性   带技能
+
+
+equipment_cn_quality_dict = {
+    "普通": EquipmentQuality.COMMON,
+    "优秀": EquipmentQuality.EXCELLENT,
+    "稀有": EquipmentQuality.RARE,
+    "史诗": EquipmentQuality.EPIC,
+    "传说": EquipmentQuality.MYTHIC,
+    "神话": EquipmentQuality.MYTHOLOGY,
+
+}
 
 
 class PartType:
@@ -56,13 +65,32 @@ class PartType:
 
     HEAD = 6  # "头"
     SHOULDER = 7  # "肩"
-    CLOTHES = 8  # "衣服"
+    CLOTHES = 8  # "衣"
     WAIST = 9  # "腰"
     HAND = 10  # "手"
     LEG = 11  # "腿"
     FOOT = 12  # "脚"
 
     WEAPON = 13  # "武器"
+
+
+part_cn_type_dict = {
+    '披风': PartType.CLOAK,
+    '护符': PartType.AMULET,
+    '项链': PartType.NECKLACE,
+    '时装': PartType.COSTUME,
+    '坐骑': PartType.MOUNT,
+
+    '头': PartType.HEAD,
+    '肩': PartType.SHOULDER,
+    '衣': PartType.CLOTHES,
+    '腰': PartType.WAIST,
+    '手': PartType.HAND,
+    '腿': PartType.LEG,
+    '足': PartType.FOOT,
+
+    '武器': PartType.WEAPON,
+}
 
 
 class StuffStatus:
@@ -83,8 +111,18 @@ class StuffType:
     IDENTIFY_BOOK = 5  # 鉴定卷轴
     EXP_BOOK = 6  # 经验书  允许一次性使用多个
     SKILL_BOOK = 7  # 技能书 允许一次性使用多个
-    Potion = 8  # 药水 使用后可以临时提高某个属性；
+    POTION = 8  # 药水 使用后可以临时提高某个属性；
 
+stuff_cn_type_dict={
+    "装备":StuffType.EQUIPMENT,
+    "箱子":StuffType.BOX,
+    "宝石":StuffType.GEM,
+    "升星卷轴":StuffType.RAISE_STAR_BOOK,
+    "鉴定卷轴":StuffType.IDENTIFY_BOOK,
+    "经验书":StuffType.EXP_BOOK,
+    "技能书":StuffType.SKILL_BOOK,
+    "药剂":StuffType.POTION,
+}
 
 class BeingType:
     """
@@ -141,35 +179,35 @@ class AdditionalPropertyType:
     ATTACK = 13  # 攻击力
     ATTACK_ADD_PERCENT = 14  # 攻击力增加百分比
 
-    HEALTH = 15  # 生命值
-    HEALTH_ADD_PERCENT = 16  # 生命值增加百分比
+    HEALTH = 15  # 生命
+    HEALTH_ADD_PERCENT = 16  # 生命增加百分比
 
-    HEALTH_RECOVERY = 17  # 生命值恢复(每回合)
-    HEALTH_RECOVERY_ADD_PERCENT = 18  # 生命值恢复增加百分比
+    HEALTH_RECOVERY = 17  # 生命恢复(每回合)
+    HEALTH_RECOVERY_ADD_PERCENT = 18  # 生命恢复增加百分比
 
     HEALTH_ABSORPTION = 19  # 生命吸收
     HEALTH_ABSORPTION_ADD_PERCENT = 20  # 生命吸收增加百分比
 
-    MANA = 21  # 法力值
-    MANA_ADD_PERCENT = 22  # 法力值增加百分比(每回合)
+    MANA = 21  # 法力
+    MANA_ADD_PERCENT = 22  # 法力增加百分比(每回合)
 
-    MANA_RECOVERY = 23  # 法力值恢复
-    MANA_RECOVERY_ADD_PERCENT = 24  # 法力值恢复百分比
+    MANA_RECOVERY = 23  # 法力恢复
+    MANA_RECOVERY_ADD_PERCENT = 24  # 法力恢复百分比
 
-    MANA_ABSORPTION = 25  # 法力值吸收
-    MANA_ABSORPTION_ADD_PERCENT = 26  # 法力值吸收增加百分比
+    MANA_ABSORPTION = 25  # 法力吸收
+    MANA_ABSORPTION_ADD_PERCENT = 26  # 法力吸收增加百分比
 
-    COUNTERATTACK = 27  # 反击值
-    COUNTERATTACK_ADD_PERCENT = 28  # 反击值增加百分比
-    IGNORE_COUNTERATTACK = 29  # 无视反击值
-    IGNORE_COUNTERATTACK_ADD_PERCENT = 30  # 无视反击值增加百分比
+    COUNTERATTACK = 27  # 反击
+    COUNTERATTACK_ADD_PERCENT = 28  # 反击增加百分比
+    IGNORE_COUNTERATTACK = 29  # 无视反击
+    IGNORE_COUNTERATTACK_ADD_PERCENT = 30  # 无视反击增加百分比
 
     CRITICAL_POINT = 31  # 致命点
     CRITICAL_POINT_ADD_PERCENT = 32  # 致命点增加百分比
 
     DAMAGE_SHIELD = 33  # 免伤护盾
 
-    EXP_ADD_PERCENT = 34  # 经验增加百分比，有些装备可以增加经验值获得
+    EXP_ADD_PERCENT = 34  # 经验增加百分比，有些装备可以增加经验获得
 
     min_num = 1
     max_num = 34
@@ -197,28 +235,28 @@ property_type_cn_dict = {
     AdditionalPropertyType.ATTACK: "攻击力",
     AdditionalPropertyType.ATTACK_ADD_PERCENT: "攻击力增加百分比",
 
-    AdditionalPropertyType.HEALTH: "生命值",
-    AdditionalPropertyType.HEALTH_ADD_PERCENT: "生命值增加百分比",
+    AdditionalPropertyType.HEALTH: "生命",
+    AdditionalPropertyType.HEALTH_ADD_PERCENT: "生命增加百分比",
 
-    AdditionalPropertyType.HEALTH_RECOVERY: "生命值恢复(每回合)",
-    AdditionalPropertyType.HEALTH_RECOVERY_ADD_PERCENT: "生命值恢复增加百分比",
+    AdditionalPropertyType.HEALTH_RECOVERY: "生命恢复(每回合)",
+    AdditionalPropertyType.HEALTH_RECOVERY_ADD_PERCENT: "生命恢复增加百分比",
 
     AdditionalPropertyType.HEALTH_ABSORPTION: "生命吸收",
     AdditionalPropertyType.HEALTH_ABSORPTION_ADD_PERCENT: "生命吸收增加百分比",
 
-    AdditionalPropertyType.MANA: "法力值",
-    AdditionalPropertyType.MANA_ADD_PERCENT: "法力值增加百分比(每回合)",
+    AdditionalPropertyType.MANA: "法力",
+    AdditionalPropertyType.MANA_ADD_PERCENT: "法力增加百分比(每回合)",
 
-    AdditionalPropertyType.MANA_RECOVERY: "法力值恢复",
-    AdditionalPropertyType.MANA_RECOVERY_ADD_PERCENT: "法力值恢复百分比",
+    AdditionalPropertyType.MANA_RECOVERY: "法力恢复",
+    AdditionalPropertyType.MANA_RECOVERY_ADD_PERCENT: "法力恢复百分比",
 
-    AdditionalPropertyType.MANA_ABSORPTION: "法力值吸收",
-    AdditionalPropertyType.MANA_ABSORPTION_ADD_PERCENT: "法力值吸收增加百分比",
+    AdditionalPropertyType.MANA_ABSORPTION: "法力吸收",
+    AdditionalPropertyType.MANA_ABSORPTION_ADD_PERCENT: "法力吸收增加百分比",
 
-    AdditionalPropertyType.COUNTERATTACK: "反击值",
-    AdditionalPropertyType.COUNTERATTACK_ADD_PERCENT: "反击值增加百分比",
-    AdditionalPropertyType.IGNORE_COUNTERATTACK: "无视反击值",
-    AdditionalPropertyType.IGNORE_COUNTERATTACK_ADD_PERCENT: "无视反击值增加百分比",
+    AdditionalPropertyType.COUNTERATTACK: "反击",
+    AdditionalPropertyType.COUNTERATTACK_ADD_PERCENT: "反击增加百分比",
+    AdditionalPropertyType.IGNORE_COUNTERATTACK: "无视反击",
+    AdditionalPropertyType.IGNORE_COUNTERATTACK_ADD_PERCENT: "无视反击增加百分比",
 
     AdditionalPropertyType.CRITICAL_POINT: "致命点",
     AdditionalPropertyType.CRITICAL_POINT_ADD_PERCENT: "致命点增加百分比",
@@ -226,7 +264,7 @@ property_type_cn_dict = {
     AdditionalPropertyType.DAMAGE_SHIELD: "免伤护盾",
 
     AdditionalPropertyType.EXP_ADD_PERCENT: "经验增加百分比"
-    # ，有些装备可以增加经验值获得,
+    # ，有些装备可以增加经验获得,
 }
 property_cn_type_dict = {property_type_cn_dict[key]: key for key in property_type_cn_dict}
 base_property_cn_type_dict = {key: property_cn_type_dict[key] for key in property_cn_type_dict if
@@ -250,6 +288,10 @@ class CalendarType:
     LUNAR = 1  # 农历
     GREGORIAN = 2  # 公历
 
+calendar_cn_type_dict={
+    "农历":CalendarType.LUNAR,
+    "公历":CalendarType.GREGORIAN,
+}
 
 class EquipmentPropertyAvailability:
     MIN = 1  # 最小属性
@@ -267,6 +309,14 @@ class DateType:
     DAY_OF_WEEK = 2  # 每周几；对应的值为1-7
     DAY_OF_MONTH = 3  # 每周几；对应的值为1-31
     HOLIDAY = 4  # 特殊节日会出现；参考表holiday
+
+
+date_cn_type_dict = {
+    "小时": DateType.HOUR_OF_DAY,
+    '周几': DateType.DAY_OF_WEEK,
+    '几号': DateType.DAY_OF_MONTH,
+    "节日": DateType.HOLIDAY
+}
 
 
 class BattleType:

@@ -1,9 +1,12 @@
+import os.path as osp
+
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float, Boolean
 
 from DBHelper.session import session
-
-from Enums import AdditionalPropertyType
+from Enums import AdditionalPropertyType, property_cn_type_dict
+import local_setting
+from Utils import tools
 
 Base = declarative_base()
 
@@ -12,25 +15,42 @@ class Gem(Base):
     __tablename__ = 'gem'
 
     id = Column(Integer, primary_key=True)
+    name = Column(String, comment="名称")
+
     additional_property_type = Column(Integer, comment="参考AdditionalPropertyType")
     increase = Column(Integer, comment="+1还是+2，3，4，5等")
-
     is_bind = Column(Boolean, comment="刚出来的时候是否已经绑定")
+
+    def __init__(self,
+                 *,
+                 name: str,
+                 additional_property_type: int,
+                 increase: int,
+                 is_bind: bool
+                 ):
+        self.name = name
+        self.additional_property_type = additional_property_type
+        self.increase = increase
+        self.is_bind = is_bind
 
 
 # 增
-def add_gem(*, base_property_id: int, increase: int) -> Gem:
-    """
-    新增宝石
+def add_or_update(*,
+                  name: str,
+                  additional_property_type: int,
+                  increase: int,
+                  is_bind: bool
+                  ) -> Gem:
+    if is_exists_by_name(name=name):
+        gem = update_by_name(name=name, additional_property_type=additional_property_type, increase=increase,
+                             is_bind=is_bind)
+    else:
+        gem = add(name=name, additional_property_type=additional_property_type, increase=increase, is_bind=is_bind)
+    return gem
 
-    Args:
-        base_property_id (int): 参考基础属性表的ID
-        increase (int): 增加的数值
 
-    Returns:
-        Gem: 新增的宝石
-    """
-    gem = Gem(base_property_id=base_property_id, increase=increase)
+def add(*, name: str, additional_property_type: int, increase: int, is_bind: bool) -> Gem:
+    gem = Gem(name=name, additional_property_type=additional_property_type, increase=increase, is_bind=is_bind)
     session.add(gem)
     session.commit()
     return gem
@@ -54,29 +74,49 @@ def delete_gem(*, gem_id: int):
 
 
 # 改
-def update_gem(*, gem_id: int, base_property_id: int = None, increase: int = None):
+def update_by_name(*, name: str, additional_property_type: AdditionalPropertyType = None, increase: int = None,
+                   is_bind: bool = None) -> Gem:
     """
-    修改宝石
 
-    Args:
-        gem_id (int): 宝石ID
-        base_property_id (int, optional): 参考基础属性表的ID. Defaults to None.
-        increase (int, optional): 增加的数值. Defaults to None.
-
-    Returns:
-        Gem: 修改后的宝石
+    :param name:
+    :param additional_property_type:
+    :param increase:
+    :param is_bind:
+    :return:
     """
-    gem = session.query(Gem).filter_by(id=gem_id).first()
-    if base_property_id is not None:
-        gem.base_property_id = base_property_id
+    gem = session.query(Gem).filter(Gem.name == name).first()
+    if additional_property_type is not None:
+        gem.base_property_id = additional_property_type
     if increase is not None:
         gem.increase = increase
+    if is_bind is not None:
+        gem.is_bind = is_bind
     session.commit()
+    session.refresh(gem)
     return gem
 
 
 # 查
-def get_gem_by_gem_id(*, gem_id: int) -> Gem:
+def is_exists_by_name(*, name: str) -> Gem:
+    gem = session.query(Gem).filter(Gem.name == name).first()
+    return gem is not None
+
+
+def get_by_name(*, name: str) -> Gem:
+    """
+    根据ID查询宝石
+
+    Args:
+        name (int): 宝石ID
+
+    Returns:
+        Gem: 查询到的宝石
+    """
+    gem = session.query(Gem).filter(name == name).first()
+    return gem
+
+
+def get_by_gem_id(*, gem_id: int) -> Gem:
     """
     根据ID查询宝石
 
@@ -90,7 +130,7 @@ def get_gem_by_gem_id(*, gem_id: int) -> Gem:
     return gem
 
 
-def get_gem_by_base_property_id(*, base_property_id: int):
+def get_by_base_property_id(*, base_property_id: int):
     """
     根据base_property_id查询宝石
 
@@ -104,7 +144,7 @@ def get_gem_by_base_property_id(*, base_property_id: int):
     return gem
 
 
-def get_gems_by_increase(*, increase: int):
+def get_all_by_increase(*, increase: int):
     """
     根据increase查询宝石
 
@@ -118,50 +158,20 @@ def get_gems_by_increase(*, increase: int):
     return gems
 
 
+# other
+def json2db():
+    gem_json_src = osp.join(local_setting.json_data_root, "gem.json")
+    gem_dict_list = tools.file2dict_list(src=gem_json_src)
+    for gem_dict in gem_dict_list:
+        name = gem_dict['名称']
+        additional_property_type = property_cn_type_dict[gem_dict['属性名称']]
+        increase = gem_dict['增加属性值']
+        is_bind = gem_dict['是否绑定']
+        add_or_update(name=name,
+                      additional_property_type=additional_property_type,
+                      increase=increase,
+                      is_bind=is_bind)
+
+
 if __name__ == '__main__':
-    gem_list = [
-        Gem(additional_property_type=AdditionalPropertyType.PHYSIQUE, increase=1, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.PHYSIQUE, increase=2, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.PHYSIQUE, increase=3, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.PHYSIQUE, increase=4, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.PHYSIQUE, increase=5, is_bind=False),
-
-        Gem(additional_property_type=AdditionalPropertyType.STRENGTH, increase=1, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.STRENGTH, increase=2, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.STRENGTH, increase=3, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.STRENGTH, increase=4, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.STRENGTH, increase=5, is_bind=False),
-
-        Gem(additional_property_type=AdditionalPropertyType.AGILITY, increase=1, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.AGILITY, increase=2, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.AGILITY, increase=3, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.AGILITY, increase=4, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.AGILITY, increase=5, is_bind=False),
-
-        Gem(additional_property_type=AdditionalPropertyType.INTELLIGENCE, increase=1, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.INTELLIGENCE, increase=2, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.INTELLIGENCE, increase=3, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.INTELLIGENCE, increase=4, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.INTELLIGENCE, increase=5, is_bind=False),
-
-        Gem(additional_property_type=AdditionalPropertyType.PERCEPTION, increase=1, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.PERCEPTION, increase=2, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.PERCEPTION, increase=3, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.PERCEPTION, increase=4, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.PERCEPTION, increase=5, is_bind=False),
-
-        Gem(additional_property_type=AdditionalPropertyType.CRITICAL_POINT, increase=1, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.CRITICAL_POINT, increase=2, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.CRITICAL_POINT, increase=3, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.CRITICAL_POINT, increase=4, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.CRITICAL_POINT, increase=5, is_bind=False),
-
-        Gem(additional_property_type=AdditionalPropertyType.HEALTH, increase=20, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.HEALTH, increase=50, is_bind=False),
-
-        Gem(additional_property_type=AdditionalPropertyType.MANA, increase=20, is_bind=False),
-        Gem(additional_property_type=AdditionalPropertyType.MANA, increase=50, is_bind=False),
-    ]
-
-    session.add_all(gem_list)
-    session.commit()
+    json2db()

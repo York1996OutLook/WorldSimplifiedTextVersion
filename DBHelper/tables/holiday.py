@@ -26,7 +26,7 @@ class Holiday(Base):
 
 
 # 增
-def add_holiday(*, name: str, month: int, day: int, calendar_type: CalendarType) -> Holiday:
+def add(*, name: str, month: int, day: int, calendar_type: CalendarType) -> Holiday:
     """
     新增一个节日
     :param name:
@@ -41,7 +41,7 @@ def add_holiday(*, name: str, month: int, day: int, calendar_type: CalendarType)
     return holiday
 
 
-def add_or_update_holiday(*, name: str, month: int, day: int, calendar_type: CalendarType) -> Holiday:
+def add_or_update(*, name: str, month: int, day: int, calendar_type: CalendarType) -> Holiday:
     """
     根据是否存在写新增还是更新
     :param name:
@@ -51,16 +51,16 @@ def add_or_update_holiday(*, name: str, month: int, day: int, calendar_type: Cal
     :return:
     """
     if is_exists_by_name(name=name):
-        holiday = update_holiday_by_name(name=name, month=month, day=day, calendar_type=calendar_type)
+        holiday = update_by_name(name=name, month=month, day=day, calendar_type=calendar_type)
         return holiday
-    holiday = add_holiday(name=name, month=month, day=day, calendar_type=calendar_type)
+    holiday = add(name=name, month=month, day=day, calendar_type=calendar_type)
     return holiday
 
 
 # 删
 
 # 改
-def update_holiday_by_name(*, name: str, month: int, day: int, calendar_type: CalendarType) -> Holiday:
+def update_by_name(*, name: str, month: int, day: int, calendar_type: CalendarType) -> Holiday:
     """
     根据name进行更新。后期可能会增加
     :param name:
@@ -186,12 +186,12 @@ if __name__ == '__main__':
     ]
 
     for lunar_holiday in lunar_holidays_list:
-        add_or_update_holiday(name=lunar_holiday['name'],
-                              month=lunar_holiday['month'],
-                              day=lunar_holiday['day'],
-                              calendar_type=CalendarType.LUNAR, )
+        add_or_update(name=lunar_holiday['name'],
+                      month=lunar_holiday['month'],
+                      day=lunar_holiday['day'],
+                      calendar_type=CalendarType.LUNAR, )
     for lunar_holiday in lunar_holidays_list:
-        add_or_update_holiday(name=lunar_holiday['name'],
-                              month=lunar_holiday['month'],
-                              day=lunar_holiday['day'],
-                              calendar_type=CalendarType.GREGORIAN, )
+        add_or_update(name=lunar_holiday['name'],
+                      month=lunar_holiday['month'],
+                      day=lunar_holiday['day'],
+                      calendar_type=CalendarType.GREGORIAN, )

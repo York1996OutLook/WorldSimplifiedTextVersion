@@ -32,7 +32,7 @@ class Achievement(Base):
 
 
 # 增
-def add_achievement(*, name: str, achievement_type: AchievementType, condition: str, introduce: str) -> Achievement:
+def add(*, name: str, achievement_type: AchievementType, condition: str, introduce: str) -> Achievement:
     """
     创建成就
 
@@ -60,14 +60,14 @@ def add_or_update_achievement(*, name: str, achievement_type: AchievementType, c
     :param introduce:
     :return:
     """
-    if is_achievement_exists_by_name(name=name):
-        return update_achievement_by_name(name=name,
-                                   new_achievement_type=achievement_type,
-                                   new_condition=condition,
-                                   new_introduce=introduce,
-                                   )
+    if is_exists_by_name(name=name):
+        return update_by_name(name=name,
+                              new_achievement_type=achievement_type,
+                              new_condition=condition,
+                              new_introduce=introduce,
+                              )
     else:
-        return add_achievement(
+        return add(
             name=name,
             achievement_type=achievement_type,
             condition=condition,
@@ -76,7 +76,7 @@ def add_or_update_achievement(*, name: str, achievement_type: AchievementType, c
 
 
 # 删
-def delete_achievement(*, achievement_id: int) -> bool:
+def delete_by_achievement_id(*, achievement_id: int) -> bool:
     """
     删除成就
 
@@ -93,13 +93,13 @@ def delete_achievement(*, achievement_id: int) -> bool:
 
 # 改
 
-def update_achievement(*,
-                       achievement_id: int,
-                       new_achievement_type: AchievementType = None,
-                       new_name: str = None,
-                       new_condition: str = None,
-                       new_introduce: str = None,
-                       ) -> Achievement:
+def update(*,
+           achievement_id: int,
+           new_achievement_type: AchievementType = None,
+           new_name: str = None,
+           new_condition: str = None,
+           new_introduce: str = None,
+           ) -> Achievement:
     """
     更新成就信息
 
@@ -123,10 +123,11 @@ def update_achievement(*,
     if new_introduce:
         achievement.introduce = new_introduce
     session.commit()
+    session.refresh(achievement)
     return achievement
 
 
-def update_achievement_by_name(
+def update_by_name(
         name: str,
         new_achievement_type: AchievementType,
         new_condition: str,
@@ -144,11 +145,12 @@ def update_achievement_by_name(
     achievement.condition = new_condition
     achievement.introduce = new_introduce
     session.commit()
+    session.refresh(achievement)
     return achievement
 
 
 # 查
-def get_achievement_by_achievement_id(*, achievement_id: int) -> Achievement:
+def get_by_achievement_id(*, achievement_id: int) -> Achievement:
     """
     根据id查询成就
 
@@ -162,7 +164,7 @@ def get_achievement_by_achievement_id(*, achievement_id: int) -> Achievement:
     return achievement
 
 
-def get_achievement_by_achievement_name(*, name: str) -> Achievement:
+def get_by_achievement_name(*, name: str) -> Achievement:
     """
     根据id查询成就
 
@@ -176,9 +178,9 @@ def get_achievement_by_achievement_name(*, name: str) -> Achievement:
     return achievement
 
 
-def is_achievement_exists_by_name(*,
-                                  name: str
-                                  ) -> bool:
+def is_exists_by_name(*,
+                      name: str
+                      ) -> bool:
     """
     根据name查询是否存在；
     :param name:
@@ -187,7 +189,7 @@ def is_achievement_exists_by_name(*,
     return session.query(Achievement).filter_by(name=name).scalar() is not None
 
 
-def get_all_achievements() -> List[Achievement]:
+def get_all() -> List[Achievement]:
     """
     查询所有成就
 

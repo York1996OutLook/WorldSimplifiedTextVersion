@@ -120,6 +120,7 @@ def update_setting_by_name(*,
 
     # Commit the changes to the database
     session.commit()
+    session.refresh(setting)
     return setting
 
 
@@ -147,6 +148,7 @@ def update_setting_by_setting_name(*,
 
     # Commit the changes to the database
     session.commit()
+    session.refresh(setting)
     return setting
 
 

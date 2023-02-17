@@ -18,7 +18,7 @@ from DBHelper.tables.setting import get_per_star_improved_percent, get_sell_expi
 from DBHelper.tables.setting import get_lottery_start_hour, get_lottery_end_hour, get_lottery_lucky_num
 from DBHelper.tables.player_lottery_record import get_all_is_lucky_num_player_lottery_records_by_timestamp
 from DBHelper.tables.player_lottery_record import get_all_player_lottery_records_with_max_lucky_num_by_timestamp
-from DBHelper.tables.player_mail_record import insert_player_mail_record_to_available_position
+from DBHelper.tables.player_mail_record import insert_to_available_position
 from DBHelper.tables.player_stuff_record import get_player_stuff_record_by_record_id, add_player_stuff_record, \
     insert_stuff_to_player_bag
 from DBHelper.tables.player_sell_store_record import get_sell_store_record_by_record_id, get_expired_records, \

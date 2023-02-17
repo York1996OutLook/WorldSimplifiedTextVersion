@@ -22,7 +22,7 @@ class PlayerAchievementRecord(Base):
 
 
 # 增
-def add_player_achievement_record(*,achievement_id: int, character_id: int, achieve_timestamp: int) -> PlayerAchievementRecord:
+def add(*,achievement_id: int, character_id: int, achieve_timestamp: int) -> PlayerAchievementRecord:
     """
     Insert a new record of an achievement
 
@@ -42,7 +42,7 @@ def add_player_achievement_record(*,achievement_id: int, character_id: int, achi
 
 
 # 删
-def delete_player_achievement_record(*,record_id: int) -> None:
+def delete(*,record_id: int) -> None:
     """
     Delete an existing record of an achievement
 
@@ -56,7 +56,12 @@ def delete_player_achievement_record(*,record_id: int) -> None:
 
 
 # 改
-def update_player_achievement_record(*,record_id: int, achievement_id: int = None, character_id: int = None, achieve_timestamp: int = None) -> None:
+def update(*,
+                                     record_id: int,
+                                     achievement_id: int = None,
+                                     character_id: int = None,
+                                     achieve_timestamp: int = None,
+                                     ) -> PlayerAchievementRecord:
     """
     Update an existing record of an achievement
 
@@ -74,9 +79,11 @@ def update_player_achievement_record(*,record_id: int, achievement_id: int = Non
     if achieve_timestamp:
         record.achieve_timestamp = achieve_timestamp
     session.commit()
+    session.refresh(record)
+    return record
 
 # 查
-def get_player_achievement_record_by_record_id(*,record_id: int):
+def get_by_record_id(*,record_id: int):
     """
     Retrieve information about a specific achievement record
 
@@ -86,7 +93,7 @@ def get_player_achievement_record_by_record_id(*,record_id: int):
     record = PlayerAchievementRecord.query.filter_by(id=record_id).first()
     return record
 
-def is_player_achievement_record_exist(*,record_id: int) -> bool:
+def is_exists_by_record_id(*,record_id: int) -> bool:
     """
     Check if a record of an achievement exists
 
@@ -96,7 +103,7 @@ def is_player_achievement_record_exist(*,record_id: int) -> bool:
     return PlayerAchievementRecord.query.get(record_id) is not None
 
 # 获取玩家所有成就记录
-def get_all_achievements_records_by_character_id(*,character_id: int) -> List[PlayerAchievementRecord]:
+def get_all_by_character_id(*,character_id: int) -> List[PlayerAchievementRecord]:
     """
     通过玩家ID获取其所有成就记录
     :param character_id: 玩家ID
@@ -105,7 +112,7 @@ def get_all_achievements_records_by_character_id(*,character_id: int) -> List[Pl
     records = session.query(PlayerAchievementRecord).filter(PlayerAchievementRecord.character_id == character_id).all()
     return records
 
-def get_player_achievement_title_by_character_id(*,character_id: int) -> PlayerAchievementRecord:
+def get_title_by_character_id(*,character_id: int) -> PlayerAchievementRecord:
     """
     通过玩家ID获取其所有成就记录
     :param character_id: 玩家ID
@@ -118,5 +125,3 @@ def get_player_achievement_title_by_character_id(*,character_id: int) -> PlayerA
 
 
 
-if __name__ == '__main__':
-    get_all_achievements_records_by_character_id(character_id = 2)

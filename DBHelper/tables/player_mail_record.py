@@ -37,18 +37,18 @@ class PlayerMailRecord(Base):
 
 
 # 增
-def add_player_mail_record(*,
-                           send_character_id: int,
-                           received_character_id: int,
-                           mail_position_index: int,
-                           give_stuff_id: int,
-                           charge: int,
-                           give: int,
-                           mail_type: int,
-                           is_already_read: bool,
-                           addition_message: int,
-                           send_timestamp: int
-                           ):
+def add(*,
+        send_character_id: int,
+        received_character_id: int,
+        mail_position_index: int,
+        give_stuff_id: int,
+        charge: int,
+        give: int,
+        mail_type: int,
+        is_already_read: bool,
+        addition_message: int,
+        send_timestamp: int
+        ):
     """
     增加一条邮件记录
     :param send_character_id: 邮件发送人的 character_id
@@ -79,17 +79,17 @@ def add_player_mail_record(*,
 
 
 # 删
-def delete_player_mail_record_by_mail_id(*, mail_id: int):
+def delete_by_mail_id(*, record_id: int):
     """
     删除指定的邮件记录
-    :param mail_id: 邮件记录的ID
+    :param record_id: 邮件记录的ID
     """
-    session.query(PlayerMailRecord).filter(PlayerMailRecord.id == mail_id).delete()
+    session.query(PlayerMailRecord).filter(PlayerMailRecord.id == record_id).delete()
     session.commit()
 
 
 # 改
-def update_mail_read_status(*, mail_id: int, is_read: bool) -> PlayerMailRecord:
+def update_read_status(*, mail_id: int, is_read: bool) -> PlayerMailRecord:
     """
     修改某个邮件的已读状态
     :param mail_id: 邮件id
@@ -99,10 +99,11 @@ def update_mail_read_status(*, mail_id: int, is_read: bool) -> PlayerMailRecord:
     mail = session.query(PlayerMailRecord).filter(PlayerMailRecord.id == mail_id).first()
     mail.is_already_read = is_read
     session.commit()
+    session.refresh(mail)
     return mail
 
 
-def update_mail_type_by_mail_record_id(*, mail_record_id: int, new_mail_type: MailType):
+def update_type_by_record_id(*, mail_record_id: int, new_mail_type: MailType):
     """
     修改某个邮件的类型
     :param mail_record_id: 邮件id
@@ -112,11 +113,12 @@ def update_mail_type_by_mail_record_id(*, mail_record_id: int, new_mail_type: Ma
     mail = session.query(PlayerMailRecord).filter(PlayerMailRecord.id == mail_record_id).first()
     mail.mail_type = new_mail_type
     session.commit()
+    session.refresh(mail)
     return mail
 
 
 # 查
-def get_all_mails_for_character(*, character_id: int) -> List[PlayerMailRecord]:
+def get_all_for_character(*, character_id: int) -> List[PlayerMailRecord]:
     """
     获取某个人所有可见的邮件，包括发送的（一直可见），接受的（收到邮件后选择了拒收，则后续将看不到这个邮件）
     :param character_id:
@@ -129,13 +131,22 @@ def get_all_mails_for_character(*, character_id: int) -> List[PlayerMailRecord]:
         (PlayerMailRecord.send_character_id == character_id)).all()
 
 
-def get_player_mail_record_by_player_mail_record_id(*, player_mail_id: int) -> PlayerMailRecord:
+def get_all_by_character_id(*, character_id: int) -> PlayerMailRecord:
     """
     根据玩家邮件记录来查询
-    :param player_mail_id:
+    :param character_id:
     :return:
     """
-    return session.query(PlayerMailRecord).filter(PlayerMailRecord.id == player_mail_id).all()
+    return session.query(PlayerMailRecord).filter(PlayerMailRecord.send_character_id == character_id).all()
+
+
+def get_by_record_id(*, record_id: int) -> PlayerMailRecord:
+    """
+    根据玩家邮件记录来查询
+    :param record_id:
+    :return:
+    """
+    return session.query(PlayerMailRecord).filter(PlayerMailRecord.id == record_id).first()
 
 
 # other
@@ -146,7 +157,7 @@ def get_min_unused_mail_position(character_id: int):
     """
     获取某个角色未用的邮箱位置
     """
-    mails = get_all_mails_for_character(character_id=character_id)
+    mails = get_all_for_character(character_id=character_id)
 
     positions = []
     for mail in mails:
@@ -156,27 +167,27 @@ def get_min_unused_mail_position(character_id: int):
     return available_position
 
 
-def insert_player_mail_record_to_available_position(*,
-                                                    send_character_id: int,
-                                                    received_character_id: int,
-                                                    give_stuff_id: int,
-                                                    charge: int,
-                                                    give: int,
-                                                    mail_type: int,
-                                                    is_already_read: bool,
-                                                    addition_message: int,
-                                                    send_timestamp: int):
+def insert_to_available_position(*,
+                                 send_character_id: int,
+                                 received_character_id: int,
+                                 give_stuff_id: int,
+                                 charge: int,
+                                 give: int,
+                                 mail_type: int,
+                                 is_already_read: bool,
+                                 addition_message: int,
+                                 send_timestamp: int):
     available_position = get_min_unused_mail_position(
         character_id=received_character_id
     )
-    add_player_mail_record(send_character_id=send_character_id,
-                           received_character_id=received_character_id,
-                           mail_position_index=available_position,
-                           give_stuff_id=give_stuff_id,
-                           charge=charge,
-                           give=give,
-                           mail_type=mail_type,
-                           is_already_read=is_already_read,
-                           addition_message=addition_message,
-                           send_timestamp=send_timestamp
-                           )
+    add(send_character_id=send_character_id,
+        received_character_id=received_character_id,
+        mail_position_index=available_position,
+        give_stuff_id=give_stuff_id,
+        charge=charge,
+        give=give,
+        mail_type=mail_type,
+        is_already_read=is_already_read,
+        addition_message=addition_message,
+        send_timestamp=send_timestamp
+        )

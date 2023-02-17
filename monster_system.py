@@ -1,65 +1,33 @@
+import os.path as osp
+
 from DBHelper.session import session
-from Enums import DateType, AdditionalPropertyType
-
-
-def add_new_monster_and_etc():
-    monster_relevant_dict = {
-        # monster base information
-        "name": "",
-        "exp_value": 100,
-        'description': "",
-        # When will monster appear
-        'date_type': DateType.HOUR_OF_DAY,
-        'date_value': 1,
-        # battle properties
-        AdditionalPropertyType.ATTACK_SPEED: 0,
-        AdditionalPropertyType.ATTACK: 0,
-
-        AdditionalPropertyType.HEALTH: 0,
-        AdditionalPropertyType.HEALTH_RECOVERY: 0,
-        AdditionalPropertyType.HEALTH_ABSORPTION: 0,
-
-        AdditionalPropertyType.MANA: 0,
-        AdditionalPropertyType.MANA_RECOVERY: 0,
-        AdditionalPropertyType.MANA_ABSORPTION: 0,
-
-        AdditionalPropertyType.COUNTERATTACK: 0,
-        AdditionalPropertyType.IGNORE_COUNTERATTACK: 0,
-
-        AdditionalPropertyType.DAMAGE_SHIELD: 0,
-
-        # about skill setting
-        "skill_list": [
-            {
-                'skill_name': None,  # 根据名字查找对应的skill
-                'effect_expression': None,
-            },
-        ],
-
-        "skill_round_skill_dict": {
-
-        }
-        # about drop stuffs
-
-    }
-
+from DBHelper.db import *
+from Enums import DateType, AdditionalPropertyType,date_cn_type_dict
+import local_setting
+from Utils import tools
 
 if __name__ == '__main__':
-    # insert records into Monster table
-    monsters = [Monster(name='人形木桩',
-                        exp_value=200,
-                        description='Ezra曾经是一位荣耀的药剂术士，但是在他对炼药术的不断探索中，他逐渐堕落成了一个邪恶的人物。他开始使用黑暗魔法和危险的材料制作出了许多有害的药剂，并用它们来控制城市中的人们。'),
+    monster_json_src = osp.join(local_setting.json_data_root, "monster", 'monster.json')
+    monster_dict_list = tools.file2dict_list(src=monster_json_src)
+    for monster_dict in monster_dict_list:
+        # base
+        name = monster_dict['名称']
+        exp_value = monster_dict['经验']
+        introduction = monster_dict['描述']
+        one_monster = monster.add_or_update(name=name, exp_value=exp_value, introduction=introduction)
+        # shows up
+        # 删除相关出现的记录，方便后续更新
+        monster_show_up_record.del_all_by_monster_id(monster_id=one_monster.id)
 
-                Monster(name='药剂术师',
-                        exp_value=200,
-                        description='Ezra曾经是一位荣耀的药剂术士，但是在他对炼药术的不断探索中，他逐渐堕落成了一个邪恶的人物。他开始使用黑暗魔法和危险的材料制作出了许多有害的药剂，并用它们来控制城市中的人们。'),
+        shows_up_date_type = date_cn_type_dict[monster_dict['日期类型']]
+        show_up_data_values = monster_dict['具体时间']
 
-                Monster(name='食人魔',
-                        exp_value=100,
-                        description='一种行动迅速，残忍无情的生物，喜欢吃掉无助的旅行者。'),
+        # 添加具体的值；
+        for show_up_data_value in show_up_data_values:
+            monster_show_up_record.add(monster_id=one_monster.id,
+                                       date_type=shows_up_date_type,
+                                       date_value=show_up_data_value)
 
-                Monster(name='龙', exp_value=450,
-                        description='一种以智慧和力量著称的生物，生活在高山和岩石间。')]
-
-    session.add_all([monster1, monster2, monster3])
-    session.commit()
+        # 添加对应属性：
+        attack_speed = monster_dict['出手速度']
+        misc_properties
