@@ -1,4 +1,5 @@
 from collections import defaultdict
+import os.path as osp
 from typing import Optional, DefaultDict, List
 
 from sqlalchemy import Column, Integer, String, Boolean
@@ -6,6 +7,8 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from DBHelper.session import session
 from Enums import AdditionSourceType, AdditionalPropertyType, EquipmentPropertyAvailability, StuffType
+import local_setting
+from Utils import tools
 
 Base = declarative_base()
 
@@ -513,28 +516,9 @@ def get_properties_dict_by_potion(*,
 
 if __name__ == '__main__':
     # 录入初始属性
-    player_initial_properties_list = [
-        {
-            # base
-            "additional_property_type": AdditionalPropertyType.ATTACK,
-            "additional_property_value": 10,
-        },
-        {
-            # base
-            "additional_property_type": AdditionalPropertyType.ATTACK_SPEED,
-            "additional_property_value": 10,
-        },
-        {
-            # base
-            "additional_property_type": AdditionalPropertyType.HEALTH,
-            "additional_property_value": 100,
-        },
-        {
-            # base
-            "additional_property_type": AdditionalPropertyType.MANA,
-            "additional_property_value": 100,
-        },
-    ]
+    json_src = osp.join(local_setting,'initial_properties','initial_properties.json')
+    properties_dict_list=tools.file2dict_list(src=json_src)
+
 
     # 删除所有初始属性后再进行添加；
     del_initial_properties()
