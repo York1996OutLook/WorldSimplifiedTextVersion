@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String,Boolean
+from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from typing import List, Optional
 
@@ -17,6 +17,7 @@ class SkillBook(Base):
     level = Column(Integer, comment="技能书的等级，高等级技能书可以学习低等级技能，但是反过来不行")
 
     is_bind = Column(Boolean, comment="刚出来的时候是否已经绑定")
+
 
 # 增
 
@@ -43,21 +44,6 @@ def get_skill_book_by_skill_book_id(*,
     return skill_book
 
 
-def get_skill_id_by_skill_book_id(*,
-                                  skill_book_id: int
-                                  ) -> SkillBook:
-    """
-    查询技能书的记录
-
-    Args:
-    skill_id: 技能的id，如果传了这个参数，则只查询指定技能的技能书
-    level: 技能书的等级，如果传了这个参数，则只查询指定等级的技能书
-
-    Returns:
-    List[SkillBook]
-    """
-    query = session.query(SkillBook).filter_by(skill_book_id=skill_book_id)
-    return query.first()
 
 
 def get_skill_book_by_skill_id_skill_level(*,

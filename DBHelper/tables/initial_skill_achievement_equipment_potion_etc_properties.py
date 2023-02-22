@@ -6,7 +6,8 @@ from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 
 from DBHelper.session import session
-from Enums import AdditionSourceType, AdditionalPropertyType, EquipmentPropertyAvailability, StuffType
+from Enums import AdditionSourceType, AdditionalPropertyType, EquipmentPropertyAvailability, StuffType, \
+    property_cn_type_dict
 import local_setting
 from Utils import tools
 
@@ -110,6 +111,15 @@ def add_initial_properties(*,
         additional_property_value=additional_property_value)
 
 
+def add_monster_properties(*,
+                           additional_property_type: AdditionalPropertyType,
+                           additional_property_value: int,
+                           ):
+    add(additional_source_type=AdditionSourceType.MONSTER,
+        additional_property_type=additional_property_type,
+        additional_property_value=additional_property_value)
+
+
 def add_equipment_properties(*,
                              additional_property_type: AdditionalPropertyType,
                              additional_property_value: int,
@@ -177,7 +187,7 @@ def del_initial_properties() -> bool:
     """
     session.query(InitialSkillAchievementEquipmentPotionEtcPropertiesRecord).filter(
         InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_type == AdditionSourceType.INITIAL,
-    ).delete(synchronize_session=True)
+    ).delete(synchronize_session=False)
 
     session.commit()
     return True
@@ -216,9 +226,10 @@ def del_equipment_prototype_properties(*,
     session.commit()
     return True
 
+
 def del_monster_prototype_properties(*,
-                                       monster_id: int,
-                                       ):
+                                     monster_id: int,
+                                     ):
     """
     删除某个装备原型的所有属性。
     :param monster_id:
@@ -232,6 +243,7 @@ def del_monster_prototype_properties(*,
     session.commit()
     return True
 
+
 # 改
 def update_or_add_new_base_property(
         *,
@@ -239,14 +251,21 @@ def update_or_add_new_base_property(
         base_property_type: AdditionalPropertyType,
         base_property_value: int,
 ):
+    """
+    更新基础属性。
+    :param character_id:
+    :param base_property_type:
+    :param base_property_value:
+    :return:
+    """
     if is_exists_by_base_property(character_id=character_id, base_property_type=base_property_type):
-        update_base_property_by(character_id=character_id,
-                                base_property_type=base_property_type,
-                                base_property_value=base_property_value)
-        return
-    add_base_property(character_id=character_id,
-                      base_property_type=base_property_type,
-                      base_property_value=base_property_value)
+        return update_base_property_by(character_id=character_id,
+                                       base_property_type=base_property_type,
+                                       base_property_value=base_property_value)
+
+    return add_base_property(character_id=character_id,
+                             base_property_type=base_property_type,
+                             base_property_value=base_property_value)
 
 
 def update_base_property_by(*,
@@ -516,15 +535,17 @@ def get_properties_dict_by_potion(*,
 
 if __name__ == '__main__':
     # 录入初始属性
-    json_src = osp.join(local_setting,'initial_properties','initial_properties.json')
-    properties_dict_list=tools.file2dict_list(src=json_src)
-
+    json_src = osp.join(local_setting.json_data_root, 'initial_properties', 'initial_properties.json')
+    properties_dict_list = tools.file2dict_list(src=json_src)
 
     # 删除所有初始属性后再进行添加；
     del_initial_properties()
-    for player_initial_property in player_initial_properties_list:
+    for player_initial_property_dict in properties_dict_list:
+        property_type_cn = player_initial_property_dict['属性']
+        property_type = property_cn_type_dict[property_type_cn]
+        property_value = player_initial_property_dict['属性值']
         # 添加新的初始属性
         add_initial_properties(
-            additional_property_type=player_initial_property['additional_property_type'],
-            additional_property_value=player_initial_property['additional_property_value']
+            additional_property_type=property_type,
+            additional_property_value=property_value,
         )

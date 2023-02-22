@@ -143,6 +143,8 @@ class AdditionSourceType:
     EQUIPMENT_PROTOTYPE = 5  # 装备原型
     EQUIPMENT_RECORD = 6  # 装备记录
     POTION = 7  # 临时药剂
+    PLAYER = 8  # player
+    MONSTER = 9  # monster
 
 
 class GemInlayingStatus:

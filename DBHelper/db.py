@@ -18,7 +18,7 @@ import DBHelper.tables.player_level_exp_skill_point as player_level_exp_skill_po
 import DBHelper.tables.player_lottery_record as player_lottery_record
 import DBHelper.tables.player_mail_record as player_mail_record
 import DBHelper.tables.player_monster_additional_property_record as player_monster_additional_property_record
-import DBHelper.tables.player_or_monster_skill_setting as player_skill_setting
+import DBHelper.tables.player_or_monster_skill_setting as player_or_monster_skill_setting
 import DBHelper.tables.player_potion_record as player_potion_record
 import DBHelper.tables.player_sell_store_record as player_sell_store_record
 import DBHelper.tables.player_skill_record as player_skill_record

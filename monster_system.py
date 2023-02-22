@@ -2,7 +2,7 @@ import os.path as osp
 
 from DBHelper.session import session
 from DBHelper.db import *
-from Enums import DateType, AdditionalPropertyType,date_cn_type_dict
+from Enums import DateType, AdditionalPropertyType, date_cn_type_dict, property_cn_type_dict
 import local_setting
 from Utils import tools
 
@@ -15,6 +15,7 @@ if __name__ == '__main__':
         exp_value = monster_dict['经验']
         introduction = monster_dict['描述']
         one_monster = monster.add_or_update(name=name, exp_value=exp_value, introduction=introduction)
+
         # shows up
         # 删除相关出现的记录，方便后续更新
         monster_show_up_record.del_all_by_monster_id(monster_id=one_monster.id)
@@ -28,6 +29,23 @@ if __name__ == '__main__':
                                        date_type=shows_up_date_type,
                                        date_value=show_up_data_value)
 
-        # 添加对应属性：
-        attack_speed = monster_dict['出手速度']
-        misc_properties
+        # 添加对应属性：先删除所有属性
+        misc_properties.del_monster_prototype_properties(monster_id=one_monster.id)
+        property_dict = monster_dict['属性']
+        for property_name in property_dict:
+            property_type = property_cn_type_dict[property_name]
+            value = property_dict[property_name]
+            misc_properties.add_monster_properties(additional_property_type=property_type,
+                                                   additional_property_value=value)
+        # 添加对应技能，先删除怪物对应技能列表
+        player_or_monster_skill_setting.del_monster_skill_setting(monster_id=one_monster.id)
+        skill_list = monster_dict["技能列表"]
+        for skill_dict in skill_list:
+            skill_name = skill_dict['技能名字']
+            skill_level = skill_dict['技能等级']
+            skill_round = skill_dict['释放回合数']
+
+            one_skill = skill.get_skill_by_name(name=skill_name)
+            one_skill_book = skill_book.get_skill_book_by_skill_id_skill_level(skill_id=one_skill.id, level=skill_level)
+
+            player_or_monster_skill_setting.add_monster_skill_setting(monster_id=one_monster.id,skill_book_id=one_skill_book.id)

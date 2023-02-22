@@ -62,6 +62,11 @@ def delete_skill(*,
 
     # Commit the transaction
     session.commit()
+
+
 # 改
 
 # 查
+def get_skill_by_name(*, name: str) -> Skill:
+    record = session.query(Skill).filter_(Skill.skill_name == name).first()
+    return record
