@@ -48,4 +48,22 @@ if __name__ == '__main__':
             one_skill = skill.get_skill_by_name(name=skill_name)
             one_skill_book = skill_book.get_skill_book_by_skill_id_skill_level(skill_id=one_skill.id, level=skill_level)
 
-            player_or_monster_skill_setting.add_monster_skill_setting(monster_id=one_monster.id,skill_book_id=one_skill_book.id)
+            player_or_monster_skill_setting.add_monster_skill_setting(monster_id=one_monster.id,
+                                                                      skill_book_id=one_skill_book.id)
+
+        # 添加掉落物品的列表和概率；
+        drop_stuffs_list = monster_dict['掉落物品']
+        drop_n_choose_one_list = []
+        for drop_stuff_dict in drop_stuffs_list:
+            stuff_type = drop_stuff_dict["物品类型"]
+            stuff_name = drop_stuff_dict['物品名字']
+            prob = drop_stuff_dict['概率']
+
+            open_decompose_or_drop_stuffs.
+            # if prob < 0:
+            #     drop_n_choose_one_list.append((stuff_type,stuff_name,prob))
+            # elif prob<100:
+            #
+            # elif prob>100:
+            #     min_num = prob//100
+            #     max_num = prob % 100

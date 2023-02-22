@@ -81,6 +81,7 @@ def add_gem_box(*, box_id: int, gem_id: int, prob: int)->OpenDecomposeOrDropStuf
                   get_stuff_id=gem_id,
                   get_stuff_prob=prob)
 
+def add_monster_drop_equipment(*,mo):
 
 # 删
 def delete_box_records_by_box_id(*,
