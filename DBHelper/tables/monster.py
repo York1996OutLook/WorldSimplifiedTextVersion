@@ -84,7 +84,7 @@ def update_by_name(*,
 
 
 # 查
-def get_by_id(*, monster_id: int):
+def get_by_id(*, monster_id: int)->Monster:
     """
     根据ID查询怪物
 
@@ -100,5 +100,5 @@ def is_exists_by_name(*, name: str) -> bool:
     :param name:
     :return:
     """
-    monster = session.query(Monster).filter(Monster.id == name).first()
+    monster = session.query(Monster).filter(Monster.name == name).first()
     return monster is not None

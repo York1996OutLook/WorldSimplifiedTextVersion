@@ -30,19 +30,23 @@ class App:
             self.handle_player_log_in_game()
         elif player_input == '属性':
             self.handle_player_query_self_property(player_id=self.player_id)
-        elif player_input == "未分配点数":
+        elif player_input == "未分配属性点":
             self.handle_player_get_unsigned_point()
+        elif player_input == "当前怪物":
+            self.handle_player_get_cur_visible_monsters()
+        elif player_input[:2] == "挑战":
+            self.handle_player_attack_monster(monster_name=player_input[2:])
         elif player_input[:2] in set(base_property_cn_type_dict.keys()):
 
             # 基础属性名称
             property_type = base_property_cn_type_dict[player_input[:2]]
             std_format = f"{property_type}+1 或者 {property_type}+1"
             # 判断是加还是-属性。后期准备如果-属性，需要扣除对应的黄金
-            if len(player_input)<3:
+            if len(player_input) < 3:
                 print(f"您输入的长度是{len(player_input)},正确的格式是{std_format}。")
                 return
             operator = player_input[2]
-            if operator== "+":
+            if operator == "+":
                 is_plus = True
             elif operator == '-':
                 is_plus = False
@@ -63,13 +67,28 @@ class App:
                                                        change_point_num=points_num)
             self.print_cur_base_property_points()
 
+    def handle_player_attack_monster(self, *, monster_name: str):
+        if len(monster_name) == 0:
+            print('您输入的格式不正确，应该是挑战怪物名字。比如挑战人形木桩')
+            return
+
+    def handle_player_get_cur_visible_monsters(self):
+        monster_ids = monster_show_up_record.get_all_monster_id_by_today()
+        if len(monster_ids) == 0:
+            print("今日没有怪物出现！")
+            return
+        # todo: 对怪物进行排序
+        for idx, monster_id in enumerate(monster_ids):
+            one_monster = monster.get_by_id(monster_id=monster_id)
+            print(f'{idx}:{one_monster.name}\n经验值：{one_monster.exp_value}\n介绍：{one_monster.introduction}')
+
     def print_cur_base_property_points(self):
         cur_player = player.get_by_player_id(player_id=self.player_id)
         # 获取已经使用了多少点数
-        used_points = misc_properties.get_used_base_property_points_num(character_id=cur_player.id)
+        used_points = misc_properties.get_used_base_property_points_num_by_character_id(character_id=cur_player.id)
         # 根据玩家等级，获取当前一共可以分配多少点数。
         total_points = cur_player.current_level * setting.get_per_level_base_point_num()
-        base_properties_dict = misc_properties.get_base_property_dict_by(character_id=cur_player.id)
+        base_properties_dict = misc_properties.get_base_property_dict_by_character_id(character_id=cur_player.id)
 
         points_signed_string = "\n".join([f"{key} +{base_properties_dict[base_property_cn_type_dict[key]]}" for key in
                                           base_property_cn_type_dict])
@@ -83,10 +102,10 @@ class App:
         cur_player = player.get_by_player_id(player_id=self.player_id)
 
         # 获取已经使用了多少点数
-        used_points = misc_properties.get_used_base_property_points_num(character_id=cur_player.id)
+        used_points = misc_properties.get_used_base_property_points_num_by_character_id(character_id=cur_player.id)
         # 根据玩家等级，获取当前一共可以分配多少点数。
         total_points = cur_player.current_level * setting.get_per_level_base_point_num()
-        base_properties_dict = misc_properties.get_base_property_dict_by(character_id=cur_player.id)
+        base_properties_dict = misc_properties.get_base_property_dict_by_character_id(character_id=cur_player.id)
         cur_value = base_properties_dict[property_type]
 
         if is_plus:
@@ -110,12 +129,7 @@ class App:
                                                         base_property_value=cur_value + change_point_num)
 
     def handle_player_get_unsigned_point(self):
-        cur_player = player.get_by_player_id(player_id=self.player_id)
-
-        level = cur_player.current_level
-        all_base_point = setting.get_per_level_base_point_num()
-        base_properties_dict = misc_properties.get_base_property_dict_by(character_id=cur_player.id)
-        print(1)
+        self.print_cur_base_property_points()
 
     @staticmethod
     def handle_player_query_self_property(*, player_id: int):
@@ -142,9 +156,9 @@ class App:
 
             # 新增玩家
             new_player = player.add(player_id=self.player_id,
-                                           nickname=self.nick_name,
-                                           current_level=setting.get_initial_player_level(),
-                                           game_sign=setting.get_player_default_game_sign())
+                                    nickname=self.nick_name,
+                                    current_level=setting.get_initial_player_level(),
+                                    game_sign=setting.get_player_default_game_sign())
             # 新增玩家对应属性表
             battle_property_system.add_new_player_additional_property_record(character_id=new_player.id)
 
@@ -152,8 +166,8 @@ class App:
             one_achievement = achievement.get_by_achievement_name(name='初入世界')
             # 添加到用户的成就记录表中
             player_achievement_record.add(achievement_id=one_achievement.id,
-                                                                    character_id=new_player.id,
-                                                                    achieve_timestamp=int(time.time()))
+                                          character_id=new_player.id,
+                                          achieve_timestamp=int(time.time()))
             # 用户佩戴这个成就称号；
             player.update_achievement_id(character_id=new_player.id, achievement_id=one_achievement.id)
 
@@ -161,11 +175,7 @@ class App:
             properties_dict = battle_property_system.get_player_initial_skills_achievements_equipments_properties_dict(
                 character_id=new_player.id)
 
-            player_monster_additional_property_record.update_by_being_and_properties_dict(
-                being_type=BeingType.PLAYER,
-                being_id=new_player.id,
-                properties_dict=properties_dict,
-            )
+            misc_properties.update_player_properties_dict(character_id=new_player.id, properties_dict=properties_dict)
             print("欢迎进入世界！")
             return
         else:

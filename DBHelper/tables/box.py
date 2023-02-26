@@ -99,3 +99,11 @@ def is_exists_by_name(*, name: str) -> bool:
     return record is not None
 
 
+def get_by_name(*, name: str) -> Box:
+    """
+    根据name获得box
+    :param name:
+    :return:
+    """
+    record = session.query(Box).filter(Box.name == name).first()
+    return record

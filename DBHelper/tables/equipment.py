@@ -51,7 +51,7 @@ def add_or_update(*,
                   quality: EquipmentQuality,
                   can_be_identified: bool,
                   introduction: str,
-                  is_bind: bool)->Equipment:
+                  is_bind: bool) -> Equipment:
     """
     新增或者更新数据
     :param name:
@@ -63,19 +63,19 @@ def add_or_update(*,
     :return:
     """
     if is_exists_by_name(name):
-        equipment=update_by_name(name=name,
-                       part=part,
-                       quality=quality,
-                       can_be_identified=can_be_identified,
-                       introduction=introduction,
-                       is_bind=is_bind)
+        equipment = update_by_name(name=name,
+                                   part=part,
+                                   quality=quality,
+                                   can_be_identified=can_be_identified,
+                                   introduction=introduction,
+                                   is_bind=is_bind)
     else:
-        equipment=add(name=name,
-                       part=part,
-                       quality=quality,
-                       can_be_identified=can_be_identified,
-                       introduction=introduction,
-                       is_bind=is_bind)
+        equipment = add(name=name,
+                        part=part,
+                        quality=quality,
+                        can_be_identified=can_be_identified,
+                        introduction=introduction,
+                        is_bind=is_bind)
     return equipment
 
 
@@ -138,6 +138,15 @@ def is_exists_by_name(name: str) -> bool:
     """
     record = session.query(Equipment).filter(Equipment.name == name).first()
     return record is not None
+
+
+def get_by_name(name: str) -> Equipment:
+    """
+    :param name:
+    :return:
+    """
+    equipment = session.query(Equipment).filter(Equipment.name == name).first()
+    return equipment
 
 
 def get_by_equipment_id(*, equipment_id: int) -> Equipment:

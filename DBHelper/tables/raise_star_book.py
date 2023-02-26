@@ -88,3 +88,10 @@ def is_exists_by_name(*, name: str) -> bool:
     book = session.query(RaiseStarBook).filter(RaiseStarBook.name == name).first()
     return book is not None
 
+def get_by_name(*, name: str) -> RaiseStarBook:
+    """
+    :param name:
+    :return:
+    """
+    book = session.query(RaiseStarBook).filter(RaiseStarBook.name == name).first()
+    return book

@@ -112,6 +112,7 @@ class StuffType:
     EXP_BOOK = 6  # 经验书  允许一次性使用多个
     SKILL_BOOK = 7  # 技能书 允许一次性使用多个
     POTION = 8  # 药水 使用后可以临时提高某个属性；
+    MONSTER = 9 # 怪物，被击败的时候使用；
 
 stuff_cn_type_dict={
     "装备":StuffType.EQUIPMENT,
@@ -122,6 +123,7 @@ stuff_cn_type_dict={
     "经验书":StuffType.EXP_BOOK,
     "技能书":StuffType.SKILL_BOOK,
     "药剂":StuffType.POTION,
+    "怪物":StuffType.MONSTER,
 }
 
 class BeingType:
@@ -145,6 +147,7 @@ class AdditionSourceType:
     POTION = 7  # 临时药剂
     PLAYER = 8  # player
     MONSTER = 9  # monster
+    BASE_ADDITIONAL = 10  # 基础属性增加其它属性值；
 
 
 class GemInlayingStatus:
@@ -240,14 +243,14 @@ property_type_cn_dict = {
     AdditionalPropertyType.HEALTH: "生命",
     AdditionalPropertyType.HEALTH_ADD_PERCENT: "生命增加百分比",
 
-    AdditionalPropertyType.HEALTH_RECOVERY: "生命恢复(每回合)",
+    AdditionalPropertyType.HEALTH_RECOVERY: "生命恢复",
     AdditionalPropertyType.HEALTH_RECOVERY_ADD_PERCENT: "生命恢复增加百分比",
 
     AdditionalPropertyType.HEALTH_ABSORPTION: "生命吸收",
     AdditionalPropertyType.HEALTH_ABSORPTION_ADD_PERCENT: "生命吸收增加百分比",
 
     AdditionalPropertyType.MANA: "法力",
-    AdditionalPropertyType.MANA_ADD_PERCENT: "法力增加百分比(每回合)",
+    AdditionalPropertyType.MANA_ADD_PERCENT: "法力增加百分比",
 
     AdditionalPropertyType.MANA_RECOVERY: "法力恢复",
     AdditionalPropertyType.MANA_RECOVERY_ADD_PERCENT: "法力恢复百分比",
@@ -303,8 +306,11 @@ class EquipmentPropertyAvailability:
 
 
 class ExpBookType:
-    CHARACTER = 1  # 角色
+    CHARACTER = 1  # 人物
 
+exp_book_cn_type_dict={
+    "人物":ExpBookType.CHARACTER
+}
 
 class DateType:
     HOUR_OF_DAY = 1  # 每天的几点会出现；对应的值为0到24

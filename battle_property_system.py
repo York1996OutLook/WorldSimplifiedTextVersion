@@ -49,7 +49,7 @@ def sum_all_additional_properties(*,
     # 由于是从1开始的这样刚好包含所有的键
     for key in range(AdditionalPropertyType.min_num, AdditionalPropertyType.max_num + 1):
         sums = sum([dic[key] for dic in additional_properties_dicts])
-        if sums!=0: # 等于0的不进行统计
+        if sums != 0:  # 等于0的不进行统计
             sum_result_dict[key] = sums
     return sum_result_dict
 
@@ -81,7 +81,7 @@ def get_player_achievement_title_additional_properties_dict_by_character_id(*, c
     one_player = player.get_by_character_id(character_id=character_id)
 
     achievement_properties_dict = misc_properties.get_properties_dict_by_achievement_id(
-        achievement_id = one_player.achievement_id
+        achievement_id=one_player.achievement_id
     )
     return achievement_properties_dict
 
@@ -144,7 +144,7 @@ def get_all_skills_additional_properties_by_character_id(*, character_id: int) -
         one_skill_book = skill_book.get_skill_book_by_skill_id_skill_level(skill_id=one_skill.id,
                                                                            level=one_skill.skill_level)
 
-        skill_additional_properties_dict = misc_properties.get_properties_dict_by_skill(
+        skill_additional_properties_dict = misc_properties.get_properties_dict_by_skill_book_id(
             skill_book_id=one_skill_book.id)
         dicts.append(skill_additional_properties_dict)
 
@@ -165,7 +165,7 @@ def get_all_equipments_additional_properties_by_character_id(*, character_id: in
 
         # 获取装备当前属性
         equipment_additional_properties_dict = misc_properties.get_properties_dict_by_equipment_record(
-            stuff_record_id=one_equipment.id,
+            equipment_record_id=one_equipment.id,
         )
         # 获取装备升星带来的属性提升
         cur_star_improve_rate = (one_equipment.current_stars_num * setting.get_per_star_improved_percent()) / 100
@@ -199,7 +199,8 @@ def get_player_initial_skills_achievements_equipments_properties_dict(*, charact
     # 初始属性。每个玩家都一样，所以不需要任何参数就可以查询到；
     initial_additional_properties = misc_properties.get_properties_dict_by_initial()
     # 玩家->基础属性加点->属性提升
-    base_property_point_properties_dict = misc_properties.get_base_property_dict_by(character_id=character_id)
+    base_property_point_properties_dict = misc_properties.get_base_property_dict_by_character_id(
+        character_id=character_id)
     # 玩家->技能->属性提升
     skill_properties_dict = get_all_skills_additional_properties_by_character_id(character_id=character_id)
     # 玩家->成就称号->属性提升
@@ -225,5 +226,50 @@ def get_player_initial_skills_achievements_equipments_properties_dict(*, charact
     return additional_properties
 
 
+def get_player_battle_properties_dict(*,
+                                      character_id: int) -> DefaultDict[int, int]:
+    battle_properties_dict = defaultdict(int)
+
+    properties = get_player_initial_skills_achievements_equipments_properties_dict(character_id=character_id)
+    # dict->基础属性
+    for property_type, add_percent in [
+        # base
+        (AdditionalPropertyType.PHYSIQUE, AdditionalPropertyType.PHYSIQUE_ADD_PERCENT),
+        (AdditionalPropertyType.STRENGTH, AdditionalPropertyType.STRENGTH_ADD_PERCENT),
+        (AdditionalPropertyType.AGILITY, AdditionalPropertyType.AGILITY_ADD_PERCENT),
+        (AdditionalPropertyType.INTELLIGENCE, AdditionalPropertyType.INTELLIGENCE_ADD_PERCENT),
+        (AdditionalPropertyType.PERCEPTION, AdditionalPropertyType.PERCEPTION_ADD_PERCENT),
+        # 法力生命恢复、吸收
+        (AdditionalPropertyType.HEALTH_RECOVERY, AdditionalPropertyType.HEALTH_RECOVERY_ADD_PERCENT),
+        (AdditionalPropertyType.HEALTH_ABSORPTION, AdditionalPropertyType.HEALTH_ABSORPTION_ADD_PERCENT),
+        (AdditionalPropertyType.MANA_RECOVERY, AdditionalPropertyType.MANA_RECOVERY_ADD_PERCENT),
+        (AdditionalPropertyType.MANA_ABSORPTION, AdditionalPropertyType.MANA_ABSORPTION_ADD_PERCENT),
+
+        # 致命点、反击、无视反击
+        (AdditionalPropertyType.CRITICAL_POINT, AdditionalPropertyType.CRITICAL_POINT_ADD_PERCENT),
+        (AdditionalPropertyType.COUNTERATTACK, AdditionalPropertyType.COUNTERATTACK_ADD_PERCENT),
+        (AdditionalPropertyType.IGNORE_COUNTERATTACK, AdditionalPropertyType.IGNORE_COUNTERATTACK_ADD_PERCENT),
+    ]:
+        battle_properties_dict[property_type] = int(
+            properties[property_type] * (1 + properties[add_percent])
+        )
+
+    # 基础属性->额外属性
+    for base_property_type in [AdditionalPropertyType.PHYSIQUE,
+                          AdditionalPropertyType.STRENGTH,
+                          AdditionalPropertyType.AGILITY,
+                          AdditionalPropertyType.INTELLIGENCE,
+                          AdditionalPropertyType.PERCEPTION
+                          ]:
+        # 获取基础属性对应的额外属性增加值
+        additional_properties_dict = misc_properties.get_additional_property_dict_by_base_property(
+            base_property_type=base_property_type)
+
+        for additional_type in additional_properties_dict:
+            # 额外属性+=基础属性*对应加成;比如 生命+=体质*10
+            battle_properties_dict[additional_type] += battle_properties_dict[base_property_type] * \
+                                                      additional_properties_dict[additional_type]
+
+
 if __name__ == '__main__':
-    get_player_initial_skills_achievements_equipments_properties_dict(character_id=1)
+    get_player_battle_properties_dict(character_id=1)

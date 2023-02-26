@@ -86,6 +86,16 @@ def is_exists_by_name(*, identify_book_name: str) -> bool:
     return book is not None
 
 
+def get_by_name(*, name: str) -> IdentifyBook:
+    """
+    根据名字判断是否存在
+    :param name:
+    :return:
+    """
+    book = session.query(IdentifyBook).filter(IdentifyBook.name == name).first()
+    return book
+
+
 if __name__ == '__main__':
     books = [
         {

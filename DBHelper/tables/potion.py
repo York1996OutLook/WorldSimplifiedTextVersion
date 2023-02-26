@@ -135,6 +135,16 @@ def is_exists_by_name(*, name: str):
     return potion is not None
 
 
+def get_by_name(*, name: str)->Potion:
+    """
+    根据name判断是否存在
+    :param name:
+    :return:
+    """
+    potion = session.query(Potion).filter(Potion.name == name).first()
+    return potion
+
+
 if __name__ == '__main__':
     potions = [
         {"name": "体质药水",

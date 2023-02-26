@@ -3,21 +3,18 @@ import json
 import os.path as osp
 from typing import List, DefaultDict
 
+import common
 from Enums import AdditionSourceType, PartType, EquipmentQuality, AdditionalPropertyType, BeingType, \
-    EquipmentPropertyAvailability, StuffType, part_cn_type_dict, equipment_cn_quality_dict, property_cn_type_dict
+    EquipmentPropertyAvailability, StuffType, part_cn_type_dict, equipment_cn_quality_dict, property_cn_type_dict, \
+    stuff_cn_type_dict
 from DBHelper.db import *
-
 from DBHelper.session import session
 import local_setting
 from Utils import tools
 
-
-
-
 if __name__ == '__main__':
-    equipment_json_src = osp.join(local_setting.json_data_root,"equipment",'equipment.json')
-    text = tools.file2string(src=equipment_json_src)
-    equipment_dict_list = json.loads(text)
+    equipment_json_src = osp.join(local_setting.json_data_root, "equipment", 'equipment.json')
+    equipment_dict_list = tools.file2dict_list(src=equipment_json_src)
     for equipment_dict in equipment_dict_list:
         # 从中文到数字的解析
         part = part_cn_type_dict[equipment_dict['部位']]
@@ -53,3 +50,13 @@ if __name__ == '__main__':
                     property_index=property_index,
                     property_availability=EquipmentPropertyAvailability.MAX,
                 )
+
+        # 增加装备对应的分解获得物品的列表，先进行删除；
+        open_decompose_or_drop_stuffs.delete_equipment_decompose_get_stuffs(equipment_id=equipment_prototype.id)
+        if "分解获得物品列表" in equipment_dict:
+            decompose_get_stuff_dict_list = equipment_dict['分解获得物品列表']
+            for stuff_dict in decompose_get_stuff_dict_list:
+                stuff_type_cn = stuff_dict["物品类型"]
+                stuff_type = stuff_cn_type_dict[stuff_type_cn]
+                stuff_name = stuff_dict["物品名称"]
+                stuff_id = common.get_stuff_id_by_stuff_type_and_name(stuff_type=stuff_type, stuff_name=stuff_name)

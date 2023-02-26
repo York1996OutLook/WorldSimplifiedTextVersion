@@ -120,6 +120,23 @@ def add_monster_properties(*,
         additional_property_value=additional_property_value)
 
 
+def add_base_additional_properties(*,
+                                   base_property_type: AdditionalPropertyType,
+                                   additional_property_type: AdditionalPropertyType,
+                                   additional_property_value: int):
+    """
+
+    :param base_property_type: 基础属性值。作为additional_source_id存到表格中；
+    :param additional_property_type: 基础属性增加的其它的额外属性
+    :param additional_property_value: 其它额外属性的值
+    :return:
+    """
+    add(additional_source_type=AdditionSourceType.BASE_ADDITIONAL,
+        additional_source_id=base_property_type,
+        additional_property_type=additional_property_type,
+        additional_property_value=additional_property_value)
+
+
 def add_equipment_properties(*,
                              additional_property_type: AdditionalPropertyType,
                              additional_property_value: int,
@@ -244,7 +261,29 @@ def del_monster_prototype_properties(*,
     return True
 
 
+def del_base_additional_properties(*,
+                                   base_property_type: AdditionalPropertyType, ):
+    session.query(InitialSkillAchievementEquipmentPotionEtcPropertiesRecord).filter(
+        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_type == AdditionSourceType.BASE_ADDITIONAL,
+        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_id == base_property_type,
+    ).delete()
+    session.commit()
+
+
 # 改
+
+# def update_base_additional_properties(*,
+#                                       base_property_type: AdditionalPropertyType,
+#                                       additional_property_type: AdditionalPropertyType,
+#                                       additional_property_value: int):
+#     record = session.query(InitialSkillAchievementEquipmentPotionEtcPropertiesRecord).filter(
+#         InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_type == AdditionSourceType.BASE_ADDITIONAL,
+#         InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_id == base_property_type,
+#         InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_property_type == additional_property_type,
+#     ).first()
+#     record.additional_property_value = additional_property_value
+
+
 def update_or_add_new_base_property(
         *,
         character_id: int,
@@ -333,6 +372,31 @@ def update_by(
     session.commit()
     session.refresh(record)
     return record
+
+
+def update_player_property(
+        *,
+        character_id: int = None,
+
+        additional_property_type: AdditionalPropertyType,
+        additional_property_value: int,
+):
+    return update_by(source_type=AdditionSourceType.PLAYER,
+                     additional_property_type=additional_property_type,
+                     additional_property_value=additional_property_value,
+                     source_id=character_id)
+
+
+def update_player_properties_dict(*,
+                                  character_id: int = None,
+                                  properties_dict: DefaultDict[int, int]
+                                  ):
+    for property_type_key in properties_dict:
+        update_player_property(
+            character_id=character_id,
+            additional_property_type=property_type_key,
+            additional_property_value=properties_dict[property_type_key],
+        )
 
 
 # 查
@@ -462,9 +526,9 @@ def get_properties_dict_by_achievement_id(*,
     return properties_dict
 
 
-def get_base_property_dict_by(*,
-                              character_id: int,
-                              ) -> DefaultDict[int, int]:
+def get_base_property_dict_by_character_id(*,
+                                           character_id: int,
+                                           ) -> DefaultDict[int, int]:
     """
     获取基础属性对应的属性。分开写函数，减少错误发生
     :return:
@@ -476,23 +540,37 @@ def get_base_property_dict_by(*,
     return properties_dict
 
 
-def get_used_base_property_points_num(character_id: int,
-                                      ) -> int:
+def get_used_base_property_points_num_by_character_id(character_id: int,
+                                                      ) -> int:
     """
     获取已经使用的基础点数数量
     :param character_id:
     :return:
     """
-    properties_dict = get_base_property_dict_by(character_id=character_id)
+    properties_dict = get_base_property_dict_by_character_id(character_id=character_id)
     used_points = 0
     for key in properties_dict:
         used_points += properties_dict[key]
     return used_points
 
 
-def get_properties_dict_by_skill(*,
-                                 skill_book_id: int,
-                                 ) -> DefaultDict[int, int]:
+def get_additional_property_dict_by_base_property(*,
+                                             base_property_type: AdditionalPropertyType,
+                                             ):
+    records = session.query(InitialSkillAchievementEquipmentPotionEtcPropertiesRecord).filter(
+        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_type == AdditionSourceType.BASE_ADDITIONAL,
+        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_id == base_property_type,
+    ).all()
+
+    property_dict=defaultdict(int)
+    for record in records:
+        property_dict[record.additional_property_type]=record.additional_property_value
+    return property_dict
+
+
+def get_properties_dict_by_skill_book_id(*,
+                                         skill_book_id: int,
+                                         ) -> DefaultDict[int, int]:
     """
     获取基础属性对应的属性。分开写函数，减少错误发生
     :return:
@@ -505,7 +583,7 @@ def get_properties_dict_by_skill(*,
 
 
 def get_properties_dict_by_equipment_record(*,
-                                            stuff_record_id: int,
+                                            equipment_record_id: int,
                                             ) -> DefaultDict[int, int]:
     """
     获取基础属性对应的属性。分开写函数，减少错误发生
@@ -513,15 +591,15 @@ def get_properties_dict_by_equipment_record(*,
     """
     properties_dict = get_properties_dict_by(
         source_type=AdditionSourceType.EQUIPMENT_RECORD,
-        source_id=stuff_record_id,
+        source_id=equipment_record_id,
         property_availability=EquipmentPropertyAvailability.CURRENT,
     )
     return properties_dict
 
 
-def get_properties_dict_by_potion(*,
-                                  potion_id: int,
-                                  ) -> DefaultDict[int, int]:
+def get_properties_dict_by_potion_id(*,
+                                     potion_id: int,
+                                     ) -> DefaultDict[int, int]:
     """
     获取基础属性对应的属性。分开写函数，减少错误发生
     :return:
@@ -533,7 +611,9 @@ def get_properties_dict_by_potion(*,
     return properties_dict
 
 
-if __name__ == '__main__':
+# other
+
+def insert_initial_properties():
     # 录入初始属性
     json_src = osp.join(local_setting.json_data_root, 'initial_properties', 'initial_properties.json')
     properties_dict_list = tools.file2dict_list(src=json_src)
@@ -549,3 +629,42 @@ if __name__ == '__main__':
             additional_property_type=property_type,
             additional_property_value=property_value,
         )
+
+
+def insert_base_additional_properties():
+    base_property_additional_property_json_src = osp.join(local_setting.json_data_root, "properties",
+                                                          'base_property_additional_properties.json')
+    addition_dict_list = tools.file2dict_list(src=base_property_additional_property_json_src)
+    for addition_dict in addition_dict_list:
+        base_property_type_cn = addition_dict['基础属性名称']
+        base_property_type = property_cn_type_dict[base_property_type_cn]
+
+        attack_addition = addition_dict['攻击力增加']
+        attack_speed_addition = addition_dict['出手速度增加']
+
+        health_addition = addition_dict['生命值增加']
+        mana_addition = addition_dict['法力值增加']
+
+        # 先删除基础属性对应的额外属性增加值，再添加；
+        del_base_additional_properties(base_property_type=base_property_type)
+        add_base_additional_properties(base_property_type=base_property_type,
+                                       additional_property_type=AdditionalPropertyType.ATTACK,
+                                       additional_property_value=attack_addition
+                                       )
+        add_base_additional_properties(base_property_type=base_property_type,
+                                       additional_property_type=AdditionalPropertyType.ATTACK_SPEED,
+                                       additional_property_value=attack_speed_addition
+                                       )
+        add_base_additional_properties(base_property_type=base_property_type,
+                                       additional_property_type=AdditionalPropertyType.HEALTH,
+                                       additional_property_value=health_addition
+                                       )
+        add_base_additional_properties(base_property_type=base_property_type,
+                                       additional_property_type=AdditionalPropertyType.MANA,
+                                       additional_property_value=mana_addition
+                                       )
+
+
+if __name__ == '__main__':
+    insert_initial_properties()
+    insert_base_additional_properties()

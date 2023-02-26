@@ -46,7 +46,7 @@ def get_skill_book_by_skill_book_id(*,
 
 
 
-def get_skill_book_by_skill_id_skill_level(*,
+def get_by_skill_id_skill_level(*,
                                            skill_id: int,
                                            level: int
                                            ) -> SkillBook:

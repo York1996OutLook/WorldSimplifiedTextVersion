@@ -1,8 +1,10 @@
 import os.path as osp
 
+import common
 from DBHelper.session import session
 from DBHelper.db import *
-from Enums import DateType, AdditionalPropertyType, date_cn_type_dict, property_cn_type_dict
+from Enums import DateType, AdditionalPropertyType, date_cn_type_dict, property_cn_type_dict, stuff_cn_type_dict, \
+    StuffType
 import local_setting
 from Utils import tools
 
@@ -39,14 +41,16 @@ if __name__ == '__main__':
                                                    additional_property_value=value)
         # 添加对应技能，先删除怪物对应技能列表
         player_or_monster_skill_setting.del_monster_skill_setting(monster_id=one_monster.id)
-        skill_list = monster_dict["技能列表"]
+        skill_list = monster_dict["技能设置"]
         for skill_dict in skill_list:
             skill_name = skill_dict['技能名字']
+            if skill_name == "":
+                continue
             skill_level = skill_dict['技能等级']
             skill_round = skill_dict['释放回合数']
 
             one_skill = skill.get_skill_by_name(name=skill_name)
-            one_skill_book = skill_book.get_skill_book_by_skill_id_skill_level(skill_id=one_skill.id, level=skill_level)
+            one_skill_book = skill_book.get_by_skill_id_skill_level(skill_id=one_skill.id, level=skill_level)
 
             player_or_monster_skill_setting.add_monster_skill_setting(monster_id=one_monster.id,
                                                                       skill_book_id=one_skill_book.id)
@@ -55,15 +59,21 @@ if __name__ == '__main__':
         drop_stuffs_list = monster_dict['掉落物品']
         drop_n_choose_one_list = []
         for drop_stuff_dict in drop_stuffs_list:
-            stuff_type = drop_stuff_dict["物品类型"]
-            stuff_name = drop_stuff_dict['物品名字']
-            prob = drop_stuff_dict['概率']
+            stuff_type_cn = drop_stuff_dict["物品类型"]
+            if stuff_type_cn == "":
+                continue
+            stuff_level = drop_stuff_dict["等级"]  # 像技能书这样的，会存在等级；
+            stuff_type = stuff_cn_type_dict[stuff_type_cn]
 
-            open_decompose_or_drop_stuffs.
-            # if prob < 0:
-            #     drop_n_choose_one_list.append((stuff_type,stuff_name,prob))
-            # elif prob<100:
-            #
-            # elif prob>100:
-            #     min_num = prob//100
-            #     max_num = prob % 100
+            stuff_name = drop_stuff_dict['物品名字']
+            stuff_id = common.get_stuff_id_by_stuff_type_and_name(stuff_type=stuff_type,
+                                                                  stuff_name=stuff_name,
+                                                                  stuff_level=stuff_level)
+
+            prob = drop_stuff_dict['概率']
+            open_decompose_or_drop_stuffs.add_monster_drop_equipment(
+                monster_id=one_monster.id,
+                drop_stuff_type=stuff_type,
+                drop_stuff_id=stuff_id,
+                drop_stuff_prob=prob,
+            )

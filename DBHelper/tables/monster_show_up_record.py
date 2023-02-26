@@ -1,3 +1,6 @@
+import datetime
+from typing import List, Set
+
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float, Boolean
 
@@ -28,7 +31,11 @@ class MonsterShowUpRecord(Base):
 
 
 # 增
-def add(*, monster_id: int, date_type: int, date_value: int):
+def add(*,
+        monster_id: int,
+        date_type: int,
+        date_value: int
+        ) -> MonsterShowUpRecord:
     """
 
     :param monster_id:
@@ -42,10 +49,12 @@ def add(*, monster_id: int, date_type: int, date_value: int):
                                           )
     session.add(shows_up_record)
     session.commit()
+    return shows_up_record
 
 
 # 删
-def del_all_by_monster_id(*, monster_id: int):
+def del_all_by_monster_id(*,
+                          monster_id: int):
     """
     删除某个monster的所有出现日期记录。方便后续新增记录。
     :param monster_id:
@@ -53,6 +62,47 @@ def del_all_by_monster_id(*, monster_id: int):
     """
     session.query(MonsterShowUpRecord).filter(MonsterShowUpRecord.monster_id == monster_id).delete()
     session.commit()
+
+
 # 改
 
 # 查
+
+def get_all_by_week_day(*,
+                        week_day: int
+                        ) -> List[MonsterShowUpRecord]:
+    records = session.query(MonsterShowUpRecord).filter(MonsterShowUpRecord.date_type == DateType.DAY_OF_WEEK,
+                                                        MonsterShowUpRecord.date_value == week_day).all()
+    return records
+
+
+def get_all_by_month_day(*,
+                         month_day: int
+                         ) -> List[MonsterShowUpRecord]:
+    records = session.query(MonsterShowUpRecord).filter(MonsterShowUpRecord.date_type == DateType.DAY_OF_MONTH,
+                                                        MonsterShowUpRecord.date_value == month_day).all()
+    return records
+
+
+def get_all_by_holiday(*,
+                       holiday: int
+                       ) -> List[MonsterShowUpRecord]:
+    records = session.query(MonsterShowUpRecord).filter(MonsterShowUpRecord.date_type == DateType.HOLIDAY,
+                                                        MonsterShowUpRecord.date_value == holiday).all()
+    return records
+
+
+def get_all_by_today() -> List[MonsterShowUpRecord]:
+    records = []
+    records.extend(get_all_by_week_day(week_day=datetime.datetime.now().weekday()))
+    records.extend(get_all_by_month_day(month_day=datetime.datetime.now().day))
+    # todo: 添加对节日得支持
+    # records.extend(get_all_by_holiday(holiday=datetime.datetime.now().day))
+    return records
+
+
+# other
+def get_all_monster_id_by_today() -> Set[int]:
+    records = get_all_by_today()
+    shows_up_monster_ids = {record.monster_id for record in records}
+    return shows_up_monster_ids

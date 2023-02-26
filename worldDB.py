@@ -24,7 +24,7 @@ from DBHelper.tables.player_battle_record import PlayerBattleRecord
 from DBHelper.tables.player_level_exp_skill_point import PlayerLevelExpSkillPoint
 from DBHelper.tables.player_lottery_record import PlayerLotteryRecord
 from DBHelper.tables.player_mail_record import PlayerMailRecord
-from DBHelper.tables.player_monster_additional_property_record import PlayerMonsterAdditionalPropertyRecord
+# from DBHelper.tables.player_monster_additional_property_record import
 from DBHelper.tables.player_sell_store_record import PlayerSellStoreRecord
 from DBHelper.tables.player_or_monster_skill_setting import PlayerOrMonsterSkillSetting
 from DBHelper.tables.player_potion_record import PlayerPotionRecord
@@ -42,6 +42,8 @@ from DBHelper.tables.skill_cost_mana import PositiveSkillCostMana
 from DBHelper.tables.skill_cost_point import SkillCostPoint
 from DBHelper.tables.tips import Tips
 
+import local_setting
+
 Base = declarative_base()
 
 table_classes = [Achievement,
@@ -53,7 +55,7 @@ table_classes = [Achievement,
                  Monster, MonsterShowUpRecord, MonsterSkillRecord,
                  OpenDecomposeOrDropStuffsRecord,
                  Player, PlayerAchievementRecord, PlayerBattleRecord, PlayerLevelExpSkillPoint,
-                 PlayerLotteryRecord, PlayerMailRecord, PlayerMonsterAdditionalPropertyRecord,
+                 PlayerLotteryRecord, PlayerMailRecord,  # PlayerMonsterAdditionalPropertyRecord,
                  PlayerOrMonsterSkillSetting, PlayerPotionRecord,
                  PlayerSellStoreRecord, PlayerSkillRecord,
                  PlayerStuffRecord, PositiveSkillCostMana, Potion,
@@ -63,7 +65,7 @@ table_classes = [Achievement,
                  ]
 
 # 全局设置
-engine = create_engine('sqlite:///F:\Python-code\WorldSimplifiedTextVersion\DBHelper\worldSTV.db')
+engine = create_engine(local_setting.db_connection_str)
 Base.metadata.create_all(engine)
 
 # 创建所有表格

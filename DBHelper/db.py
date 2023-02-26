@@ -4,8 +4,10 @@ import DBHelper.tables.battle_status as battle_status
 import DBHelper.tables.box as box
 import DBHelper.tables.equipment as equipment
 import DBHelper.tables.equipment_gem_record as equipment_gem_record
+import DBHelper.tables.exp_book as exp_book
 import DBHelper.tables.gem as gem
 import DBHelper.tables.holiday as holiday
+import DBHelper.tables.identify_book as identify_book
 import DBHelper.tables.initial_skill_achievement_equipment_potion_etc_properties as misc_properties    # 目前唯一简写
 import DBHelper.tables.monster as monster
 import DBHelper.tables.monster_show_up_record as monster_show_up_record
@@ -24,6 +26,7 @@ import DBHelper.tables.player_sell_store_record as player_sell_store_record
 import DBHelper.tables.player_skill_record as player_skill_record
 import DBHelper.tables.player_stuff_record as player_stuff_record
 import DBHelper.tables.potion as potion
+import DBHelper.tables.raise_star_book as raise_star_book
 import DBHelper.tables.raise_star_prob as raise_star_prob
 import DBHelper.tables.setting as setting
 import DBHelper.tables.skill as skill

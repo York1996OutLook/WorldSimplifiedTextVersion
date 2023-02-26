@@ -67,7 +67,11 @@ def add_by(*,
     return record
 
 
-def add_gem_box(*, box_id: int, gem_id: int, prob: int)->OpenDecomposeOrDropStuffsRecord:
+def add_gem_box(*,
+                box_id: int,
+                gem_id: int,
+                prob: int
+                ) -> OpenDecomposeOrDropStuffsRecord:
     """
     新增宝石箱子对应的
     :param box_id:
@@ -81,12 +85,41 @@ def add_gem_box(*, box_id: int, gem_id: int, prob: int)->OpenDecomposeOrDropStuf
                   get_stuff_id=gem_id,
                   get_stuff_prob=prob)
 
-def add_monster_drop_equipment(*,mo):
+
+def add_monster_drop_equipment(*,
+                               monster_id: int,
+                               drop_stuff_type: StuffType,
+                               drop_stuff_id: int,
+                               drop_stuff_prob: int
+                               ) -> OpenDecomposeOrDropStuffsRecord:
+    """
+
+    :param monster_id:boss编号
+    :param drop_stuff_type:掉落物品的类型
+    :param drop_stuff_id:掉落物品的id
+    :param drop_stuff_prob:掉落物品的概率
+    :return:
+    """
+    return add_by(
+        source_type=StuffType.MONSTER,
+        source_id=monster_id,
+        get_stuff_type=drop_stuff_type,
+        get_stuff_id=drop_stuff_id,
+        get_stuff_prob=drop_stuff_prob,
+    )
+
 
 # 删
+def delete_equipment_decompose_get_stuffs(*, equipment_id: int):
+    session.query(OpenDecomposeOrDropStuffsRecord).filter(
+        and_(OpenDecomposeOrDropStuffsRecord.source_type == StuffType.EQUIPMENT,
+             OpenDecomposeOrDropStuffsRecord.source_id == equipment_id)).delete()
+    session.commit()
+
+
 def delete_box_records_by_box_id(*,
-                             box_id: int
-                             ):
+                                 box_id: int
+                                 ):
     """
     删除某个源物品的所有记录，方便后续插入新的记录；
     :param box_id:
@@ -96,6 +129,8 @@ def delete_box_records_by_box_id(*,
         and_(OpenDecomposeOrDropStuffsRecord.source_type == StuffType.BOX,
              OpenDecomposeOrDropStuffsRecord.source_id == box_id)).delete()
     session.commit()
+
+
 def delete_records_by_source(*,
                              source_type: StuffType,
                              source_id: int
