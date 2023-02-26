@@ -84,7 +84,7 @@ def add(
         additional_property_type: AdditionalPropertyType,
         additional_property_value: int,
 
-        additional_source_id: int = None,
+        additional_source_id: int or AdditionalPropertyType = None,
         additional_source_property_index: int = None,
         property_availability: EquipmentPropertyAvailability = None,
 ) -> InitialSkillAchievementEquipmentPotionEtcPropertiesRecord:
@@ -98,7 +98,7 @@ def add(
     )
     session.add(record)
     session.commit()
-    return InitialSkillAchievementEquipmentPotionEtcPropertiesRecord
+    return record
 
 
 def add_initial_properties(*,
@@ -378,7 +378,7 @@ def update_player_property(
         *,
         character_id: int = None,
 
-        additional_property_type: AdditionalPropertyType,
+        additional_property_type: AdditionalPropertyType or int,
         additional_property_value: int,
 ):
     return update_by(source_type=AdditionSourceType.PLAYER,
@@ -479,7 +479,8 @@ def get_properties_dict_by(*,
                            additional_source_property_index: int = None,
                            property_availability: EquipmentPropertyAvailability = None,
 
-                           additional_property_type: AdditionalPropertyType = None, ) -> DefaultDict[int, int]:
+                           additional_property_type: AdditionalPropertyType = None, ) -> DefaultDict[
+    int, int]:
     """
     转换成字典；
     :param source_type:
@@ -540,6 +541,20 @@ def get_base_property_dict_by_character_id(*,
     return properties_dict
 
 
+def get_property_dict_by_monster_id(*,
+                                    monster_id: int,
+                                    ) -> DefaultDict[int, int]:
+    """
+    获取基础属性对应的属性。分开写函数，减少错误发生
+    :return:
+    """
+    properties_dict = get_properties_dict_by(
+        source_type=AdditionSourceType.MONSTER,
+        source_id=monster_id,
+    )
+    return properties_dict
+
+
 def get_used_base_property_points_num_by_character_id(character_id: int,
                                                       ) -> int:
     """
@@ -555,16 +570,16 @@ def get_used_base_property_points_num_by_character_id(character_id: int,
 
 
 def get_additional_property_dict_by_base_property(*,
-                                             base_property_type: AdditionalPropertyType,
-                                             ):
+                                                  base_property_type: AdditionalPropertyType,
+                                                  ):
     records = session.query(InitialSkillAchievementEquipmentPotionEtcPropertiesRecord).filter(
         InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_type == AdditionSourceType.BASE_ADDITIONAL,
         InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_id == base_property_type,
     ).all()
 
-    property_dict=defaultdict(int)
+    property_dict = defaultdict(int)
     for record in records:
-        property_dict[record.additional_property_type]=record.additional_property_value
+        property_dict[record.additional_property_type] = record.additional_property_value
     return property_dict
 
 

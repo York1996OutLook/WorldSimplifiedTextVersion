@@ -1,7 +1,9 @@
 from collections import defaultdict
 from typing import List, DefaultDict
 
-from Enums import AdditionSourceType, AdditionalPropertyType, BeingType, EquipmentPropertyAvailability
+from Enums import BattlePropertyType, AdditionSourceType, AdditionalPropertyType, BeingType, \
+    EquipmentPropertyAvailability, \
+    property_type_cn_dict
 from DBHelper.db import *
 
 from DBHelper.session import session
@@ -47,10 +49,10 @@ def sum_all_additional_properties(*,
     """
     sum_result_dict = defaultdict(int)
     # 由于是从1开始的这样刚好包含所有的键
-    for key in range(AdditionalPropertyType.min_num, AdditionalPropertyType.max_num + 1):
-        sums = sum([dic[key] for dic in additional_properties_dicts])
+    for property_type in AdditionalPropertyType.all():
+        sums = sum([dic[property_type] for dic in additional_properties_dicts])
         if sums != 0:  # 等于0的不进行统计
-            sum_result_dict[key] = sums
+            sum_result_dict[property_type] = sums
     return sum_result_dict
 
 
@@ -107,7 +109,8 @@ def get_player_potion_additional_properties_dict(*,
     return potion_properties_dict
 
 
-def get_all_player_base_properties_dict_by_character_id(*, character_id: int) -> DefaultDict[int, int]:
+def get_all_player_base_properties_dict_by_character_id(*, character_id: int) -> DefaultDict[
+    int, int]:
     """
     玩家->基础属性->属性
     获取所有基础属性加点带来的属性提升
@@ -131,7 +134,8 @@ def get_all_initial_properties_dict() -> DefaultDict[int, int]:
     return all_player_initial_properties_dict
 
 
-def get_all_skills_additional_properties_by_character_id(*, character_id: int) -> DefaultDict[int, int]:
+def get_all_skills_additional_properties_by_character_id(*, character_id: int) -> DefaultDict[
+    int, int]:
     """
     根据人物id查询所有技能的附加属性
     :param character_id:
@@ -141,8 +145,8 @@ def get_all_skills_additional_properties_by_character_id(*, character_id: int) -
 
     skills = player_skill_record.get_all_by_character_id(character_id=character_id)
     for one_skill in skills:
-        one_skill_book = skill_book.get_skill_book_by_skill_id_skill_level(skill_id=one_skill.id,
-                                                                           level=one_skill.skill_level)
+        one_skill_book = skill_book.get_by_skill_id_skill_level(skill_id=one_skill.id,
+                                                                level=one_skill.skill_level)
 
         skill_additional_properties_dict = misc_properties.get_properties_dict_by_skill_book_id(
             skill_book_id=one_skill_book.id)
@@ -152,7 +156,8 @@ def get_all_skills_additional_properties_by_character_id(*, character_id: int) -
     return result_properties_dict
 
 
-def get_all_equipments_additional_properties_by_character_id(*, character_id: int) -> DefaultDict[int, int]:
+def get_all_equipments_additional_properties_by_character_id(*, character_id: int) -> DefaultDict[
+    int, int]:
     """
     根据人物id查询所有装备的附加属性。并且计算装备上的宝石、升星。
     :param character_id:
@@ -188,7 +193,8 @@ def get_all_equipments_additional_properties_by_character_id(*, character_id: in
     return result_properties_dict
 
 
-def get_player_initial_skills_achievements_equipments_properties_dict(*, character_id: int) -> DefaultDict[int, int]:
+def get_player_initial_skills_achievements_equipments_properties_dict(*, character_id: int) -> DefaultDict[
+    int, int]:
     """
     获取人物初始、技能、成就称号、装备所获得的所有属性
     :param character_id:
@@ -228,11 +234,12 @@ def get_player_initial_skills_achievements_equipments_properties_dict(*, charact
 
 def get_player_battle_properties_dict(*,
                                       character_id: int) -> DefaultDict[int, int]:
-    battle_properties_dict = defaultdict(int)
+    battle_properties_dict = get_player_initial_skills_achievements_equipments_properties_dict(
+        character_id=character_id)
+    # battle_properties_dict = defaultdict(int)
 
-    properties = get_player_initial_skills_achievements_equipments_properties_dict(character_id=character_id)
     # dict->基础属性
-    for property_type, add_percent in [
+    for property_type, add_percent_type in [
         # base
         (AdditionalPropertyType.PHYSIQUE, AdditionalPropertyType.PHYSIQUE_ADD_PERCENT),
         (AdditionalPropertyType.STRENGTH, AdditionalPropertyType.STRENGTH_ADD_PERCENT),
@@ -250,25 +257,56 @@ def get_player_battle_properties_dict(*,
         (AdditionalPropertyType.COUNTERATTACK, AdditionalPropertyType.COUNTERATTACK_ADD_PERCENT),
         (AdditionalPropertyType.IGNORE_COUNTERATTACK, AdditionalPropertyType.IGNORE_COUNTERATTACK_ADD_PERCENT),
     ]:
+        print(property_type_cn_dict[property_type], battle_properties_dict[property_type])
+        print(property_type_cn_dict[add_percent_type], property_type_cn_dict[add_percent_type])
+        print()
         battle_properties_dict[property_type] = int(
-            properties[property_type] * (1 + properties[add_percent])
+            battle_properties_dict[property_type] * (100 + battle_properties_dict[add_percent_type]) / 100
         )
 
     # 基础属性->额外属性
     for base_property_type in [AdditionalPropertyType.PHYSIQUE,
-                          AdditionalPropertyType.STRENGTH,
-                          AdditionalPropertyType.AGILITY,
-                          AdditionalPropertyType.INTELLIGENCE,
-                          AdditionalPropertyType.PERCEPTION
-                          ]:
+                               AdditionalPropertyType.STRENGTH,
+                               AdditionalPropertyType.AGILITY,
+                               AdditionalPropertyType.INTELLIGENCE,
+                               AdditionalPropertyType.PERCEPTION
+                               ]:
         # 获取基础属性对应的额外属性增加值
         additional_properties_dict = misc_properties.get_additional_property_dict_by_base_property(
             base_property_type=base_property_type)
-
         for additional_type in additional_properties_dict:
+            print(f"""基础属性名称：{property_type_cn_dict[additional_type]},值 {battle_properties_dict[additional_type]}
+            增加{property_type_cn_dict[additional_properties_dict[additional_type]]}值{battle_properties_dict[base_property_type]}*{additional_properties_dict[additional_type]}
+            """)
+
             # 额外属性+=基础属性*对应加成;比如 生命+=体质*10
             battle_properties_dict[additional_type] += battle_properties_dict[base_property_type] * \
-                                                      additional_properties_dict[additional_type]
+                                                       additional_properties_dict[additional_type]
+    # 额外属性->战斗属性
+    for battle_property_type, battle_property_add_percent_type in [
+        (AdditionalPropertyType.ATTACK_SPEED, AdditionalPropertyType.ATTACK_SPEED_ADD_PERCENT),
+        (AdditionalPropertyType.ATTACK, AdditionalPropertyType.ATTACK_ADD_PERCENT),
+
+        (AdditionalPropertyType.HEALTH, AdditionalPropertyType.HEALTH_ADD_PERCENT),
+        (AdditionalPropertyType.HEALTH_RECOVERY, AdditionalPropertyType.HEALTH_RECOVERY_ADD_PERCENT),
+        (AdditionalPropertyType.HEALTH_ABSORPTION, AdditionalPropertyType.HEALTH_ABSORPTION_ADD_PERCENT),
+
+        (AdditionalPropertyType.MANA, AdditionalPropertyType.MANA_ADD_PERCENT),
+        (AdditionalPropertyType.MANA_RECOVERY, AdditionalPropertyType.MANA_RECOVERY_ADD_PERCENT),
+        (AdditionalPropertyType.MANA_ABSORPTION, AdditionalPropertyType.MANA_ABSORPTION_ADD_PERCENT),
+
+        (AdditionalPropertyType.COUNTERATTACK, AdditionalPropertyType.COUNTERATTACK_ADD_PERCENT),
+        (AdditionalPropertyType.IGNORE_COUNTERATTACK, AdditionalPropertyType.IGNORE_COUNTERATTACK_ADD_PERCENT),
+
+        (AdditionalPropertyType.CRITICAL_POINT, AdditionalPropertyType.CRITICAL_POINT_ADD_PERCENT),
+    ]:
+        battle_properties_dict[battle_property_type] = int(battle_properties_dict[battle_property_type] * (
+                100 + battle_properties_dict[battle_property_add_percent_type]) / 100)
+
+    for battle_property_type in BattlePropertyType.all():
+        battle_property_value = battle_properties_dict[battle_property_type]
+        print(property_type_cn_dict[battle_property_type], battle_property_value)
+    return battle_properties_dict
 
 
 if __name__ == '__main__':

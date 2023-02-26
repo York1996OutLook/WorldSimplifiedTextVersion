@@ -1,3 +1,6 @@
+from typing import List, Set, DefaultDict, Dict
+
+
 class BasePropertyType:  # 目前宝石和基础属性公用一套属性。所以宝石的类型也仅仅限于这些类型。
     """
     1 3 5 7 9的原因是为了和附加属性一致
@@ -52,7 +55,6 @@ equipment_cn_quality_dict = {
     "史诗": EquipmentQuality.EPIC,
     "传说": EquipmentQuality.MYTHIC,
     "神话": EquipmentQuality.MYTHOLOGY,
-
 }
 
 
@@ -112,19 +114,21 @@ class StuffType:
     EXP_BOOK = 6  # 经验书  允许一次性使用多个
     SKILL_BOOK = 7  # 技能书 允许一次性使用多个
     POTION = 8  # 药水 使用后可以临时提高某个属性；
-    MONSTER = 9 # 怪物，被击败的时候使用；
+    MONSTER = 9  # 怪物，被击败的时候使用；
 
-stuff_cn_type_dict={
-    "装备":StuffType.EQUIPMENT,
-    "箱子":StuffType.BOX,
-    "宝石":StuffType.GEM,
-    "升星卷轴":StuffType.RAISE_STAR_BOOK,
-    "鉴定卷轴":StuffType.IDENTIFY_BOOK,
-    "经验书":StuffType.EXP_BOOK,
-    "技能书":StuffType.SKILL_BOOK,
-    "药剂":StuffType.POTION,
-    "怪物":StuffType.MONSTER,
+
+stuff_cn_type_dict = {
+    "装备": StuffType.EQUIPMENT,
+    "箱子": StuffType.BOX,
+    "宝石": StuffType.GEM,
+    "升星卷轴": StuffType.RAISE_STAR_BOOK,
+    "鉴定卷轴": StuffType.IDENTIFY_BOOK,
+    "经验书": StuffType.EXP_BOOK,
+    "技能书": StuffType.SKILL_BOOK,
+    "药剂": StuffType.POTION,
+    "怪物": StuffType.MONSTER,
 }
+
 
 class BeingType:
     """
@@ -214,8 +218,60 @@ class AdditionalPropertyType:
 
     EXP_ADD_PERCENT = 34  # 经验增加百分比，有些装备可以增加经验获得
 
-    min_num = 1
-    max_num = 34
+    @classmethod
+    def all(cls) -> List[int]:
+        return [
+            cls.PHYSIQUE,
+            cls.PHYSIQUE_ADD_PERCENT,
+
+            cls.STRENGTH,
+            cls.STRENGTH_ADD_PERCENT,
+
+            cls.AGILITY,
+            cls.AGILITY_ADD_PERCENT,
+
+            cls.INTELLIGENCE,
+            cls.INTELLIGENCE_ADD_PERCENT,
+
+            cls.PERCEPTION,
+            cls.PERCEPTION_ADD_PERCENT,
+
+            cls.ATTACK_SPEED,
+            cls.ATTACK_SPEED_ADD_PERCENT,
+
+            cls.ATTACK,
+            cls.ATTACK_ADD_PERCENT,
+
+            cls.HEALTH,
+            cls.HEALTH_ADD_PERCENT,
+
+            cls.HEALTH_RECOVERY,
+            cls.HEALTH_RECOVERY_ADD_PERCENT,
+
+            cls.HEALTH_ABSORPTION,
+            cls.HEALTH_ABSORPTION_ADD_PERCENT,
+
+            cls.MANA,
+            cls.MANA_ADD_PERCENT,
+
+            cls.MANA_RECOVERY,
+            cls.MANA_RECOVERY_ADD_PERCENT,
+
+            cls.MANA_ABSORPTION,
+            cls.MANA_ABSORPTION_ADD_PERCENT,
+
+            cls.COUNTERATTACK,
+            cls.COUNTERATTACK_ADD_PERCENT,
+            cls.IGNORE_COUNTERATTACK,
+            cls.IGNORE_COUNTERATTACK_ADD_PERCENT,
+
+            cls.CRITICAL_POINT,
+            cls.CRITICAL_POINT_ADD_PERCENT,
+
+            cls.DAMAGE_SHIELD,
+
+            cls.EXP_ADD_PERCENT,
+        ]
 
 
 property_type_cn_dict = {
@@ -276,6 +332,51 @@ base_property_cn_type_dict = {key: property_cn_type_dict[key] for key in propert
                               key in {"体质", "力量", "敏捷", "智力", "感知", }}
 
 
+class BattlePropertyType:
+    """
+    战斗需要的属性
+    """
+    ATTACK_SPEED = 11  # 出手速度
+    ATTACK = 13  # 攻击力
+
+    HEALTH = 15  # 生命
+    HEALTH_RECOVERY = 17  # 生命恢复(每回合)
+    HEALTH_ABSORPTION = 19  # 生命吸收
+
+    MANA = 21  # 法力
+    MANA_RECOVERY = 23  # 法力恢复
+    MANA_ABSORPTION = 25  # 法力吸收
+
+    COUNTERATTACK = 27  # 反击
+    IGNORE_COUNTERATTACK = 29  # 无视反击
+
+    CRITICAL_POINT = 31  # 致命点
+
+    DAMAGE_SHIELD = 33  # 免伤护盾
+
+    @classmethod
+    def all(cls) -> List[int]:
+        return [
+            cls.ATTACK_SPEED,
+            cls.ATTACK,
+
+            cls.HEALTH,
+            cls.HEALTH_RECOVERY,
+            cls.HEALTH_ABSORPTION,
+
+            cls.MANA,
+            cls.MANA_RECOVERY,
+            cls.MANA_ABSORPTION,
+
+            cls.COUNTERATTACK,
+            cls.IGNORE_COUNTERATTACK,
+
+            cls.CRITICAL_POINT,
+
+            cls.DAMAGE_SHIELD,
+        ]
+
+
 class MailType:
     """
     收到的邮件类型
@@ -293,10 +394,12 @@ class CalendarType:
     LUNAR = 1  # 农历
     GREGORIAN = 2  # 公历
 
-calendar_cn_type_dict={
-    "农历":CalendarType.LUNAR,
-    "公历":CalendarType.GREGORIAN,
+
+calendar_cn_type_dict = {
+    "农历": CalendarType.LUNAR,
+    "公历": CalendarType.GREGORIAN,
 }
+
 
 class EquipmentPropertyAvailability:
     MIN = 1  # 最小属性
@@ -308,9 +411,11 @@ class EquipmentPropertyAvailability:
 class ExpBookType:
     CHARACTER = 1  # 人物
 
-exp_book_cn_type_dict={
-    "人物":ExpBookType.CHARACTER
+
+exp_book_cn_type_dict = {
+    "人物": ExpBookType.CHARACTER
 }
+
 
 class DateType:
     HOUR_OF_DAY = 1  # 每天的几点会出现；对应的值为0到24

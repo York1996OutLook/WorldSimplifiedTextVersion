@@ -3,6 +3,7 @@ import time
 import battle_property_system
 from DBHelper.db import *
 
+import battle_system
 from Enums import BeingType, property_type_cn_dict, property_cn_type_dict, AdditionalPropertyType, \
     base_property_cn_type_dict
 from Utils import tools
@@ -71,8 +72,21 @@ class App:
         if len(monster_name) == 0:
             print('您输入的格式不正确，应该是挑战怪物名字。比如挑战人形木桩')
             return
+        monster_ids = monster_show_up_record.get_all_monster_id_by_today()
+        for monster_id in monster_ids:
+            one_monster = monster.get_by_id(monster_id=monster_id)
+            properties_dict = misc_properties.get_property_dict_by_monster_id(monster_id=monster_id)
+            properties_intro = "\n".join([f"{property_type_cn_dict[property_type]}:{properties_dict[property_type]}" for
+                                          property_type in properties_dict])
 
-    def handle_player_get_cur_visible_monsters(self):
+            print(f"""您要挑战的怪物是{one_monster.name}，调整成功可以获得经验值{one_monster.exp_value}。
+                  它的相关介绍是:{one_monster.introduction}
+                  相关属性值：{properties_intro}""")
+            battle_system.battle(positive_battle_properties_dict=,passive_battle_properties_dict=properties_dict)
+
+
+    @staticmethod
+    def handle_player_get_cur_visible_monsters():
         monster_ids = monster_show_up_record.get_all_monster_id_by_today()
         if len(monster_ids) == 0:
             print("今日没有怪物出现！")
