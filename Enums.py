@@ -154,6 +154,20 @@ class AdditionSourceType:
     BASE_ADDITIONAL = 10  # 基础属性增加其它属性值；
 
 
+addition_source_type_cn_dict = {
+    AdditionSourceType.INITIAL: "初始",
+    AdditionSourceType.BASE_PROPERTY_POINT: "基础属性加点",
+    AdditionSourceType.ACHIEVEMENT: "成就称号",
+    AdditionSourceType.SKILL: "技能",
+    AdditionSourceType.EQUIPMENT_PROTOTYPE: "装备原型",
+    AdditionSourceType.EQUIPMENT_RECORD: "装备记录",
+    AdditionSourceType.POTION: "临时药剂",
+    AdditionSourceType.PLAYER: "用户",
+    AdditionSourceType.MONSTER: "怪物",
+    AdditionSourceType.BASE_ADDITIONAL: "基础属性增加其它属性值",
+}
+
+
 class GemInlayingStatus:
     """
     宝石镶嵌的状态。一般只有装备可以镶嵌宝石；

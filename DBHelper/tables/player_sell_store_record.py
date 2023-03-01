@@ -15,6 +15,7 @@ class PlayerSellStoreRecord(Base):
 
     owner_character_id = Column(Integer, comment="参考player表")
 
+    stuff_type = Column(Integer, comment="物品类型")
     stuff_record_id = Column(Integer, comment="物品记录ID")
 
     original_price = Column(Integer, comment='原始售价')

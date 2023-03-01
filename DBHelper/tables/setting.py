@@ -1,6 +1,12 @@
+import os
+import os.path as osp
+
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from typing import List
+
+import local_setting
+from Utils import tools
 
 Base = declarative_base()
 
@@ -35,11 +41,11 @@ class Setting(Base):
 
 
 # 增
-def add_setting(*,
-                name: str,
-                value: str,
-                comment: str,
-                ) -> Setting:
+def add(*,
+        name: str,
+        value: str,
+        comment: str,
+        ) -> Setting:
     """
     新增一个设置
 
@@ -57,17 +63,23 @@ def add_setting(*,
 def add_or_update(*,
                   name: str,
                   value: str,
-                  comment: str, ):
-    if is_exist_by_name(name=name):
-        setting = update_setting_by_name(name=name, new_value=value, new_comment=comment)
+                  comment: str,
+                  verbose: bool = False
+                  ):
+    if is_exists_by_name(name=name):
+        setting = update_by_name(name=name, new_value=value, new_comment=comment)
+        if verbose:
+            print(f"设置【{name}】存在，更新为value={value}，更新comment={comment}")
     else:
-        setting = add_setting(name=name, value=value, comment=comment)
+        setting = add(name=name, value=value, comment=comment)
+        if verbose:
+            print(f"设置【{name}】不存在，新建设置并且value={value}，comment={comment}")
     return setting
 
 
 # 删
-def delete_setting(*,
-                   name: str):
+def delete(*,
+           name: str):
     """删除设置
 
     Args:
@@ -80,9 +92,9 @@ def delete_setting(*,
     session.delete(setting)
 
 
-def delete_setting_by_id(*,
-                         setting_id: int
-                         ):
+def delete_by_id(*,
+                 setting_id: int
+                 ):
     """
     根据id删除设置记录
 
@@ -96,11 +108,11 @@ def delete_setting_by_id(*,
 
 # 改
 
-def update_setting_by_name(*,
-                           name: str,
-                           new_value: str,
-                           new_comment: str,
-                           ) -> Setting:
+def update_by_name(*,
+                   name: str,
+                   new_value: str,
+                   new_comment: str,
+                   ) -> Setting:
     """
     Update a single record in the 'setting' table based on its id.
 
@@ -124,34 +136,6 @@ def update_setting_by_name(*,
     return setting
 
 
-def update_setting_by_setting_name(*,
-                                   name: str,
-                                   new_value: str = None,
-                                   new_comment: str = None,
-                                   ) -> Setting:
-    """
-    Update a single record in the 'setting' table based on its id.
-
-    Args:
-        name (str): The new name of the setting.
-        new_value (str): The new value of the setting.
-        new_comment (str): The new value of the setting.
-
-    """
-
-    # Query the setting with the specified id
-    setting = get_setting_by_name(setting_name=name)
-
-    # Update the setting
-    setting.value = new_value
-    setting.comment = new_comment
-
-    # Commit the changes to the database
-    session.commit()
-    session.refresh(setting)
-    return setting
-
-
 # 查
 def get_settings() -> List[Setting]:
     """
@@ -167,28 +151,9 @@ def get_settings() -> List[Setting]:
     return settings
 
 
-def setting_exists(*,
-                   setting_name: str
-                   ) -> bool:
-    """
-    Check if a setting exists in the 'setting' table based on its name.
-
-    Args:
-        setting_name (str): The name of the setting to check.
-
-    Returns:
-        bool: True if the setting exists, False otherwise.
-    """
-    # Query the setting with the specified name
-    setting = session.query(Setting).filter_by(name=setting_name).first()
-
-    # Return the result
-    return setting is not None
-
-
-def get_setting_by_id(*,
-                      setting_id: int
-                      ) -> Setting:
+def get_by_id(*,
+              setting_id: int
+              ) -> Setting:
     """
     Retrieve a single record from the 'setting' table based on its id.
 
@@ -206,14 +171,14 @@ def get_setting_by_id(*,
     return setting
 
 
-def get_setting_by_name(*,
-                        setting_name: str
-                        ) -> Setting:
+def get_by_name(*,
+                name: str
+                ) -> Setting:
     """
     Retrieve a single record from the 'setting' table based on its name.
 
     Args:
-        setting_name (str): The name of the setting to retrieve.
+        name (str): The name of the setting to retrieve.
 
     Returns:
         s: A dictionary that represents the setting record and contains keys 'name' and 'value'.
@@ -221,19 +186,19 @@ def get_setting_by_name(*,
     """
 
     # Query the setting with the specified name
-    setting = session.query(Setting).filter_by(name=setting_name).first()
+    setting = session.query(Setting).filter_by(name=name).first()
 
     return setting
 
 
-def get_setting_value_by_name(*,
-                              setting_name: str
-                              ) -> str:
+def get_value_by_name(*,
+                      name: str
+                      ) -> str:
     """
     Retrieve a single record from the 'setting' table based on its name.
 
     Args:
-        setting_name (str): The name of the setting to retrieve.
+        name (str): The name of the setting to retrieve.
 
     Returns:
         dict: A dictionary that represents the setting record and contains keys 'name' and 'value'.
@@ -241,26 +206,76 @@ def get_setting_value_by_name(*,
     """
 
     # Query the setting with the specified name
-    setting = session.query(Setting).filter_by(name=setting_name).first()
+    setting = session.query(Setting).filter_by(name=name).first()
 
     return setting.value
 
 
-def is_exist_by_name(*,
-                     name: str
-                     ) -> bool:
+def is_exists_by_name(*,
+                      name: str
+                      ) -> bool:
     setting = session.query(Setting).filter_by(name=name).first()
     return setting is not None
 
 
-# other
+# battle
 
+def get_max_battle_round_num() -> int:
+    """
+    获取最大回合数
+    :return:
+    """
+    value = get_value_by_name(name='max_battle_round_num')
+    return int(value)
+
+
+def get_critical_damage_multiplier():
+    """
+    :return: 获取致命伤害的翻倍值
+    """
+    value = get_value_by_name(name='critical_damage_multiplier')
+    return float(value)
+
+
+def get_percent100_mana_absorption():
+    """
+    :return: 获取致命伤害的翻倍值
+    """
+    value = get_value_by_name(name='percent100_mana_absorption')
+    return float(value)
+
+
+def get_percent100_health_absorption():
+    """
+    :return: 获取致命伤害的翻倍值
+    """
+    value = get_value_by_name(name='percent100_health_absorption')
+    return float(value)
+
+
+def get_percent100_counterattack():
+    """
+    :return: 获取致命伤害的翻倍值
+    """
+    value = get_value_by_name(name='percent100_counterattack')
+    return float(value)
+
+
+def get_percent100_critical_point():
+    """
+    :return: 获取最大致命点，预计为 1000
+    """
+    value = get_value_by_name(name='full_critical_point')
+    return int(value)
+
+
+# other
 def get_per_star_improved_percent() -> int:
     """
     获取每个升星会获得多少加成。
     :return:
     """
-    value = get_setting_value_by_name(setting_name='per_star_improved_percent')
+    value = get_value_by_name(name='per_star_improved_percent')
     return int(value)
 
 
@@ -269,34 +284,35 @@ def get_per_level_base_point_num() -> int:
     获取每个升星会获得多少加成。
     :return:
     """
-    value = get_setting_value_by_name(setting_name='per_level_base_point_num')
+    value = get_value_by_name(name='per_level_base_point_num')
     return int(value)
 
 
 def get_initial_player_level() -> int:
     """
-    获取每个升星会获得多少加成。
+    获取初始用户初始等级。
     :return:
     """
-    value = get_setting_value_by_name(setting_name='initial_player_level')
+    value = get_value_by_name(name='initial_player_level')
     return int(value)
 
 
 def get_player_default_game_sign() -> str:
     """
-    获取每个升星会获得多少加成。
+    获取用户默认签名。
     :return:
     """
-    value = get_setting_value_by_name(setting_name='player_default_game_sign')
+    value = get_value_by_name(name='player_default_game_sign')
     return value
 
 
+# lottery
 def get_lottery_start_hour():
     """
     获取开始抽奖的时间
     :return:
     """
-    value = get_setting_value_by_name(setting_name='lottery_start_hour')
+    value = get_value_by_name(name='lottery_start_hour')
     return int(value)
 
 
@@ -305,7 +321,7 @@ def get_lottery_end_hour():
     获取结束抽奖的时间
     :return:
     """
-    value = get_setting_value_by_name(setting_name='lottery_end_hour')
+    value = get_value_by_name(name='lottery_end_hour')
     return int(value)
 
 
@@ -314,7 +330,7 @@ def get_lottery_lucky_num():
     获取结束抽奖的时间
     :return:
     """
-    value = get_setting_value_by_name(setting_name='lottery_lucky_num')
+    value = get_value_by_name(name='lottery_lucky_num')
     return int(value)
 
 
@@ -324,7 +340,7 @@ def get_sell_expire_hours():
     获取结束抽奖的时间
     :return:
     """
-    value = get_setting_value_by_name(setting_name='sell_expire_hours')
+    value = get_value_by_name(name='sell_expire_hours')
     return int(value)
 
 
@@ -334,73 +350,21 @@ def get_game_master_id():
     获取结束抽奖的时间
     :return:
     """
-    value = get_setting_value_by_name(setting_name='game_master_id')
-    return int(value)
-
-
-def get_full_critical_point():
-    """
-    :return: 获取最大致命点，预计为 1000
-    """
-    value = get_setting_value_by_name(setting_name='full_critical_point')
+    value = get_value_by_name(name='game_master_id')
     return int(value)
 
 
 if __name__ == '__main__':
-    settings = [
-        {
-            "name": "full_critical_point",
-            "value": 1000,
-            "comment": "满致命点的数量，如果实际致命点是100，则10%几率触发暴击。",
-        },
-        {
-            "name": "game_master_id",
-            "value": -1,
-            "comment": "发邮件的时候所显示的id",
-        },
-        {
-            "name": "sell_expire_hours",
-            "value": 72,
-            "comment": "交易所挂售物品过期时间",
-        },
-        {
-            "name": "lottery_lucky_num",
-            "value": 666,
-            "comment": "每日抽奖的幸运数字",
-        },
-        {
-            "name": "lottery_start_hour",
-            "value": 1000,
-            "comment": "抽奖的开始时间",
-        },
-        {
-            "name": "lottery_end_hour",
-            "value": 22,
-            "comment": "抽奖的结束时间",
-        },
-        {
-            "name": "player_default_game_sign",
-            "value": "玩家很懒，什么都没有留下。。。",
-            "comment": "玩家默认的签名信息",
-        },
-        {
-            "name": "initial_player_level",
-            "value": 1,
-            "comment": "玩家初始的等级",
-        },
-        {
-            "name": "per_star_improved_percent",
-            "value": 3,
-            "comment": "装备每升一星，装备性能提升多少。",
-        },
-        {
-            "name": "per_level_base_point_num",
-            "value": 3,
-            "comment": "玩家每升一级，会奖励多少基础属性点",
-        }
-    ]
-
-    for setting_dic in settings:
-        add_or_update(name=setting_dic['name'],
-                      value=setting_dic['value'],
-                      comment=setting_dic['comment'])
+    setting_json_root = osp.join(local_setting.json_data_root, "setting")
+    json_files = os.listdir(setting_json_root)
+    for json_file in json_files:
+        src = osp.join(setting_json_root, json_file)
+        setting_dict_list = tools.file2dict_list(src=src)
+        for setting_dict in setting_dict_list:
+            setting_name = setting_dict['名称']
+            setting_value = setting_dict['值']
+            setting_comment = setting_dict['备注']
+            add_or_update(name=setting_name,
+                          value=setting_value,
+                          comment=setting_comment,
+                          verbose=local_setting.verbose)

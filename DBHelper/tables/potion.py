@@ -73,7 +73,7 @@ def add_or_update_by_name(*,
                                  is_bind: bool,
                                  ) -> Potion:
     if is_exists_by_name(name=name):
-        potion = update_potion_by_name(
+        potion = update_by_name(
             name=name,
             additional_property_type=additional_property_type,
             additional_property_value=additional_property_value,
@@ -317,7 +317,7 @@ if __name__ == '__main__':
          },
     ]
     for one_potion in potions:
-        add_or_update_potion_by_name(name=one_potion['name'],
+        add_or_update_by_name(name=one_potion['name'],
                                      additional_property_type=one_potion['additional_property_type'],
                                      additional_property_value=one_potion['additional_property_value'],
                                      duration_by_min=one_potion['duration_by_min'],

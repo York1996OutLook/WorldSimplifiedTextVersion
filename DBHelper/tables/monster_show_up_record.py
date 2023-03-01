@@ -34,13 +34,14 @@ class MonsterShowUpRecord(Base):
 def add(*,
         monster_id: int,
         date_type: int,
-        date_value: int
+        date_value: int,
         ) -> MonsterShowUpRecord:
     """
 
     :param monster_id:
     :param date_type:
     :param date_value:
+    :param verbose:
     :return:
     """
     shows_up_record = MonsterShowUpRecord(monster_id=monster_id,

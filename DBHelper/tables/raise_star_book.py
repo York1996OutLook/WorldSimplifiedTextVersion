@@ -51,7 +51,7 @@ def add_or_update_by_name(*, name: str, is_bind: bool, introduce: str) -> RaiseS
     :return:
     """
     if is_exists_by_name(name=name):
-        book = update_raise_star_book_by_name(name=name,
+        book = update_by_name(name=name,
                                               is_bind=is_bind,
                                               introduce=introduce)
     else:

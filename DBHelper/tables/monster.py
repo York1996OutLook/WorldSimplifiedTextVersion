@@ -22,11 +22,14 @@ class Monster(Base):
 
 # 增
 
-def add_or_update(*, name: str, exp_value: int, introduction: str, ) -> Monster:
+def add_or_update(*, name: str, exp_value: int, introduction: str, verbose: bool = False) -> Monster:
     if is_exists_by_name(name=name):
         monster = update_by_name(name=name, exp_value=exp_value, introduction=introduction)
+        if verbose:
+            print(f"怪物{name}已经存在，进行更新经验值={exp_value},介绍={introduction}")
     else:
         monster = add(name=name, exp_value=exp_value, introduction=introduction)
+        print(f"怪物{name}不存在，新增，经验值={exp_value},介绍={introduction}")
     return monster
 
 
@@ -84,7 +87,7 @@ def update_by_name(*,
 
 
 # 查
-def get_by_id(*, monster_id: int)->Monster:
+def get_by_id(*, monster_id: int) -> Monster:
     """
     根据ID查询怪物
 

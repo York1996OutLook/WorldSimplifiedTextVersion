@@ -101,6 +101,17 @@ def add(
     return record
 
 
+def add_player_properties(*,
+                          character_id: int,
+                          additional_property_type: AdditionalPropertyType,
+                          additional_property_value: int,
+                          ):
+    add(additional_source_type=AdditionSourceType.PLAYER,
+        additional_property_type=additional_property_type,
+        additional_property_value=additional_property_value,
+        additional_source_id=character_id)
+
+
 def add_initial_properties(*,
                            additional_property_type: AdditionalPropertyType,
                            additional_property_value: int,
@@ -391,6 +402,12 @@ def update_player_properties_dict(*,
                                   character_id: int = None,
                                   properties_dict: DefaultDict[int, int]
                                   ):
+    """
+    更新用户的属性
+    :param character_id:
+    :param properties_dict:
+    :return:
+    """
     for property_type_key in properties_dict:
         update_player_property(
             character_id=character_id,
@@ -571,7 +588,7 @@ def get_used_base_property_points_num_by_character_id(character_id: int,
 
 def get_additional_property_dict_by_base_property(*,
                                                   base_property_type: AdditionalPropertyType,
-                                                  ):
+                                                  ) -> DefaultDict[int, int]:
     records = session.query(InitialSkillAchievementEquipmentPotionEtcPropertiesRecord).filter(
         InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_type == AdditionSourceType.BASE_ADDITIONAL,
         InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_id == base_property_type,
@@ -628,17 +645,21 @@ def get_properties_dict_by_potion_id(*,
 
 # other
 
-def insert_initial_properties():
+def insert_initial_properties(*, verbose: bool = False):
     # 录入初始属性
-    json_src = osp.join(local_setting.json_data_root, 'initial_properties', 'initial_properties.json')
+    json_src = osp.join(local_setting.json_data_root, 'properties', 'initial_properties.json')
     properties_dict_list = tools.file2dict_list(src=json_src)
 
     # 删除所有初始属性后再进行添加；
     del_initial_properties()
+    if verbose:
+        print("删除所有初始属性值")
     for player_initial_property_dict in properties_dict_list:
         property_type_cn = player_initial_property_dict['属性']
         property_type = property_cn_type_dict[property_type_cn]
         property_value = player_initial_property_dict['属性值']
+        if verbose:
+            print(f"初始属性名称：{property_type_cn}={property_value}")
         # 添加新的初始属性
         add_initial_properties(
             additional_property_type=property_type,
@@ -646,7 +667,7 @@ def insert_initial_properties():
         )
 
 
-def insert_base_additional_properties():
+def insert_base_additional_properties(*, verbose: bool = False):
     base_property_additional_property_json_src = osp.join(local_setting.json_data_root, "properties",
                                                           'base_property_additional_properties.json')
     addition_dict_list = tools.file2dict_list(src=base_property_additional_property_json_src)
@@ -662,10 +683,13 @@ def insert_base_additional_properties():
 
         # 先删除基础属性对应的额外属性增加值，再添加；
         del_base_additional_properties(base_property_type=base_property_type)
+        if verbose:
+            print(f"删除 {base_property_type_cn} 基础属性对应的额外属性值")
         add_base_additional_properties(base_property_type=base_property_type,
                                        additional_property_type=AdditionalPropertyType.ATTACK,
                                        additional_property_value=attack_addition
                                        )
+
         add_base_additional_properties(base_property_type=base_property_type,
                                        additional_property_type=AdditionalPropertyType.ATTACK_SPEED,
                                        additional_property_value=attack_speed_addition
@@ -678,8 +702,12 @@ def insert_base_additional_properties():
                                        additional_property_type=AdditionalPropertyType.MANA,
                                        additional_property_value=mana_addition
                                        )
+        if verbose:
+            print(f"""
+            基础属性名称【{base_property_type_cn}】，增加攻击力{attack_addition}，增加出手速度{attack_speed_addition}，增加生命值{health_addition}，增加法力值{mana_addition}
+            """.strip())
 
 
 if __name__ == '__main__':
-    insert_initial_properties()
-    insert_base_additional_properties()
+    insert_initial_properties(verbose=local_setting.verbose)
+    insert_base_additional_properties(verbose=local_setting.verbose)

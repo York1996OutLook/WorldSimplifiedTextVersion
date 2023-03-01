@@ -8,7 +8,8 @@ from Enums import DateType, AdditionalPropertyType, date_cn_type_dict, property_
 import local_setting
 from Utils import tools
 
-if __name__ == '__main__':
+
+def main(*, verbose: bool = False):
     monster_json_src = osp.join(local_setting.json_data_root, "monster", 'monster.json')
     monster_dict_list = tools.file2dict_list(src=monster_json_src)
     for monster_dict in monster_dict_list:
@@ -16,7 +17,7 @@ if __name__ == '__main__':
         name = monster_dict['名称']
         exp_value = monster_dict['经验']
         introduction = monster_dict['描述']
-        one_monster = monster.add_or_update(name=name, exp_value=exp_value, introduction=introduction)
+        one_monster = monster.add_or_update(name=name, exp_value=exp_value, introduction=introduction,verbose=verbose)
 
         # shows up
         # 删除相关出现的记录，方便后续更新
@@ -30,6 +31,8 @@ if __name__ == '__main__':
             monster_show_up_record.add(monster_id=one_monster.id,
                                        date_type=shows_up_date_type,
                                        date_value=show_up_data_value)
+            if verbose:
+                print(f"增加出现日期，{monster_dict['日期类型']}，{show_up_data_value}")
 
         # 添加对应属性：先删除所有属性
         misc_properties.del_monster_prototype_properties(monster_id=one_monster.id)
@@ -39,6 +42,8 @@ if __name__ == '__main__':
             value = property_dict[property_name]
             misc_properties.add_monster_properties(additional_property_type=property_type,
                                                    additional_property_value=value)
+            if verbose:
+                print(f"增加duiyingshuxing {property_name}，{show_up_data_value}")
         # 添加对应技能，先删除怪物对应技能列表
         player_or_monster_skill_setting.del_monster_skill_setting(monster_id=one_monster.id)
         skill_list = monster_dict["技能设置"]
@@ -77,3 +82,7 @@ if __name__ == '__main__':
                 drop_stuff_id=stuff_id,
                 drop_stuff_prob=prob,
             )
+
+
+if __name__ == '__main__':
+    main(verbose=local_setting.verbose)

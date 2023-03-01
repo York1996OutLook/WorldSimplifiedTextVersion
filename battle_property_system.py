@@ -1,9 +1,9 @@
 from collections import defaultdict
 from typing import List, DefaultDict
 
+import log_system
 from Enums import BattlePropertyType, AdditionSourceType, AdditionalPropertyType, BeingType, \
-    EquipmentPropertyAvailability, \
-    property_type_cn_dict
+    EquipmentPropertyAvailability, addition_source_type_cn_dict, property_type_cn_dict
 from DBHelper.db import *
 
 from DBHelper.session import session
@@ -24,10 +24,8 @@ def add_new_player_additional_property_record(
 
     additional_properties_record_list = []
     for additional_property_type in properties_dict:
-        new_additional_property_record = player_monster_additional_property_record.PlayerMonsterAdditionalPropertyRecord(
-            being_type=BeingType.PLAYER,
-            being_id=character_id,
-
+        new_additional_property_record = misc_properties.add_player_properties(
+            character_id=character_id,
             additional_property_type=additional_property_type,
             additional_property_value=properties_dict[additional_property_type]
         )
@@ -204,18 +202,34 @@ def get_player_initial_skills_achievements_equipments_properties_dict(*, charact
 
     # 初始属性。每个玩家都一样，所以不需要任何参数就可以查询到；
     initial_additional_properties = misc_properties.get_properties_dict_by_initial()
+    log_system.log_properties(additional_source_type=AdditionSourceType.INITIAL,
+                              properties_dict=initial_additional_properties)
+
     # 玩家->基础属性加点->属性提升
     base_property_point_properties_dict = misc_properties.get_base_property_dict_by_character_id(
         character_id=character_id)
+    log_system.log_properties(additional_source_type=AdditionSourceType.BASE_PROPERTY_POINT,
+                              properties_dict=base_property_point_properties_dict)
+
     # 玩家->技能->属性提升
     skill_properties_dict = get_all_skills_additional_properties_by_character_id(character_id=character_id)
+    log_system.log_properties(additional_source_type=AdditionSourceType.SKILL, properties_dict=skill_properties_dict)
+
     # 玩家->成就称号->属性提升
     achievement_properties_dict = get_player_achievement_title_additional_properties_dict_by_character_id(
         character_id=character_id)
+    log_system.log_properties(additional_source_type=AdditionSourceType.ACHIEVEMENT,
+                              properties_dict=achievement_properties_dict)
+
     # 玩家->装备+升星+镶嵌宝石->属性提升
     equipment_properties_dict = get_all_equipments_additional_properties_by_character_id(character_id=character_id)
+    log_system.log_properties(additional_source_type=AdditionSourceType.EQUIPMENT_RECORD,
+                              properties_dict=equipment_properties_dict)
+
     # 玩家->药剂->临时属性提升
     potion_properties_dict = get_player_potion_additional_properties_dict(character_id=character_id)
+    log_system.log_properties(additional_source_type=AdditionSourceType.POTION,
+                              properties_dict=potion_properties_dict)
 
     for dic in [initial_additional_properties,
                 base_property_point_properties_dict,
@@ -233,10 +247,9 @@ def get_player_initial_skills_achievements_equipments_properties_dict(*, charact
 
 
 def get_player_battle_properties_dict(*,
-                                      character_id: int) -> DefaultDict[int, int]:
+                                      character_id: int, verbose: bool = False) -> DefaultDict[int, int]:
     battle_properties_dict = get_player_initial_skills_achievements_equipments_properties_dict(
         character_id=character_id)
-    # battle_properties_dict = defaultdict(int)
 
     # dict->基础属性
     for property_type, add_percent_type in [
@@ -257,9 +270,11 @@ def get_player_battle_properties_dict(*,
         (AdditionalPropertyType.COUNTERATTACK, AdditionalPropertyType.COUNTERATTACK_ADD_PERCENT),
         (AdditionalPropertyType.IGNORE_COUNTERATTACK, AdditionalPropertyType.IGNORE_COUNTERATTACK_ADD_PERCENT),
     ]:
-        print(property_type_cn_dict[property_type], battle_properties_dict[property_type])
-        print(property_type_cn_dict[add_percent_type], property_type_cn_dict[add_percent_type])
-        print()
+        if verbose:
+            print(f"""
+基础属性：【{(property_type_cn_dict[property_type])}】 ={battle_properties_dict[property_type]}
+百分比属性：【{(property_type_cn_dict[add_percent_type])}】={battle_properties_dict[add_percent_type]}
+            """)
         battle_properties_dict[property_type] = int(
             battle_properties_dict[property_type] * (100 + battle_properties_dict[add_percent_type]) / 100
         )
@@ -274,14 +289,21 @@ def get_player_battle_properties_dict(*,
         # 获取基础属性对应的额外属性增加值
         additional_properties_dict = misc_properties.get_additional_property_dict_by_base_property(
             base_property_type=base_property_type)
-        for additional_type in additional_properties_dict:
-            print(f"""基础属性名称：{property_type_cn_dict[additional_type]},值 {battle_properties_dict[additional_type]}
-            增加{property_type_cn_dict[additional_properties_dict[additional_type]]}值{battle_properties_dict[base_property_type]}*{additional_properties_dict[additional_type]}
-            """)
+        if verbose:
+            print(
+                f"""基础属性：【{property_type_cn_dict[base_property_type]}】={battle_properties_dict[base_property_type]}""")
 
+        for additional_type in additional_properties_dict:
+            if verbose:
+                print(f"""增加【{property_type_cn_dict[additional_type]}】：
+{property_type_cn_dict[base_property_type]}*提升{property_type_cn_dict[additional_type]}
+={battle_properties_dict[base_property_type]}*{additional_properties_dict[additional_type]}
+={battle_properties_dict[base_property_type] * additional_properties_dict[additional_type]}
+            """)
             # 额外属性+=基础属性*对应加成;比如 生命+=体质*10
             battle_properties_dict[additional_type] += battle_properties_dict[base_property_type] * \
                                                        additional_properties_dict[additional_type]
+
     # 额外属性->战斗属性
     for battle_property_type, battle_property_add_percent_type in [
         (AdditionalPropertyType.ATTACK_SPEED, AdditionalPropertyType.ATTACK_SPEED_ADD_PERCENT),
@@ -300,12 +322,15 @@ def get_player_battle_properties_dict(*,
 
         (AdditionalPropertyType.CRITICAL_POINT, AdditionalPropertyType.CRITICAL_POINT_ADD_PERCENT),
     ]:
+        if verbose:
+            print(f"""
+战斗属性【{property_type_cn_dict[battle_property_type]}】={battle_properties_dict[battle_property_type]}，
+【{property_type_cn_dict[battle_property_add_percent_type]}】={battle_properties_dict[battle_property_add_percent_type]}
+            """)
         battle_properties_dict[battle_property_type] = int(battle_properties_dict[battle_property_type] * (
                 100 + battle_properties_dict[battle_property_add_percent_type]) / 100)
 
-    for battle_property_type in BattlePropertyType.all():
-        battle_property_value = battle_properties_dict[battle_property_type]
-        print(property_type_cn_dict[battle_property_type], battle_property_value)
+    log_system.log_properties(additional_source_type=AdditionSourceType.PLAYER, properties_dict=battle_properties_dict)
     return battle_properties_dict
 
 

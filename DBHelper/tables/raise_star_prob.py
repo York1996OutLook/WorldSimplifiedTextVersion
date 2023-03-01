@@ -56,7 +56,7 @@ def add_or_update(*,
     :return: RaiseStarProb object
     """
     if is_exists_by_star_count(star_count=star_count):
-        raise_star_prob = update_raise_star_prob(star_count=star_count, success_prob=success_prob)
+        raise_star_prob = update_success_prob_by_start_count(star_count=star_count, success_prob=success_prob)
     else:
         raise_star_prob = add(star_count=star_count, success_prob=success_prob)
     return raise_star_prob

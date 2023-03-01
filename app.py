@@ -5,7 +5,8 @@ from DBHelper.db import *
 
 import battle_system
 from Enums import BeingType, property_type_cn_dict, property_cn_type_dict, AdditionalPropertyType, \
-    base_property_cn_type_dict
+    base_property_cn_type_dict, AdditionSourceType
+import log_system
 from Utils import tools
 
 
@@ -19,7 +20,6 @@ class App:
         super(App, self).__init__()
         self.player_id = player_id
         self.nick_name = nick_name
-        self.character_id = None
 
     def start(self):
         while True:
@@ -72,6 +72,9 @@ class App:
         if len(monster_name) == 0:
             print('您输入的格式不正确，应该是挑战怪物名字。比如挑战人形木桩')
             return
+
+        one_player = player.get_by_player_id(player_id=self.player_id)
+
         monster_ids = monster_show_up_record.get_all_monster_id_by_today()
         for monster_id in monster_ids:
             one_monster = monster.get_by_id(monster_id=monster_id)
@@ -80,10 +83,14 @@ class App:
                                           property_type in properties_dict])
 
             print(f"""您要挑战的怪物是{one_monster.name}，调整成功可以获得经验值{one_monster.exp_value}。
-                  它的相关介绍是:{one_monster.introduction}
-                  相关属性值：{properties_intro}""")
-            battle_system.battle(positive_battle_properties_dict=,passive_battle_properties_dict=properties_dict)
-
+它的相关介绍是:{one_monster.introduction}
+相关属性值：{properties_intro}""")
+            print(battle_system.battle(
+                positive_name=one_player.nickname,
+                positive_battle_properties_dict=battle_property_system.get_player_battle_properties_dict(
+                    character_id=one_player.id, ),
+                passive_name=one_monster.name,
+                passive_battle_properties_dict=properties_dict))
 
     @staticmethod
     def handle_player_get_cur_visible_monsters():
@@ -94,7 +101,7 @@ class App:
         # todo: 对怪物进行排序
         for idx, monster_id in enumerate(monster_ids):
             one_monster = monster.get_by_id(monster_id=monster_id)
-            print(f'{idx}:{one_monster.name}\n经验值：{one_monster.exp_value}\n介绍：{one_monster.introduction}')
+            print(f'【{idx + 1}】:{one_monster.name}\n经验值：{one_monster.exp_value}\n介绍：{one_monster.introduction}')
 
     def print_cur_base_property_points(self):
         cur_player = player.get_by_player_id(player_id=self.player_id)
@@ -188,7 +195,7 @@ class App:
             # 给了新的成就之后要更新玩家的属性
             properties_dict = battle_property_system.get_player_initial_skills_achievements_equipments_properties_dict(
                 character_id=new_player.id)
-
+            log_system.log_properties(additional_source_type=AdditionSourceType.PLAYER, properties_dict=properties_dict)
             misc_properties.update_player_properties_dict(character_id=new_player.id, properties_dict=properties_dict)
             print("欢迎进入世界！")
             return
