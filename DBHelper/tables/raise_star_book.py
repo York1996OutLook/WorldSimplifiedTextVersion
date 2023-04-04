@@ -95,3 +95,11 @@ def get_by_name(*, name: str) -> RaiseStarBook:
     """
     book = session.query(RaiseStarBook).filter(RaiseStarBook.name == name).first()
     return book
+
+def get_by_id(*, _id: int) -> RaiseStarBook:
+    """
+    :param _id:
+    :return:
+    """
+    book = session.query(RaiseStarBook).filter(RaiseStarBook.id == _id).first()
+    return book

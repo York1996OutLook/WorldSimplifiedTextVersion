@@ -42,12 +42,12 @@ class Potion(Base):
 
 # 增
 def add(*,
-               name: str,
-               additional_property_type: AdditionalPropertyType,
-               additional_property_value: int,
-               duration_by_min: int,
-               is_bind: bool,
-               ) -> Potion:
+        name: str,
+        additional_property_type: AdditionalPropertyType,
+        additional_property_value: int,
+        duration_by_min: int,
+        is_bind: bool,
+        ) -> Potion:
     """
 
     :param name:
@@ -66,12 +66,12 @@ def add(*,
 
 
 def add_or_update_by_name(*,
-                                 name: str,
-                                 additional_property_type: AdditionalPropertyType,
-                                 additional_property_value: int,
-                                 duration_by_min: int,
-                                 is_bind: bool,
-                                 ) -> Potion:
+                          name: str,
+                          additional_property_type: AdditionalPropertyType,
+                          additional_property_value: int,
+                          duration_by_min: int,
+                          is_bind: bool,
+                          ) -> Potion:
     if is_exists_by_name(name=name):
         potion = update_by_name(
             name=name,
@@ -82,11 +82,11 @@ def add_or_update_by_name(*,
         )
     else:
         potion = add(name=name,
-                            additional_property_type=additional_property_type,
-                            additional_property_value=additional_property_value,
-                            duration_by_min=duration_by_min,
-                            is_bind=is_bind
-                            )
+                     additional_property_type=additional_property_type,
+                     additional_property_value=additional_property_value,
+                     duration_by_min=duration_by_min,
+                     is_bind=is_bind
+                     )
     return potion
 
 
@@ -94,11 +94,11 @@ def add_or_update_by_name(*,
 
 # 改
 def update_by_name(*,
-                          name: str,
-                          additional_property_type: AdditionalPropertyType = None,
-                          additional_property_value: int = None,
-                          duration_by_min: int = None,
-                          is_bind: bool = None, ) -> Potion:
+                   name: str,
+                   additional_property_type: AdditionalPropertyType = None,
+                   additional_property_value: int = None,
+                   duration_by_min: int = None,
+                   is_bind: bool = None, ) -> Potion:
     potion = session.query(Potion).filter(Potion.name == name).first()
     if additional_property_type is not None:
         potion.additional_property_type = additional_property_type
@@ -115,13 +115,13 @@ def update_by_name(*,
 
 # 查
 
-def get_by_potion_id(*,
-                            potion_id: int
-                            ) -> Potion:
+def get_by_id(*,
+              _id: int
+              ) -> Potion:
     """
     根据potion的id查询你potion
     """
-    potion = session.query(Potion).filter(Potion.id == potion_id).first()
+    potion = session.query(Potion).filter(Potion.id == _id).first()
     return potion
 
 
@@ -135,7 +135,7 @@ def is_exists_by_name(*, name: str):
     return potion is not None
 
 
-def get_by_name(*, name: str)->Potion:
+def get_by_name(*, name: str) -> Potion:
     """
     根据name判断是否存在
     :param name:
@@ -318,8 +318,8 @@ if __name__ == '__main__':
     ]
     for one_potion in potions:
         add_or_update_by_name(name=one_potion['name'],
-                                     additional_property_type=one_potion['additional_property_type'],
-                                     additional_property_value=one_potion['additional_property_value'],
-                                     duration_by_min=one_potion['duration_by_min'],
-                                     is_bind=one_potion['is_bind'],
-                                     )
+                              additional_property_type=one_potion['additional_property_type'],
+                              additional_property_value=one_potion['additional_property_value'],
+                              duration_by_min=one_potion['duration_by_min'],
+                              is_bind=one_potion['is_bind'],
+                              )

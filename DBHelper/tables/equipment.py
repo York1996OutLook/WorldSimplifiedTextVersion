@@ -149,12 +149,12 @@ def get_by_name(name: str) -> Equipment:
     return equipment
 
 
-def get_by_equipment_id(*, equipment_id: int) -> Equipment:
+def get_by_id(*, _id: int) -> Equipment:
     """
     根据装备的id查询物品的详细信息
 
     Parameters:
-        equipment_id: int, 物品的id
+        _id: int, 物品的id
 
 
     Returns:
@@ -162,8 +162,8 @@ def get_by_equipment_id(*, equipment_id: int) -> Equipment:
             查询到的物品的详细信息
 
     """
-    equipments = session.query(Equipment).filter(Equipment.id == equipment_id).first()
-    return equipments
+    equipment = session.query(Equipment).filter(Equipment.id == _id).first()
+    return equipment
 
 
 if __name__ == '__main__':

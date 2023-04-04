@@ -123,10 +123,12 @@ def add_initial_properties(*,
 
 
 def add_monster_properties(*,
+                           monster_id: int,
                            additional_property_type: AdditionalPropertyType,
                            additional_property_value: int,
                            ):
     add(additional_source_type=AdditionSourceType.MONSTER,
+        additional_source_id=monster_id,
         additional_property_type=additional_property_type,
         additional_property_value=additional_property_value)
 
@@ -264,7 +266,7 @@ def del_monster_prototype_properties(*,
     :return:
     """
     session.query(InitialSkillAchievementEquipmentPotionEtcPropertiesRecord).filter(
-        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_type == AdditionSourceType.EQUIPMENT_PROTOTYPE,
+        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_type == AdditionSourceType.MONSTER,
         InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_id == monster_id,
     ).delete(synchronize_session=False)
 

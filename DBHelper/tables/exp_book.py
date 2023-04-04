@@ -6,7 +6,7 @@ from typing import List, Optional
 
 import local_setting
 from DBHelper.session import session
-from Enums import ExpBookType,exp_book_cn_type_dict
+from Enums import ExpBookType, exp_book_cn_type_dict
 from Utils import tools
 
 Base = declarative_base()
@@ -96,9 +96,16 @@ def is_exists_by_name(*, name: str):
     exp_book = session.query(ExpBook).filter(ExpBook.exp_book_name == name).first()
     return exp_book is not None
 
-def get_by_name(*,name:str)->ExpBook:
+
+def get_by_name(*, name: str) -> ExpBook:
     exp_book = session.query(ExpBook).filter(ExpBook.exp_book_name == name).first()
     return exp_book
+
+
+def get_by_id(*, _id: int) -> ExpBook:
+    exp_book = session.query(ExpBook).filter(ExpBook.id == _id).first()
+    return exp_book
+
 
 if __name__ == '__main__':
     exp_book_json_src = osp.join(local_setting.json_data_root, "book", 'exp_book.json')
@@ -106,7 +113,7 @@ if __name__ == '__main__':
     for exp_book_dict in exp_book_dict_list:
         one_name = exp_book_dict['名称']
         one_type_cn = exp_book_dict['类型']
-        one_type=exp_book_cn_type_dict[one_type_cn]
+        one_type = exp_book_cn_type_dict[one_type_cn]
         exp_value = exp_book_dict['经验值']
 
-        add_or_update_by_name(exp_book_name=one_name,exp_book_type=ExpBookType.CHARACTER,exp_value=exp_value)
+        add_or_update_by_name(exp_book_name=one_name, exp_book_type=ExpBookType.CHARACTER, exp_value=exp_value)

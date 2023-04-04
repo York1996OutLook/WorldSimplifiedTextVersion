@@ -1,6 +1,7 @@
 import time
 
 import battle_property_system
+import monster_system
 from DBHelper.db import *
 
 import battle_system
@@ -76,21 +77,42 @@ class App:
         one_player = player.get_by_player_id(player_id=self.player_id)
 
         monster_ids = monster_show_up_record.get_all_monster_id_by_today()
-        for monster_id in monster_ids:
-            one_monster = monster.get_by_id(monster_id=monster_id)
-            properties_dict = misc_properties.get_property_dict_by_monster_id(monster_id=monster_id)
-            properties_intro = "\n".join([f"{property_type_cn_dict[property_type]}:{properties_dict[property_type]}" for
-                                          property_type in properties_dict])
 
-            print(f"""您要挑战的怪物是{one_monster.name}，调整成功可以获得经验值{one_monster.exp_value}。
+        cur_monster_names = set()
+        for monster_id in monster_ids:
+            one_monster = monster.get_by_id(_id=monster_id)
+            cur_monster_names.add(one_monster.name)
+
+        if monster_name not in cur_monster_names:
+            if not monster.is_exists_by_name(name=monster_name):
+                print('您要挑战的怪物不存在，请检查您的输入！')
+            else:
+                print('您要挑战的怪物没有出没，无法进行挑战！')
+            return
+
+        one_monster = monster.get_by_name(name=monster_name)
+
+        properties_dict = misc_properties.get_property_dict_by_monster_id(monster_id=one_monster.id)
+        properties_intro = "\n".join([f"{property_type_cn_dict[property_type]}:{properties_dict[property_type]}" for
+                                      property_type in properties_dict])
+
+        print(f"""您要挑战的怪物是{one_monster.name}，调整成功可以获得经验值{one_monster.exp_value}。
 它的相关介绍是:{one_monster.introduction}
-相关属性值：{properties_intro}""")
-            print(battle_system.battle(
-                positive_name=one_player.nickname,
-                positive_battle_properties_dict=battle_property_system.get_player_battle_properties_dict(
-                    character_id=one_player.id, ),
-                passive_name=one_monster.name,
-                passive_battle_properties_dict=properties_dict))
+相关属性值：{properties_intro}\n""")
+
+        player_properties = battle_property_system.get_player_battle_properties_dict(
+            character_id=one_player.id, )
+
+        is_win, battle_log = battle_system.battle(
+            positive_name=one_player.nickname,
+            positive_battle_properties_dict=player_properties,
+            passive_name=one_monster.name,
+            passive_battle_properties_dict=properties_dict)
+
+        if is_win:
+            monster_system.get_monster_drop_stuffs_by_id(monster_id=one_monster.id)
+        print(is_win, battle_log)
+        print(1)
 
     @staticmethod
     def handle_player_get_cur_visible_monsters():
@@ -100,7 +122,7 @@ class App:
             return
         # todo: 对怪物进行排序
         for idx, monster_id in enumerate(monster_ids):
-            one_monster = monster.get_by_id(monster_id=monster_id)
+            one_monster = monster.get_by_id(_id=monster_id)
             print(f'【{idx + 1}】:{one_monster.name}\n经验值：{one_monster.exp_value}\n介绍：{one_monster.introduction}')
 
     def print_cur_base_property_points(self):

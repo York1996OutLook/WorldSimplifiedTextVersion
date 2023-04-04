@@ -5,7 +5,7 @@ from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
 from DBHelper.session import session
-from Enums import StuffType
+from Enums import StuffType, AdditionSourceType
 
 Base = declarative_base()
 
@@ -17,7 +17,7 @@ class OpenDecomposeOrDropStuffsRecord(Base):
     __tablename__ = 'open_decompose_or_drop_stuffs_record'
     id = Column(Integer, primary_key=True)
 
-    source_type = Column(Integer, comment="被分解、打开物品的类型")
+    source_type = Column(Integer, comment="被分解、打开物品的类型，参考StuffType")
     source_id = Column(Integer, comment="被分解、打开物品的id")
 
     get_stuff_type = Column(Integer, comment="物品的类型，参考枚举类型StuffType。")  # 参考枚举类型
@@ -145,6 +145,29 @@ def delete_records_by_source(*,
         and_(OpenDecomposeOrDropStuffsRecord.source_type == source_type,
              OpenDecomposeOrDropStuffsRecord.source_id == source_id)).delete()
     session.commit()
+
+
 # 改
 
 # 查
+def get_by(*,
+           source_type: StuffType,
+           source_id: int
+           ) -> List[OpenDecomposeOrDropStuffsRecord]:
+    drops = session.query(OpenDecomposeOrDropStuffsRecord).filter(
+        OpenDecomposeOrDropStuffsRecord.source_type == source_type,
+        OpenDecomposeOrDropStuffsRecord.source_id == source_id).all()
+    return drops
+
+
+def get_monster_drop_equipments(*,
+                               monster_id: int,
+                               ) -> List[OpenDecomposeOrDropStuffsRecord]:
+    """
+
+    :param monster_id:boss编号
+    :return:
+    """
+
+    drops = get_by(source_type=StuffType.MONSTER, source_id=monster_id)
+    return drops

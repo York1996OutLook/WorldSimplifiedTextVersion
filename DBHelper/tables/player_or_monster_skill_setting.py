@@ -31,9 +31,11 @@ class PlayerOrMonsterSkillSetting(Base):
                  being_type: BeingType,
                  character_or_monster_id: int,
                  skill_book_id: int,
+                 round_index: int,
                  setting_timestamp: int):
         self.being_type = being_type
         self.character_or_monster_id = character_or_monster_id
+        self.round_index = round_index
         self.skill_book_id = skill_book_id
         self.setting_timestamp = setting_timestamp
 
@@ -43,19 +45,23 @@ def add(*,
         being_type: BeingType,
         character_or_monster_id: int,
         skill_book_id: int,
+        round_index: int,
         setting_timestamp: int):
     setting = PlayerOrMonsterSkillSetting(being_type=being_type,
                                           character_or_monster_id=character_or_monster_id,
                                           skill_book_id=skill_book_id,
+                                          round_index=round_index,
                                           setting_timestamp=setting_timestamp)
     return setting
 
 
 def add_monster_skill_setting(*,
                               monster_id: int,
+                              round_index: int,
                               skill_book_id: int, ):
     add(being_type=BeingType.MONSTER,
         character_or_monster_id=monster_id,
+        round_index=round_index,
         skill_book_id=skill_book_id,
         setting_timestamp=int(time.time())
         )

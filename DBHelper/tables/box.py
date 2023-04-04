@@ -107,3 +107,12 @@ def get_by_name(*, name: str) -> Box:
     """
     record = session.query(Box).filter(Box.name == name).first()
     return record
+
+def get_by_id(*, _id: int) -> Box:
+    """
+    根据name获得box
+    :param _id:
+    :return:
+    """
+    record = session.query(Box).filter(Box.id == _id).first()
+    return record

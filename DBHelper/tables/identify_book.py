@@ -50,8 +50,8 @@ def add_or_update_by_name(*, identify_book_name: str, is_bind: bool, introduce: 
     """
     if is_exists_by_name(identify_book_name=identify_book_name):
         book = update_by_name(identify_book_name=identify_book_name,
-                                            is_bind=is_bind,
-                                            introduce=introduce)
+                              is_bind=is_bind,
+                              introduce=introduce)
     else:
         # 新增
         book = add(name=identify_book_name, is_bind=is_bind, introduce=introduce)
@@ -96,6 +96,16 @@ def get_by_name(*, name: str) -> IdentifyBook:
     return book
 
 
+def get_by_id(*, _id: str) -> IdentifyBook:
+    """
+    根据名字判断是否存在
+    :param _id:
+    :return:
+    """
+    book = session.query(IdentifyBook).filter(IdentifyBook.id == _id).first()
+    return book
+
+
 if __name__ == '__main__':
     books = [
         {
@@ -111,5 +121,5 @@ if __name__ == '__main__':
     ]
     for book_dict in books:
         add_or_update_by_name(identify_book_name=book_dict["name"],
-                                            is_bind=book_dict['is_bind'],
-                                            introduce=['introduce'])
+                              is_bind=book_dict['is_bind'],
+                              introduce=['introduce'])

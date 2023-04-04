@@ -95,7 +95,7 @@ def get_all_by_holiday(*,
 
 def get_all_by_today() -> List[MonsterShowUpRecord]:
     records = []
-    records.extend(get_all_by_week_day(week_day=datetime.datetime.now().weekday()))
+    records.extend(get_all_by_week_day(week_day=(datetime.datetime.now().weekday()+1)%7))
     records.extend(get_all_by_month_day(month_day=datetime.datetime.now().day))
     # todo: 添加对节日得支持
     # records.extend(get_all_by_holiday(holiday=datetime.datetime.now().day))

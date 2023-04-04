@@ -44,12 +44,10 @@ def get_skill_book_by_skill_book_id(*,
     return skill_book
 
 
-
-
 def get_by_skill_id_skill_level(*,
-                                           skill_id: int,
-                                           level: int
-                                           ) -> SkillBook:
+                                skill_id: int,
+                                level: int
+                                ) -> SkillBook:
     """
     查询技能书的记录
 
@@ -67,3 +65,21 @@ def get_by_skill_id_skill_level(*,
         query = query.filter_by(level=level)
 
     return query.first()
+
+
+def get_by_id(*,
+              _id: int,
+              ) -> SkillBook:
+    """
+    查询技能书的记录
+
+    Args:
+    skill_id: 技能的id，如果传了这个参数，则只查询指定技能的技能书
+    level: 技能书的等级，如果传了这个参数，则只查询指定等级的技能书
+
+    Returns:
+    List[SkillBook]
+    """
+    skill_book = session.query(SkillBook).filter(SkillBook.id == _id).first()
+
+    return skill_book

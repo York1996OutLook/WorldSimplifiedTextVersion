@@ -116,17 +116,17 @@ def get_by_name(*, name: str) -> Gem:
     return gem
 
 
-def get_by_gem_id(*, gem_id: int) -> Gem:
+def get_by_id(*, _id: int) -> Gem:
     """
     根据ID查询宝石
 
     Args:
-        gem_id (int): 宝石ID
+        _id (int): 宝石ID
 
     Returns:
         Gem: 查询到的宝石
     """
-    gem = session.query(Gem).filter_by(id=gem_id).first()
+    gem = session.query(Gem).filter_by(id=id).first()
     return gem
 
 

@@ -87,14 +87,24 @@ def update_by_name(*,
 
 
 # 查
-def get_by_id(*, monster_id: int) -> Monster:
+def get_by_id(*, _id: int) -> Monster:
     """
     根据ID查询怪物
 
-    :param monster_id: 怪物ID
+    :param _id: 怪物ID
     :return: 查询结果
     """
-    return session.query(Monster).filter(Monster.id == monster_id).one_or_none()
+    return session.query(Monster).filter(Monster.id == _id).one_or_none()
+
+def get_by_name(*, name: int) -> Monster:
+    """
+    根据ID查询怪物
+
+    :param name: 怪物名称
+    :return: 查询结果
+    """
+    return session.query(Monster).filter(Monster.name == name).one_or_none()
+
 
 
 def is_exists_by_name(*, name: str) -> bool:
