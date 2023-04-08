@@ -228,9 +228,14 @@ class AdditionalPropertyType:
     CRITICAL_POINT = 31  # 致命点
     CRITICAL_POINT_ADD_PERCENT = 32  # 致命点增加百分比
 
-    DAMAGE_SHIELD = 33  # 免伤护盾
+    STATE_RESISTANCE = 33   # 状态抵抗
+    STATE_RESISTANCE_ADD_PERCENT = 34   # 状态抵抗百分比
+    IGNORE_STATE_RESISTANCE = 35   # 状态抵抗百分比
+    IGNORE_STATE_RESISTANCE_ADD_PERCENT = 36   # 状态抵抗百分比
 
-    EXP_ADD_PERCENT = 34  # 经验增加百分比，有些装备可以增加经验获得
+    DAMAGE_SHIELD = 37  # 免伤护盾
+
+    EXP_ADD_PERCENT = 38  # 经验增加百分比，有些装备可以增加经验获得
 
     @classmethod
     def all(cls) -> List[int]:
@@ -281,6 +286,11 @@ class AdditionalPropertyType:
 
             cls.CRITICAL_POINT,
             cls.CRITICAL_POINT_ADD_PERCENT,
+
+            cls.STATE_RESISTANCE,
+            cls.STATE_RESISTANCE_ADD_PERCENT,
+            cls.IGNORE_STATE_RESISTANCE,
+            cls.IGNORE_STATE_RESISTANCE_ADD_PERCENT,
 
             cls.DAMAGE_SHIELD,
 
