@@ -18,8 +18,32 @@ class SkillBook(Base):
 
     is_bind = Column(Boolean, comment="刚出来的时候是否已经绑定")
 
+    def __init__(self, *, skill_id: int, level: int, is_bind: bool):
+        super(SkillBook, self).__init__()
+        self.skill_id = skill_id
+        self.level = level
+        self.is_bind = is_bind
+
 
 # 增
+def add(*,
+        skill_id: int,
+        level: int,
+        ):
+    """
+
+    :param skill_id:
+    :type skill_id:
+    :param level:
+    :type level:
+    :return:
+    :rtype:
+    """
+    skill_book = SkillBook(skill_id=skill_id, level=level, is_bind=False)
+    session.add(skill_book)
+    session.commit()
+    return skill_book
+
 
 # 删
 

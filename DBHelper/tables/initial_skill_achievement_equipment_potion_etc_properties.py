@@ -274,6 +274,23 @@ def del_monster_prototype_properties(*,
     return True
 
 
+def del_skill_book_properties(*,
+                              skill_book_id: int,
+                              ):
+    """
+    删除某个装备原型的所有属性。
+    :param skill_book_id:
+    :return:
+    """
+    session.query(InitialSkillAchievementEquipmentPotionEtcPropertiesRecord).filter(
+        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_type == AdditionSourceType.SKILL_BOOK,
+        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_id == skill_book_id,
+    ).delete(synchronize_session=False)
+
+    session.commit()
+    return True
+
+
 def del_base_additional_properties(*,
                                    base_property_type: AdditionalPropertyType, ):
     session.query(InitialSkillAchievementEquipmentPotionEtcPropertiesRecord).filter(
@@ -398,6 +415,48 @@ def update_player_property(
                      additional_property_type=additional_property_type,
                      additional_property_value=additional_property_value,
                      source_id=character_id)
+
+
+def update_skill_property(
+        *,
+        skill_id: int = None,
+        property_index: int,
+        additional_property_type: AdditionalPropertyType or int,
+        additional_property_value: int,
+):
+    """
+    :param skill_id:    技能id
+    :param property_index:  属性的id。第一条属性，第二条属性，第三条属性，第四条属性
+    :param additional_property_type: 属性的类型
+    :param additional_property_value:   属性值
+    :return:
+    """
+    return update_by(source_type=AdditionSourceType.SKILL,
+                     additional_source_property_index=property_index,
+                     additional_property_type=additional_property_type,
+                     additional_property_value=additional_property_value,
+                     source_id=skill_id)
+
+
+def update_skill_book_property(
+        *,
+        skill_book_id: int = None,
+        property_index: int,
+        additional_property_type: AdditionalPropertyType or int,
+        additional_property_value: int,
+):
+    """
+    :param skill_book_id:    技能id
+    :param property_index:  属性的id。第一条属性，第二条属性，第三条属性，第四条属性
+    :param additional_property_type: 属性的类型
+    :param additional_property_value:   属性值
+    :return:
+    """
+    return update_by(source_type=AdditionSourceType.SKILL_BOOK,
+                     additional_source_property_index=property_index,
+                     additional_property_type=additional_property_type,
+                     additional_property_value=additional_property_value,
+                     source_id=skill_book_id)
 
 
 def update_player_properties_dict(*,
@@ -560,6 +619,20 @@ def get_base_property_dict_by_character_id(*,
     return properties_dict
 
 
+def get_property_dict_by_skill_id(*,
+                                  skill_id: int,
+                                  ) -> DefaultDict[int, int]:
+    """
+    获取基础属性对应的属性。分开写函数，减少错误发生
+    :return:
+    """
+    properties_dict = get_properties_dict_by(
+        source_type=AdditionSourceType.SKILL,
+        source_id=skill_id,
+    )
+    return properties_dict
+
+
 def get_property_dict_by_monster_id(*,
                                     monster_id: int,
                                     ) -> DefaultDict[int, int]:
@@ -600,6 +673,13 @@ def get_additional_property_dict_by_base_property(*,
     for record in records:
         property_dict[record.additional_property_type] = record.additional_property_value
     return property_dict
+
+
+def get_properties_by_skill_book_id(*,
+                                    skill_book_id: int,
+                                    ):
+    skill_properties = get_properties_by(source_type=AdditionSourceType.SKILL_BOOK, source_id=skill_book_id)
+    return skill_properties
 
 
 def get_properties_dict_by_skill_book_id(*,
@@ -646,6 +726,28 @@ def get_properties_dict_by_potion_id(*,
 
 
 # other
+
+def add_skill_book_properties(*, skill_book_id: int, property_index: int, property_type: int, property_value):
+    """
+    新增skill book对应的一条属性
+    :param skill_book_id: 技能书的id
+    :type skill_book_id:
+    :param property_index: 技能的索引
+    :type property_index:
+    :param property_type: 属性的类型
+    :type property_type:
+    :param property_value: 属性的值
+    :type property_value:
+    :return:
+    :rtype:
+    """
+    skill_book_property = add(additional_source_type=AdditionSourceType.SKILL_BOOK,
+                              additional_property_type=property_type,
+                              additional_property_value=property_value,
+                              additional_source_id=skill_book_id,
+                              additional_source_property_index=property_index)
+    return skill_book_property
+
 
 def insert_initial_properties(*, verbose: bool = False):
     # 录入初始属性
