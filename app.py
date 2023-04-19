@@ -5,8 +5,7 @@ import monster_system
 from DBHelper.db import *
 
 import battle_system
-from Enums import BeingType, property_type_cn_dict, property_cn_type_dict, AdditionalPropertyType, \
-    base_property_cn_type_dict, AdditionSourceType
+from Enums import BeingType, AdditionalPropertyType, AdditionSourceType
 import log_system
 from Utils import tools
 

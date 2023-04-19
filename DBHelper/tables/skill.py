@@ -2,6 +2,8 @@ from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from typing import List
 
+from Enums import LearningApproach, SkillTarget, SkillType
+
 Base = declarative_base()
 
 from DBHelper.session import session
@@ -13,39 +15,46 @@ class Skill(Base):
     """
     __tablename__ = 'skill'
     id = Column(Integer, primary_key=True)
-    in_skill_store = Column(Boolean, comment="是否可以直接进行学习，如果能的话代表能够在技能所学习，否则可能是装备附带的技能。")
+
     skill_name = Column(String, comment="技能名称")
-    is_positive = Column(Boolean, comment="是否是主动技能，如果是主动技能则需要设置何时释放")
-    target = Column(Integer, comment="")
+    learning_approach = Column(Integer, default=LearningApproach.IN_SKILL_ACADEMY.index,
+                               comment="是否可以直接进行学习，如果能的话代表能够在技能所学习，否则可能是装备附带的技能。")
+    skill_type = Column(Integer, default=SkillType.PASSIVE.index, comment="技能类型")
+    target = Column(Integer, default=SkillTarget.SELF.index, comment="技能的作用对象")
     effect_expression = Column(String, comment="效果说明")
 
-    def __init__(self, *, in_skill_store: bool, skill_name: str, is_positive: bool, effect_expression: str):
-        self.in_skill_store = in_skill_store
+    def __init__(self, *, skill_name: str, learning_approach: int, skill_type: int, target: bool,
+                 effect_expression: str):
         self.skill_name = skill_name
-        self.is_positive = is_positive
+        self.learning_approach = learning_approach
+        self.skill_type = skill_type
+        self.target = target
         self.effect_expression = effect_expression
 
 
 # 增
 def add(*,
         skill_name: str,
-        in_skill_store: bool,
-        is_positive: bool,
-        effect_expression: str
+        learning_approach: int = LearningApproach.default.index,
+        skill_type: int = SkillType.default.index,
+        target: int = SkillTarget.default.index,
+        effect_expression: str = ""
         ) -> Skill:
     """
     Add a new skill to the 'skill' table.
 
     Args:
         skill_name (str): The name of the new skill.
-        in_skill_store (bool):
-        is_positive (bool): Whether the new skill is a positive skill or not.
+        learning_approach (bool):
+        skill_type (bool): Whether the new skill is a positive skill or not.
+        target (bool): Whether the new skill is a positive skill or not.
         effect_expression (str): The effect expression of the new skill.
     """
     # Create a new skill
     new_skill = Skill(skill_name=skill_name,
-                      in_skill_store=in_skill_store,
-                      is_positive=is_positive,
+                      learning_approach=learning_approach,
+                      skill_type=skill_type,
+                      target=target,
                       effect_expression=effect_expression)
 
     # Add the new skill to the session
@@ -89,7 +98,8 @@ def get_by_name(*, name: str) -> Skill:
     record = session.query(Skill).filter(Skill.skill_name == name).first()
     return record
 
-def is_exists_by_name(*,name:str)->Skill:
+
+def is_exists_by_name(*, name: str) -> Skill:
     record = session.query(Skill).filter(Skill.skill_name == name).first()
     return record is not None
 

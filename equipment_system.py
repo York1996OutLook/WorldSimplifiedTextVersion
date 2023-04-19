@@ -5,7 +5,7 @@ from typing import List, DefaultDict
 
 import common
 from Enums import AdditionSourceType, PartType, EquipmentQuality, AdditionalPropertyType, BeingType, \
-    EquipmentPropertyAvailability, StuffType, part_cn_type_dict, equipment_cn_quality_dict, property_cn_type_dict, \
+    EquipmentPropertyAvailability, StuffType, part_cn_type_dict, equipment_cn_quality_dict, \
     stuff_cn_type_dict
 from DBHelper.db import *
 from DBHelper.session import session
@@ -37,7 +37,7 @@ if __name__ == '__main__':
             property_index = int(property_index_str)
             prototype_property_items = additional_properties_dict[property_index_str]
             for prototype_property_dict in prototype_property_items:
-                property_type = property_cn_type_dict[prototype_property_dict['属性类型']]
+                property_type = AdditionalPropertyType.name_index_dict[prototype_property_dict['属性类型']]
                 misc_properties.add_equipment_properties(
                     additional_property_type=property_type,
                     additional_property_value=prototype_property_dict['最小值'],

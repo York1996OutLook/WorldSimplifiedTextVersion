@@ -4,8 +4,7 @@ import time
 import numpy as np
 from DBHelper.db import *
 
-from Enums import BeingType, property_type_cn_dict, property_cn_type_dict, AdditionalPropertyType, \
-    base_property_cn_type_dict
+from Enums import BeingType, AdditionalPropertyType
 from Utils import tools
 
 

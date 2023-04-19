@@ -4,7 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float, Boolean
 
 from DBHelper.session import session
-from Enums import AdditionalPropertyType, property_cn_type_dict
+from Enums import AdditionalPropertyType
 import local_setting
 from Utils import tools
 
@@ -164,7 +164,7 @@ def json2db():
     gem_dict_list = tools.file2dict_list(src=gem_json_src)
     for gem_dict in gem_dict_list:
         name = gem_dict['名称']
-        additional_property_type = property_cn_type_dict[gem_dict['属性名称']]
+        additional_property_type = AdditionalPropertyType.name_index_dict[gem_dict['属性名称']]
         increase = gem_dict['增加属性值']
         is_bind = gem_dict['是否绑定']
         add_or_update(name=name,
