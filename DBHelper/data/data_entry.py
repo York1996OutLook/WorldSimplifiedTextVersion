@@ -30,7 +30,7 @@ class MyMainWindow(QMainWindow):
         self.long_text_width = 300  # 具体属性名字输入
 
         self.right_top_region_height = 200
-        self.right_middle_region_height = 200
+        self.right_middle_region_height = 210
         self.right_bottom_region_height = 200
 
         self.left_right_region_height = self.right_top_region_height + self.right_middle_region_height + self.right_bottom_region_height
@@ -132,6 +132,8 @@ class MyMainWindow(QMainWindow):
                 width=left_right_region_width,
                 height=self.bottom_region_height,
                 )
+        # 所有项目都会加载的列表框
+        self.init_items_list()
 
         self.init_select_current_table()
         self.init_property_list()
@@ -160,20 +162,29 @@ class MyMainWindow(QMainWindow):
         self.current_data_table_combo_box.setCurrentText(TableItems.base_property)
 
         self.current_data_table_combo_box.currentIndexChanged.connect(self.data_table_select_changed)
-
+        
         self.data_table_select_changed(self.current_data_table_combo_box.currentIndex())
+
+    def init_items_list(self):
+        self.itemsListWidget = QListWidget()
+        set_geo(cur_widget=self.itemsListWidget,
+                parent_widget=self.left_region,
+                x1=0,
+                y1=self.item_height,
+                width=self.left_region_width,
+                height=self.left_right_region_height - self.item_height)
 
     def load_skill_UI(self):
         print('load_skill_UI')
         self.clear_temp_widgets()
         self.setting_list = [
             # 数据库中对应的属性值，属性标签的名称，属性标签的编辑方式，可选项,是否可以编辑
-            ("skill_name", "技能名称", EditType.short_text, "", True),
-            ("level", "等级", EditType.combo_box, SkillLevel(), False),
-            ("learning_approach", "学习途径", EditType.combo_box, LearningApproach(), True),
-            ("skill_type", "技能类型", EditType.combo_box, SkillType(), True),
-            ("target", "作用对象", EditType.combo_box, SkillTarget(), True),
-            ("effect_expression", "技能说明", EditType.long_text, "", True),
+            ("skill_name", "技能名称:", EditType.short_text, "", True),
+            ("level", "等级:", EditType.combo_box, SkillLevel, False),
+            ("learning_approach", "学习途径:", EditType.combo_box, LearningApproach(), True),
+            ("skill_type", "技能类型:", EditType.combo_box, SkillType, True),
+            ("target", "作用对象", EditType.combo_box, SkillTarget, True),
+            ("effect_expression", "技能说明:", EditType.long_text, "", True),
         ]
         self.init_skill_list_widget()
 
@@ -188,9 +199,9 @@ class MyMainWindow(QMainWindow):
         self.clear_temp_widgets()
         self.setting_list = [
             # 数据库中对应的属性值，属性标签的名称，属性标签的编辑方式，可选项,是否可以编辑
-            ("name", "状态名称", EditType.short_text, "", True),
-            ("status_type", "状态类型", EditType.combo_box, StatusType, True),
-            ("effect_expression", "效果介绍", EditType.long_text, "", True),
+            ("name", "状态名称:", EditType.short_text, "", True),
+            ("status_type", "状态类型:", EditType.combo_box, StatusType, True),
+            ("effect_expression", "效果介绍:", EditType.long_text, "", True),
         ]
         self.init_status_list_widget()
 
@@ -204,7 +215,7 @@ class MyMainWindow(QMainWindow):
         print('load_status_UI')
         self.clear_temp_widgets()
         self.setting_list = [
-            ("name", "基础属性名称", EditType.short_text, "", False),
+            ("name", "基础属性:", EditType.short_text, "", False),
         ]
         self.init_base_property_list_widget()
 
@@ -214,17 +225,40 @@ class MyMainWindow(QMainWindow):
         self.saveButton.disconnect_all()
         self.saveButton.clicked.connect(self.save_base_property)
 
+    def load_achievement_UI(self):
+        print('load_achievement_UI')
+        self.clear_temp_widgets()
+        self.setting_list = [
+            # 数据库中对应的属性值，属性标签的名称，属性标签的编辑方式，可选项,是否可以编辑
+            ("name", "成就名称:", EditType.short_text, "", True),
+            ("achievement_type", "成就类型:", EditType.combo_box, SkillLevel, True),
+
+            ("condition_property_type", "达成属性:", EditType.combo_box, LearningApproach, True),
+            ("condition_property_value", "属性值:", EditType.short_text, SkillType, True),
+
+            ("days_of_validity", "有效期/天:", EditType.short_text, SkillTarget, True),
+            ("introduce", "成就说明:", EditType.long_text, "", True),
+        ]
+        self.init_achievement_list_widget()
+
+        self.add_entry_button.disconnect_all()
+        self.add_entry_button.clicked.connect(self.add_skill_event)
+
+        self.saveButton.disconnect_all()
+        self.saveButton.clicked.connect(self.save_skill_property)
+
     def data_table_select_changed(self, index: int):
         print('data_table_select_changed', index)
         current_text = self.current_data_table_combo_box.currentText()
-
+        
         if current_text == TableItems.skill:  # 技能
             self.load_skill_UI()
         elif current_text == TableItems.status:  # 状态
             self.load_status_UI()
         elif current_text == TableItems.base_property:  # 状态
             self.load_base_property_UI()
-
+        elif current_text == TableItems.achievement:  # 成就
+            ...
         self.init_item_setting_ui()
         self.update()
         self.repaint()
@@ -232,13 +266,6 @@ class MyMainWindow(QMainWindow):
     def init_skill_list_widget(self):
         print('init_skill_list_widget')
         # 创建显示技能的列表
-        self.itemsListWidget = QListWidget()
-        set_geo(cur_widget=self.itemsListWidget,
-                parent_widget=self.left_region,
-                x1=0,
-                y1=self.item_height,
-                width=self.left_region_width,
-                height=self.left_right_region_height - self.item_height)
 
         self.itemsListWidget.itemClicked.connect(self.handle_skill_changed)
         self.itemsListWidget.setFixedWidth(self.left_region_width)
@@ -247,13 +274,6 @@ class MyMainWindow(QMainWindow):
 
     def init_status_list_widget(self):
         print('init_status_list_widget')
-        self.itemsListWidget = QListWidget()
-        set_geo(cur_widget=self.itemsListWidget,
-                parent_widget=self.left_region,
-                x1=0,
-                y1=self.item_height,
-                width=self.left_region_width,
-                height=self.left_right_region_height - self.item_height)
         self.itemsListWidget.itemClicked.connect(self.handle_status_changed)
         self.itemsListWidget.setFixedWidth(self.left_region_width)
         self.show_all_status()
@@ -261,13 +281,14 @@ class MyMainWindow(QMainWindow):
 
     def init_base_property_list_widget(self):
         print('init_base_property_list_widget')
-        self.itemsListWidget = QListWidget()
-        set_geo(cur_widget=self.itemsListWidget,
-                parent_widget=self.left_region,
-                x1=0,
-                y1=self.item_height,
-                width=self.left_region_width,
-                height=self.left_right_region_height - self.item_height)
+        self.itemsListWidget.itemClicked.connect(self.handle_base_property_changed)
+        
+        self.itemsListWidget.setFixedWidth(self.left_region_width)
+        self.show_all_base_properties()
+        self.itemsListWidget.show()
+
+    def init_achievement_list_widget(self):
+        print('init_achievement_list_widget')
 
         self.itemsListWidget.itemClicked.connect(self.handle_base_property_changed)
         self.itemsListWidget.setFixedWidth(self.left_region_width)
@@ -448,7 +469,7 @@ class MyMainWindow(QMainWindow):
         print("init_item_setting_ui")
         widget_index = -1
         for database_field, label_name, edit_type, choices, changeable in self.setting_list:
-            if edit_type in {EditType.short_text,EditType.combo_box}:
+            if edit_type in {EditType.short_text, EditType.combo_box}:
                 widget_index += 1
             elif edit_type in {EditType.long_text}:
                 widget_index = (widget_index // 2 + 1) * 2
@@ -594,9 +615,12 @@ class MyMainWindow(QMainWindow):
                 continue
             self.all_property_list_widget.addItem(property_name)
 
-        if self.all_property_list_widget.count()!=0 and len(self.properties_widgets_list)>0:
-            first_item=self.all_property_list_widget.item(0)
-            self.properties_widgets_list[self.current_properties_index].name_label.setText(first_item.text())
+        # 如果属性列表的属性个数大于0并且已经加载完毕属性列表；
+        if self.all_property_list_widget.count() != 0 and len(self.properties_widgets_list) > 0:
+            if self.properties_widgets_list[self.current_properties_index].name_label.text() == "":
+                first_item = self.all_property_list_widget.item(0)
+                self.properties_widgets_list[self.current_properties_index].name_label.setText(first_item.text())
+        self.enable_save_button()
 
     def all_property_list_changed(self, ):
         """
@@ -753,7 +777,7 @@ class MyMainWindow(QMainWindow):
         print("save_skill_property")
         selected_name = self.itemsListWidget.currentItem().text().strip()
         new_name = self.setting_widget_dict["skill_name"].text().strip()
-        target_name = self.setting_widget_dict["target"].text().strip()
+        target_name = self.setting_widget_dict["target"].currentText().strip()
         target = SkillTarget.name_index_dict[target_name]
         """
             # 数据库中对应的属性值，属性标签的名称，属性标签的编辑方式，可选项
@@ -842,7 +866,7 @@ class MyMainWindow(QMainWindow):
         selected_name = self.itemsListWidget.currentItem().text().strip()
         # name不会发生修改
         # 基础属性的索引
-        base_property_index=BasePropertyType.name_index_dict[selected_name]
+        base_property_index = BasePropertyType.name_index_dict[selected_name]
 
         # 删除
         misc_properties.del_base_additional_properties(base_property_type=base_property_index)

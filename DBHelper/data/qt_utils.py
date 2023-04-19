@@ -3,15 +3,17 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QLineEdi
 from PyQt5.QtCore import pyqtSignal, pyqtBoundSignal, QMetaObject
 import PyQt5.QtGui as QtGui
 
+
 class TableItems:
     """
             self.current_data_table_combo_box.addItem("技能")
         self.current_data_table_combo_box.addItem("状态")
         self.current_data_table_combo_box.addItem("5大基础属性")
     """
-    skill="技能"
-    status="状态"
-    base_property='5大基础属性'
+    skill = "技能"
+    status = "状态"
+    base_property = '5大基础属性'
+    achievement = '成就'
 
 
 class MyLineText(QLineEdit):
@@ -38,13 +40,14 @@ class MyLineText(QLineEdit):
 
 
 class MyButton(QPushButton):
-    def __init__(self,*,text:str):
+    def __init__(self, *, text: str):
         super().__init__()
         self.setText(text)
+
     def disconnect_all(self) -> bool:
         try:
             self.disconnect()
-        except :
+        except:
             return
 
 

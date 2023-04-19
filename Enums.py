@@ -359,6 +359,11 @@ class AdditionalPropertyType:
     PERCEPTION_ADD_PERCENT = Item(index=index, name="感知百分比", comment="感知百分比")
 
     index += 1
+    MANA_SHIELD = Item(index=index, name="法力护盾", comment="出手速度")
+    index += 1
+    MANA_SHIELD_ADD_PERCENT = Item(index=index, name="法力护盾百分比", comment="出手速度百分比")
+
+    index += 1
     ATTACK_SPEED = Item(index=index, name="出手速度", comment="出手速度")
     index += 1
     ATTACK_SPEED_ADD_PERCENT = Item(index=index, name="出手速度百分比", comment="出手速度百分比")
@@ -492,6 +497,7 @@ class AdditionalPropertyType:
              MANA, MANA_ADD_PERCENT,
              MANA_RECOVERY, MANA_RECOVERY_ADD_PERCENT, MANA_RECOVERY_ALL_PERCENT,
              MANA_ABSORPTION, MANA_ABSORPTION_ADD_PERCENT,
+             MANA_SHIELD, MANA_SHIELD_ADD_PERCENT,
              COUNTERATTACK, COUNTERATTACK_ADD_PERCENT,
              IGNORE_COUNTERATTACK, IGNORE_COUNTERATTACK_ADD_PERCENT,
              CRITICAL_POINT, CRITICAL_POINT_ADD_PERCENT,
