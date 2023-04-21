@@ -1,11 +1,38 @@
 from typing import List, Set, DefaultDict, Dict
 
+class ItemList:
+    def __init__(self):
+        self.items = []
+        self.name_index_dict_ = dict()
+        self.index_name_dict = dict()
+
+    def clear(self):
+        self.items = []
+
+    def get_items(self):
+        return self.items
+
+    def get_name_by_index(self, *, index: int):
+        return self.index_name_dict[index]
+
+    def get_index_by_name(self, *, name: str):
+        return self.name_index_dict_[name]
+
 
 class Item:
-    def __init__(self, *, index: int, name: str, comment: str = ''):
-        self.index = index
+    def __init__(self, *, name: str, comment: str = '', item_list: ItemList):
+        counter = len(item_list.items) + 1
+        self.index = counter
         self.name = name
         self.comment = comment
+
+        item_list.items.append(self)
+
+        item_list.name_index_dict_[name] = counter
+        item_list.index_name_dict[counter] = name
+
+    def __repr__(self):
+        return f'Item({self.index}: {self.name}, {self.comment})'
 
 
 def get_dict(*, items: List[Item]):
@@ -25,26 +52,18 @@ def get_dict(*, items: List[Item]):
 # class PositiveBattleStatus:
 
 class SkillLevel:
-    index = 0
+    name = "技能等级"
+    item_list=ItemList()
+    ONE = Item(name='1', comment="等级1",item_list=item_list)
+    TWO = Item(name='2', comment="等级2",)
+    THREE = Item(name='3', comment="等级3")
+    FOUR = Item(name='4', comment="等级4")
+    FIVE = Item(name='5', comment="等级5")
+    SIX = Item(name='6', comment="等级6")
+    SEVEN = Item(name='7', comment="等级7")
+    EIGHT = Item(name='8', comment="等级8")
+    NINE = Item(name='9', comment="等级9")
 
-    index += 1
-    ONE = Item(index=index, name='1', comment="等级1")
-    index += 1
-    TWO = Item(index=index, name='2', comment="等级2")
-    index += 1
-    THREE = Item(index=index, name='3', comment="等级3")
-    index += 1
-    FOUR = Item(index=index, name='4', comment="等级4")
-    index += 1
-    FIVE = Item(index=index, name='5', comment="等级5")
-    index += 1
-    SIX = Item(index=index, name='6', comment="等级6")
-    index += 1
-    SEVEN = Item(index=index, name='7', comment="等级7")
-    index += 1
-    EIGHT = Item(index=index, name='8', comment="等级8")
-    index += 1
-    NINE = Item(index=index, name='9', comment="等级9")
     items = [ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE]
 
     name_index_dict, index_name_dict = get_dict(items=items)
@@ -53,71 +72,53 @@ class SkillLevel:
 
 
 class LearningApproach:
-    index = 0
-    index += 1
-    IN_SKILL_ACADEMY = Item(index=index, name="技能学院", comment="直接可以获得，仅仅消耗技能点，主要是基础技能，不依赖于具体装备")
-    index += 1
-    EQUIPMENT_ADDITIONAL = Item(index=index, name="装备附加", comment="仅仅可以从装备上获得，和装备名字相关。")
+    name = "学习途径"
+    Item.clear()
+
+    IN_SKILL_ACADEMY = Item(name="技能学院", comment="直接可以获得，仅仅消耗技能点，主要是基础技能，不依赖于具体装备")
+    EQUIPMENT_ADDITIONAL = Item(name="装备附加", comment="仅仅可以从装备上获得，和装备名字相关。")
 
     items = [IN_SKILL_ACADEMY, EQUIPMENT_ADDITIONAL]
 
     name_index_dict, index_name_dict = get_dict(items=items)
-
     default = IN_SKILL_ACADEMY
 
 
 class SkillType:
+    name = "技能类型"
+
     # 如果附带状态则收到状态抵抗的影响
-    index = 0
+    Item.clear()
 
-    index += 1
-    PASSIVE = Item(index=index, name='被动')
-
-    index += 1
-    BLESSING = Item(index=index, name='祝福', comment='可以对自己或者对方释放')
-
-    index += 1
-    CURSE = Item(index=index, name='诅咒', comment='只能对敌人释放。是否命中受到对方洞察值的影响')
-
-    index += 1
-    PHYSICAL_ATTACK = Item(index=index, name='物理攻击', comment="只能对对方释放。是否命中看自身命中和对方闪避值。")
-
-    index += 1
-    MAGIT_ATTACK = Item(index=index, name='魔法攻击', comment="只能对对方释放。是否命中看对方的洞察值")
+    PASSIVE = Item(name='被动', comment="")
+    BLESSING = Item(name='祝福', comment='可以对自己或者对方释放')
+    CURSE = Item(name='诅咒', comment='只能对敌人释放。是否命中受到对方洞察值的影响')
+    PHYSICAL_ATTACK = Item(name='物理攻击', comment="只能对对方释放。是否命中看自身命中和对方闪避值。")
+    MAGIT_ATTACK = Item(name='魔法攻击', comment="只能对对方释放。是否命中看对方的洞察值")
 
     items = [PASSIVE, BLESSING, CURSE, PHYSICAL_ATTACK, MAGIT_ATTACK]
-
     name_index_dict, index_name_dict = get_dict(items=items)
-
     default = PASSIVE
 
 
 class SkillTarget:
-    index = 0
+    name = "作用目标"
+    Item.clear()
 
-    index += 1
-    SELF = Item(index=index, name='自身', comment='自身')
+    SELF = Item(name='自身', comment='自身')
+    ENEMY = Item(name="敌人", comment="敌人")
 
-    index += 1
-    ENEMY = Item(index=index, name="敌人", comment="敌人")
-    items = [SELF, ENEMY]
-
-    name_index_dict, index_name_dict = get_dict(items=items)
-
+    name_index_dict, index_name_dict = get_dict(items=Item)
     default = SELF
 
 
 class StatusType:
-    index = 0
+    name = '状态类型'
+    Item.clear()
 
-    index += 1
-    PASSIVE = Item(index=index, name='减益', comment='减益')
-
-    index += 1
-    POSITIVE = Item(index=index, name="增益", comment="增益")
-
-    index += 1
-    NEUTRAL = Item(index=index, name="中立", comment="中立")
+    PASSIVE = Item(name='减益', comment='减益')
+    POSITIVE = Item(name="增益", comment="增益")
+    NEUTRAL = Item(name="中立", comment="中立")
 
     items = [PASSIVE, POSITIVE, NEUTRAL]
 
@@ -126,110 +127,152 @@ class StatusType:
     default = PASSIVE
 
 
+class AchievementPropertyType:
+    name = '成就达成属性'
+    Item.clear()
+
+    VIP_LEVEL = Item(name='VIP等級', comment="充值动作完成后会触发")
+    CHARGE = Item(name='充值数量', comment="充值动作完成后会触发")
+    GOLD_NUM = Item(name="黄金数量", comment="黄金数量增加后可能会触发")
+    PHYSIQUE = Item(name="体质", comment="基础属性变化的时候会触发")
+    STRENGTH = Item(name="力量", comment="基础属性变化的时候会触发")
+    AGILITY = Item(name="敏捷", comment="基础属性变化的时候会触发")
+    INTELLIGENCE = Item(name="智力", comment="基础属性变化的时候会触发")
+    LEVEL = Item(name="等级", comment="升级的时候会触发")
+    KILL_BOSS_NUM = Item(name="击杀怪物数量", comment="击杀成功的时候可能会触发")
+    KILL_BOSS_SUCCESS = Item(name="某个特定怪物的ID", comment="击杀成功的时候可能会触发，比如说是屠龙勇士")
+    KILL_BOSS_FAILED = Item(name="被怪物打败次数", comment="击杀失败的时候可能会触发")
+    PK_NUMBER = Item(name="PK胜利次数", comment="PK胜利的时候会触发")
+    PK_RANK = Item(name="PK排行榜名次", comment="PK胜利的时候会触发")
+    PK_RANK_RAISE = Item(name="PK排行榜名次提升数量", comment="PK胜利的时候会触发")
+    SKILL = Item(name="学习技能数量", comment="学习技能的时候会触发")
+    ANY_SKILL_LEVEL = Item(name="某个技能的技能等级", comment="学习技能的时候会触发")
+    ALL_SKILL_LEVEL = Item(name="所有技能的技能等级和", comment="学习技能的时候会触发")
+    ALL_SKILL_LEVEL_BIGGER_THAN = Item(name="所有技能中的最低等级", comment="学习技能的时候会触发")
+    LOTTERY_NUM = Item(name="抽奖次数", comment="抽奖的时候可能会触发")
+    WIN_LOTTERY_NUMBER = Item(name="中奖次数", comment="中奖的时候可能会触发")
+    ALL_EQUIPMENT_QUALITY = Item(name="所有装备最低品质", comment="穿戴装备的时候可能会触发")
+    BUY_STUFF = Item(name="购买物品", comment="从交易所购买物品的时候可能会触发")
+    SELL_STUFF = Item(name="卖出物品", comment="卖出物品的时候可能会触发")
+    EXP_BOOK_NUM = Item(name="使用经验书次数", comment="使用经验书的时候可能会触发")
+    IDENTIFY_NUM = Item(name="鉴定次数", comment="使用鉴定卷轴的时候（包括装备鉴定卷轴，装备技能鉴定卷轴）可能会触发")
+    RAISE_STAR_NUM = Item(name="第一次升星成功", comment="装备升星的时候可能会触发")
+    ANY_RAISE_STAR_NUM = Item(name="某个穿戴装备升星数量", comment="装备升星的时候可能会触发")
+    SUM_RAISE_STAR_NUM = Item(name="所有穿戴装备累计升星数量", comment="装备升星的时候可能会触发")
+    ANY_GEM_NUM = Item(name="某件穿戴装备宝石数量", comment="镶嵌宝石、更换装备的时候可能会触发")
+    SUM_GEM_NUM = Item(name="全身穿戴装备宝石数量", comment="镶嵌宝石、更换装备的时候可能会触发")
+
+    ANNIVERSARY_FESTIVAL = Item(name="周年节日", comment="周年节日对应的称号。通过称号卷轴获得。")
+    items = [VIP_LEVEL, CHARGE, GOLD_NUM,
+             PHYSIQUE, STRENGTH, AGILITY, INTELLIGENCE,
+             LEVEL,
+             KILL_BOSS_NUM, KILL_BOSS_SUCCESS, KILL_BOSS_FAILED,
+             PK_NUMBER, PK_RANK, PK_RANK_RAISE,
+             SKILL, ANY_SKILL_LEVEL, ALL_SKILL_LEVEL, ALL_SKILL_LEVEL_BIGGER_THAN,
+             LOTTERY_NUM, WIN_LOTTERY_NUMBER,
+             ALL_EQUIPMENT_QUALITY,
+             BUY_STUFF, SELL_STUFF,
+             EXP_BOOK_NUM, IDENTIFY_NUM,
+             RAISE_STAR_NUM, ANY_RAISE_STAR_NUM, SUM_RAISE_STAR_NUM,
+             ANY_GEM_NUM, SUM_GEM_NUM,
+             ANNIVERSARY_FESTIVAL,
+             ]
+    name_index_dict, index_name_dict = get_dict(items=items)
+    default = CHARGE
+
+
 class AchievementType:
     """
     成就的类型
     """
-    CHARGE = 1
-    GOLD_NUM = 7  # 黄金数量
-    ADDITIONAL_PROPERTY = 0  # 附加属性排行榜
-    BASE_PROPERTY = 2  # 基础属性突破
-    LEVEL_UP = 3  # 等级提升相关
-    KILL_BOSS = 4  # 击败BOSS数量
-    BATTLE = 4  # 击败BOSS数量
-    FIRST_PK = 5  # PK相关
-    PK_Number = 6  # PK相关
-    PK_RANK = 6  # PK相关
-    PK_RANK_RAISE = 7
-    SKILL = 8  # 学习技能的时候会触发
-    FIRST_LOTTERY = 9  # 抽奖相关
-    LOTTERY = 9  # 抽奖相关
-    EQUIPMENT = 10  # 装备穿戴会触发
-    SELL_STUFF = 11  # 交易物品相关
-    EXP_BOOK = 12  # 经验书相关
-    IDENTIFY = 15
-    RAISE_STAR = 16
-    GEM = 16  # 宝石相关
-    ANNIVERSARY_FESTIVAL = 12  # 周年节日
+    name = '成就类型'
+    Item.clear()
+
+    VIP = Item(name='VIP称号', comment="充值动作完成后会触发")
+    CHARGE = Item(name='充值', comment="充值动作完成后会触发")
+    GOLD_NUM = Item(name="黄金数量", comment="黄金数量增加后可能会触发")
+    BASE_PROPERTY_TYPE = Item(name="基础属性突破", comment="黄金数量增加后可能会触发")
+    LEVEL = Item(name="等级", comment="升级的时候会触发")
+    KILL_BOSS_SUCCESS = Item(name="击杀怪物", comment="击杀成功的时候可能会触发")
+    KILL_BOSS_FAILED = Item(name="被怪物打败", comment="击杀失败的时候可能会触发")
+    PK_NUMBER = Item(name="PK胜利次数", comment="PK胜利的时候会触发")
+    PK_RANK = Item(name="PK排行榜名次", comment="PK胜利的时候会触发")
+    PK_RANK_RAISE = Item(name="PK排行榜名次提升", comment="PK胜利的时候会触发")
+    SKILL = Item(name="学习技能", comment="学习技能的时候会触发")
+    LOTTERY = Item(name="抽奖", comment="抽奖的时候可能会触发")
+    EQUIPMENT = Item(name="装备", comment="穿戴装备的时候可能会触发")
+    BUY_STUFF = Item(name="购买物品", comment="从交易所购买物品的时候可能会触发")
+    SELL_STUFF = Item(name="卖出物品", comment="卖出物品的时候可能会触发")
+    EXP_BOOK = Item(name="经验书", comment="使用经验书的时候可能会触发")
+    IDENTIFY = Item(name="鉴定", comment="使用鉴定卷轴的时候（包括装备鉴定卷轴，装备技能鉴定卷轴）可能会触发")
+    RAISE_STAR = Item(name="装备升星强化", comment="装备升星的时候可能会触发")
+    GEM = Item(name="全身宝石", comment="镶嵌宝石的时候可能会触发")
+
+    ANNIVERSARY_FESTIVAL = Item(name="周年节日", comment="周年节日对应的称号。通过称号卷轴获得。")
+    items = [VIP, CHARGE, GOLD_NUM,
+             BASE_PROPERTY_TYPE,
+             LEVEL,
+             KILL_BOSS_FAILED,
+             PK_NUMBER, PK_RANK_RAISE,
+             SKILL,
+             LOTTERY,
+             EQUIPMENT,
+             SELL_STUFF, ]
+
+    name_index_dict, index_name_dict = get_dict(items=items)
+    default = CHARGE
 
 
 class EquipmentQuality:
-    """Enumeration class representing different levels of equipment quality.
+    name = '装备品质'
 
-    Attributes:
-        COMMON (int): Representing common equipment quality. # 普通
-        EXCELLENT (int): Representing excellent equipment quality. # 优秀
-        RARE (int): Representing rare equipment quality. # 稀有
-        EPIC (int): Representing epic equipment quality. # 史诗
-        MYTHIC (int): Representing mythic equipment quality. # 传说
-        ULTIMATE (int): Representing ultimate equipment quality. # 神话
-    """
-    COMMON = 1  # 1个属性
-    EXCELLENT = 2  # 2个属性
-    RARE = 3  # 2个属性
-    EPIC = 4  # 3个属性    带技能
-    MYTHIC = 5  # 4个属性  带技能
-    MYTHOLOGY = 6  # 4个属性   带技能
+    Item.clear()
 
-
-equipment_cn_quality_dict = {
-    "普通": EquipmentQuality.COMMON,
-    "优秀": EquipmentQuality.EXCELLENT,
-    "稀有": EquipmentQuality.RARE,
-    "史诗": EquipmentQuality.EPIC,
-    "传说": EquipmentQuality.MYTHIC,
-    "神话": EquipmentQuality.MYTHOLOGY,
-}
+    COMMON = Item(name='普通', comment="1个属性")
+    EXCELLENT = Item(name='优秀', comment="2个属性")
+    RARE = Item(name='稀有', comment="3个属性")
+    EPIC = Item(name='史诗', comment="3个属性，可能带技能")
+    MYTHIC = Item(name='传说', comment="4个属性，可能带技能")
+    MYTHOLOGY = Item(name='神话', comment="4个属性")
 
 
 class PartType:
-    CLOAK = 1  # "披风"
-    NECKLACE = 2  # "项链"
-    COSTUME = 3  # "时装"
-    AMULET = 4  # "护符"
-    MOUNT = 5  # "坐骑"
+    name = '装备品质'
 
-    HEAD = 6  # "头"
-    SHOULDER = 7  # "肩"
-    CLOTHES = 8  # "衣"
-    WAIST = 9  # "腰"
-    HAND = 10  # "手"
-    LEG = 11  # "腿"
-    FOOT = 12  # "脚"
+    Item.clear()
+    CLOAK = Item(name='披风', comment="1个属性")
+    NECKLACE = Item(name='项链', comment="1个属性")
+    COSTUME = Item(name='时装', comment="1个属性")
+    AMULET = Item(name='护符', comment="1个属性")
+    MOUNT = Item(name='坐骑', comment="1个属性")
 
-    WEAPON = 13  # "武器"
+    HEAD = Item(name='头部', comment="1个属性")
+    SHOULDER = Item(name='护肩', comment="1个属性")
+    CLOTHES = Item(name='衣服', comment="1个属性")
+    WAIST = Item(name='腰', comment="1个属性")
+    HAND = Item(name='手', comment="1个属性")
+    LEG = Item(name='腿', comment="1个属性")
+    FOOT = Item(name='足', comment="1个属性")
 
-
-part_cn_type_dict = {
-    '披风': PartType.CLOAK,
-    '护符': PartType.AMULET,
-    '项链': PartType.NECKLACE,
-    '时装': PartType.COSTUME,
-    '坐骑': PartType.MOUNT,
-
-    '头': PartType.HEAD,
-    '肩': PartType.SHOULDER,
-    '衣': PartType.CLOTHES,
-    '腰': PartType.WAIST,
-    '手': PartType.HAND,
-    '腿': PartType.LEG,
-    '足': PartType.FOOT,
-
-    '武器': PartType.WEAPON,
-}
+    WEAPON = Item(name='武器', comment="1个属性")
 
 
 class StuffStatus:
-    IN_BAG_NOT_SELL = 1  # 在背包中，且未出售
-    IN_SHOP = 2  # '在交易所'，且未出售
-    DECOMPOSE = 3  # '被分解了'
-    DISCARDED = 4  # '被扔掉'
+    name = '物品状态'
+    Item.clear()
+
+    EQUIPMENT = Item(name='装备中', comment="参考PartType")
+    IN_BAG = Item(name='在背包中', comment="在背包中放着呢")
+    IN_REPOSITORY = Item(name='在仓库中', comment="在仓库中放着呢")
+    IN_MAIL = Item(name='在邮件中', comment="在发给别人的邮件中。不能给系统发送带装备的邮件。发送邮件要有间隔")
+    IN_SHOP = Item(name='在交易所', comment="1个属性")
+    DECOMPOSE = Item(name='被分解了', comment="1个属性")
+    DISCARDED = Item(name='被丢弃了', comment="1个属性")
 
 
 class StuffType:
-    """
-    物品类型
-    """
+    name="物品类型"
+
     EQUIPMENT = 1  # 装备
     BOX = 2  # 箱子   允许一次性使用多个
     GEM = 3  # 宝石
@@ -266,43 +309,31 @@ class AdditionSourceType:
     """
     属性的来源
     """
-    index = 0
+    Item.clear()
 
-    index += 1
-    INITIAL = Item(index=index, name='初始属性')
+    INITIAL = Item(name='初始属性')
 
-    index += 1
-    BASE_PROPERTY_POINT = Item(index=index, name='基础属性加点', comment='基础属性加点')
+    BASE_PROPERTY_POINT = Item(name='基础属性加点', comment='基础属性加点')
 
-    index += 1
-    BASE_ADDITIONAL = Item(index=index, name='基础属性对应附加属性', comment='基础属性如何转换为其它的属性')
+    BASE_ADDITIONAL = Item(name='基础属性对应附加属性', comment='基础属性如何转换为其它的属性')
 
-    index += 1
-    ACHIEVEMENT = Item(index=index, name='称号', comment='称号增加属性')
+    ACHIEVEMENT = Item(name='称号', comment='称号增加属性')
 
-    index += 1
-    SKILL = Item(index=index, name='技能', comment='技能增加属性')
+    SKILL = Item(name='技能', comment='技能增加属性')
 
-    index += 1
-    SKILL_BOOK = Item(index=index, name='技能书', comment='技能书的属性')
+    SKILL_BOOK = Item(name='技能书', comment='技能书的属性')
 
-    index += 1
-    EQUIPMENT_PROTOTYPE = Item(index=index, name='装备原型', comment='装备原型的属性')
+    EQUIPMENT_PROTOTYPE = Item(name='装备原型', comment='装备原型的属性')
 
-    index += 1
-    EQUIPMENT_RECORD = Item(index=index, name='装备记录', comment='具体某个装备的属性')
+    EQUIPMENT_RECORD = Item(name='装备记录', comment='具体某个装备的属性')
 
-    index += 1
-    POTION = Item(index=index, name='药剂', comment='某个药剂增加的属性')
+    POTION = Item(name='药剂', comment='某个药剂增加的属性')
 
-    index += 1
-    PLAYER = Item(index=index, name='人物', comment='某个人物的属性')
+    PLAYER = Item(name='人物', comment='某个人物的属性')
 
-    index += 1
-    MONSTER = Item(index=index, name='怪物', comment='某个怪物的属性')
+    MONSTER = Item(name='怪物', comment='某个怪物的属性')
 
-    index += 1
-    STATUS = Item(index=index, name='状态', comment='状态增加属性')
+    STATUS = Item(name='状态', comment='状态增加属性')
 
     items = [INITIAL,
              BASE_PROPERTY_POINT, BASE_ADDITIONAL,
@@ -332,157 +363,128 @@ class AdditionalPropertyType:
     """
     装备、技能、称号所有可能的属性
     """
-    index = 0
-    index += 1
-    PHYSIQUE = Item(index=index, name="体质", comment="帧率")
-    index += 1
-    PHYSIQUE_ADD_PERCENT = Item(index=index, name="体质百分比", comment="体质百分比")
+    Item.clear()
 
-    index += 1
-    STRENGTH = Item(index=index, name="力量", comment="力量")
-    index += 1
-    STRENGTH_ADD_PERCENT = Item(index=index, name="力量百分比", comment="力量百分比")
+    PHYSIQUE = Item(name="体质", comment="帧率")
 
-    index += 1
-    AGILITY = Item(index=index, name="敏捷", comment="敏捷")
-    index += 1
-    AGILITY_ADD_PERCENT = Item(index=index, name="敏捷百分比", comment="敏捷百分比")
+    PHYSIQUE_ADD_PERCENT = Item(name="体质百分比", comment="体质百分比")
 
-    index += 1
-    INTELLIGENCE = Item(index=index, name="智力", comment="智力")
-    index += 1
-    INTELLIGENCE_ADD_PERCENT = Item(index=index, name="智力百分比", comment="智力百分比")
+    STRENGTH = Item(name="力量", comment="力量")
 
-    index += 1
-    PERCEPTION = Item(index=index, name="感知", comment="感知")
-    index += 1
-    PERCEPTION_ADD_PERCENT = Item(index=index, name="感知百分比", comment="感知百分比")
+    STRENGTH_ADD_PERCENT = Item(name="力量百分比", comment="力量百分比")
 
-    index += 1
-    MANA_SHIELD = Item(index=index, name="法力护盾", comment="出手速度")
-    index += 1
-    MANA_SHIELD_ADD_PERCENT = Item(index=index, name="法力护盾百分比", comment="出手速度百分比")
+    AGILITY = Item(name="敏捷", comment="敏捷")
 
-    index += 1
-    ATTACK_SPEED = Item(index=index, name="出手速度", comment="出手速度")
-    index += 1
-    ATTACK_SPEED_ADD_PERCENT = Item(index=index, name="出手速度百分比", comment="出手速度百分比")
+    AGILITY_ADD_PERCENT = Item(name="敏捷百分比", comment="敏捷百分比")
 
-    index += 1
-    PHYSICS_ATTACK = Item(index=index, name="物理攻击力", comment="物理攻击力")
-    index += 1
-    PHYSICS_ATTACK_ADD_PERCENT = Item(index=index, name="物理攻击力百分比", comment="物理攻击力百分比")
+    INTELLIGENCE = Item(name="智力", comment="智力")
 
-    index += 1
-    HEALTH = Item(index=index, name="生命上限", comment="生命上限")
-    index += 1
-    HEALTH_ADD_PERCENT = Item(index=index, name="生命上限百分比", comment="生命上限百分比")
+    INTELLIGENCE_ADD_PERCENT = Item(name="智力百分比", comment="智力百分比")
+
+    PERCEPTION = Item(name="感知", comment="感知")
+
+    PERCEPTION_ADD_PERCENT = Item(name="感知百分比", comment="感知百分比")
+
+    MANA_SHIELD = Item(name="法力护盾", comment="出手速度")
+
+    MANA_SHIELD_ADD_PERCENT = Item(name="法力护盾百分比", comment="出手速度百分比")
+
+    ATTACK_SPEED = Item(name="出手速度", comment="出手速度")
+
+    ATTACK_SPEED_ADD_PERCENT = Item(name="出手速度百分比", comment="出手速度百分比")
+
+    PHYSICS_ATTACK = Item(name="物理攻击力", comment="物理攻击力")
+
+    PHYSICS_ATTACK_ADD_PERCENT = Item(name="物理攻击力百分比", comment="物理攻击力百分比")
+
+    HEALTH = Item(name="生命上限", comment="生命上限")
+
+    HEALTH_ADD_PERCENT = Item(name="生命上限百分比", comment="生命上限百分比")
     # 增加生命上限的通过状态实现；
-    index += 1
-    HEALTH_RECOVERY = Item(index=index, name="生命恢复", comment="恢复生命")
-    index += 1
-    HEALTH_RECOVERY_ADD_PERCENT = Item(index=index, name="生命恢复百分比", comment="生命恢复百分比")
-    index += 1
-    HEALTH_RECOVERY_ALL_PERCENT = Item(index=index, name="恢复百分比生命", comment="恢复百分比生命")
 
-    index += 1
-    HEALTH_ABSORPTION = Item(index=index, name="生命吸收", comment="出手速度")
-    index += 1
-    HEALTH_ABSORPTION_ADD_PERCENT = Item(index=index, name="生命吸收百分比", comment="出手速度百分比")
+    HEALTH_RECOVERY = Item(name="生命恢复", comment="恢复生命")
 
-    index += 1
-    MANA = Item(index=index, name="法力上限", comment="法力上限")
-    index += 1
-    MANA_ADD_PERCENT = Item(index=index, name="法力上限百分比", comment="法力上限百分比")
+    HEALTH_RECOVERY_ADD_PERCENT = Item(name="生命恢复百分比", comment="生命恢复百分比")
 
-    index += 1
-    MANA_RECOVERY = Item(index=index, name="法力恢复", comment="法力恢复")
-    index += 1
-    MANA_RECOVERY_ADD_PERCENT = Item(index=index, name="法力恢复百分比", comment="法力恢复百分比")
-    index += 1
-    MANA_RECOVERY_ALL_PERCENT = Item(index=index, name="回复百分比法力", comment="回复百分比法力")
+    HEALTH_RECOVERY_ALL_PERCENT = Item(name="恢复百分比生命", comment="恢复百分比生命")
 
-    index += 1
-    MANA_ABSORPTION = Item(index=index, name="法力上限", comment="法力上限")
-    index += 1
-    MANA_ABSORPTION_ADD_PERCENT = Item(index=index, name="法力上限百分比", comment="法力上限百分比")
+    HEALTH_ABSORPTION = Item(name="生命吸收", comment="出手速度")
 
-    index += 1
-    COUNTERATTACK = Item(index=index, name="反击", comment="反击")
-    index += 1
-    COUNTERATTACK_ADD_PERCENT = Item(index=index, name="反击百分比", comment="反击百分比")
+    HEALTH_ABSORPTION_ADD_PERCENT = Item(name="生命吸收百分比", comment="出手速度百分比")
 
-    index += 1
-    IGNORE_COUNTERATTACK = Item(index=index, name="无视反击", comment="无视反击")
-    index += 1
-    IGNORE_COUNTERATTACK_ADD_PERCENT = Item(index=index, name="无视反击百分比", comment="无视反击百分比")
+    MANA = Item(name="法力上限", comment="法力上限")
 
-    index += 1
-    CRITICAL_POINT = Item(index=index, name="致命点", comment="致命点")
-    index += 1
-    CRITICAL_POINT_ADD_PERCENT = Item(index=index, name="致命点百分比", comment="致命点百分比")
+    MANA_ADD_PERCENT = Item(name="法力上限百分比", comment="法力上限百分比")
 
-    index += 1
-    STATE_RESISTANCE = Item(index=index, name="状态抵抗", comment="状态抵抗")
-    index += 1
-    STATE_RESISTANCE_ADD_PERCENT = Item(index=index, name="状态抵抗百分比", comment="状态抵抗百分比")
+    MANA_RECOVERY = Item(name="法力恢复", comment="法力恢复")
 
-    index += 1
-    IGNORE_STATE_RESISTANCE = Item(index=index, name="无视状态抵抗", comment="无视状态抵抗")
-    index += 1
-    IGNORE_STATE_RESISTANCE_ADD_PERCENT = Item(index=index, name="无视状态抵抗百分比", comment="无视状态抵抗百分比")
+    MANA_RECOVERY_ADD_PERCENT = Item(name="法力恢复百分比", comment="法力恢复百分比")
 
-    index += 1
-    INSIGHT = Item(index=index, name="洞察", comment="洞察")
-    index += 1
-    INSIGHT_PERCENT = Item(index=index, name="洞察百分比", comment="洞察百分比")
+    MANA_RECOVERY_ALL_PERCENT = Item(name="回复百分比法力", comment="回复百分比法力")
 
-    index += 1
-    IGNORE_INSIGHT = Item(index=index, name="无视洞察", comment="无视洞察")
-    index += 1
-    IGNORE_INSIGHT_PERCENT = Item(index=index, name="无视洞察百分比", comment="状态抵抗百分比")
+    MANA_ABSORPTION = Item(name="法力上限", comment="法力上限")
 
-    index += 1
-    HIT = Item(index=index, name="命中", comment="命中")
-    index += 1
-    HIT_PERCENT = Item(index=index, name="命中百分比", comment="命中百分比")
+    MANA_ABSORPTION_ADD_PERCENT = Item(name="法力上限百分比", comment="法力上限百分比")
 
-    index += 1
-    DODGE = Item(index=index, name="闪避", comment="闪避")
-    index += 1
-    DODGE_PERCENT = Item(index=index, name="闪避百分比", comment="闪避百分比")
+    COUNTERATTACK = Item(name="反击", comment="反击")
 
-    index += 1
-    WEAPON_DAMAGE = Item(index=index, name="武器伤害", comment="武器伤害")
-    index += 1
-    WEAPON_DAMAGE_PERCENT = Item(index=index, name="武器伤害百分比", comment="武器伤害百分比")
+    COUNTERATTACK_ADD_PERCENT = Item(name="反击百分比", comment="反击百分比")
 
-    index += 1
-    MAGIC_ATTACK = Item(index=index, name="魔法攻击力", comment="魔法攻击力")
-    index += 1
-    MAGIC_ATTACK_PERCENT = Item(index=index, name="魔法攻击力百分比", comment="魔法攻击力百分比")
+    IGNORE_COUNTERATTACK = Item(name="无视反击", comment="无视反击")
 
-    index += 1
-    DAMAGE_REDUCTION = Item(index=index, name="伤害减免", comment="伤害减免")
-    index += 1
-    DAMAGE_REDUCTION_PERCENT = Item(index=index, name="伤害减免百分比", comment="伤害减免百分比")
+    IGNORE_COUNTERATTACK_ADD_PERCENT = Item(name="无视反击百分比", comment="无视反击百分比")
 
-    index += 1
-    IGNORE_DAMAGE_REDUCTION = Item(index=index, name="无视伤害减免", comment="无视伤害减免")
-    index += 1
-    IGNORE_DAMAGE_REDUCTION_PERCENT = Item(index=index, name="无视伤害减免百分比", comment="无视伤害减免百分比")
+    CRITICAL_POINT = Item(name="致命点", comment="致命点")
 
-    index += 1
-    DAMAGE_SHIELD = Item(index=index, name="免伤护盾", comment="无视伤害减免百分比")
+    CRITICAL_POINT_ADD_PERCENT = Item(name="致命点百分比", comment="致命点百分比")
 
-    index += 1
-    DAMAGE_PERCENT = Item(index=index, name="造成伤害百分比", comment="造成伤害百分比")
+    STATE_RESISTANCE = Item(name="状态抵抗", comment="状态抵抗")
 
-    index += 1
-    TAKE_DAMAGE_PERCENT = Item(index=index, name="承受伤害百分比", comment="承受伤害百分比")
+    STATE_RESISTANCE_ADD_PERCENT = Item(name="状态抵抗百分比", comment="状态抵抗百分比")
 
-    index += 1
-    EXP_ADD_PERCENT = Item(index=index, name="经验百分比", comment="经验百分比")
+    IGNORE_STATE_RESISTANCE = Item(name="无视状态抵抗", comment="无视状态抵抗")
+
+    IGNORE_STATE_RESISTANCE_ADD_PERCENT = Item(name="无视状态抵抗百分比", comment="无视状态抵抗百分比")
+
+    INSIGHT = Item(name="洞察", comment="洞察")
+
+    INSIGHT_PERCENT = Item(name="洞察百分比", comment="洞察百分比")
+
+    IGNORE_INSIGHT = Item(name="无视洞察", comment="无视洞察")
+
+    IGNORE_INSIGHT_PERCENT = Item(name="无视洞察百分比", comment="状态抵抗百分比")
+
+    HIT = Item(name="命中", comment="命中")
+
+    HIT_PERCENT = Item(name="命中百分比", comment="命中百分比")
+
+    DODGE = Item(name="闪避", comment="闪避")
+
+    DODGE_PERCENT = Item(name="闪避百分比", comment="闪避百分比")
+
+    WEAPON_DAMAGE = Item(name="武器伤害", comment="武器伤害")
+
+    WEAPON_DAMAGE_PERCENT = Item(name="武器伤害百分比", comment="武器伤害百分比")
+
+    MAGIC_ATTACK = Item(name="魔法攻击力", comment="魔法攻击力")
+
+    MAGIC_ATTACK_PERCENT = Item(name="魔法攻击力百分比", comment="魔法攻击力百分比")
+
+    DAMAGE_REDUCTION = Item(name="伤害减免", comment="伤害减免")
+
+    DAMAGE_REDUCTION_PERCENT = Item(name="伤害减免百分比", comment="伤害减免百分比")
+
+    IGNORE_DAMAGE_REDUCTION = Item(name="无视伤害减免", comment="无视伤害减免")
+
+    IGNORE_DAMAGE_REDUCTION_PERCENT = Item(name="无视伤害减免百分比", comment="无视伤害减免百分比")
+
+    DAMAGE_SHIELD = Item(name="免伤护盾", comment="无视伤害减免百分比")
+
+    DAMAGE_PERCENT = Item(name="造成伤害百分比", comment="造成伤害百分比")
+
+    TAKE_DAMAGE_PERCENT = Item(name="承受伤害百分比", comment="承受伤害百分比")
+
+    EXP_ADD_PERCENT = Item(name="经验百分比", comment="经验百分比")
 
     items = [PHYSIQUE, PHYSIQUE_ADD_PERCENT,
              STRENGTH, STRENGTH_ADD_PERCENT,

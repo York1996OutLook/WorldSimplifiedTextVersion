@@ -1,12 +1,15 @@
+# 2023年4月21日 QLineEdit支持setText(None)
+
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QLineEdit, \
     QPushButton, QListWidget, QMessageBox, QFrame, QComboBox
 from PyQt5.QtCore import pyqtSignal, pyqtBoundSignal, QMetaObject
 import PyQt5.QtGui as QtGui
 
+from Enums import StatusType
 
 class TableItems:
     """
-            self.current_data_table_combo_box.addItem("技能")
+        self.current_data_table_combo_box.addItem("技能")
         self.current_data_table_combo_box.addItem("状态")
         self.current_data_table_combo_box.addItem("5大基础属性")
     """
@@ -14,13 +17,18 @@ class TableItems:
     status = "状态"
     base_property = '5大基础属性'
     achievement = '成就'
+    gem = '宝石'
+    box = '盒子'
+    mount = '坐骑'
+    exp_book = '经验书'
+    holiday = '节日'
 
 
 class MyLineText(QLineEdit):
     focus: pyqtBoundSignal = pyqtSignal(int, str)
     text_change: pyqtBoundSignal = pyqtSignal(int, str)
 
-    def __init__(self, index: int, parent: QWidget = None):
+    def __init__(self, index: int = -1, parent: QWidget = None):
         super().__init__(parent)
         self.index = index
         self.textChanged.connect(self.text_change_event)
@@ -37,6 +45,14 @@ class MyLineText(QLineEdit):
 
     def focusOutEvent(self, a0: QtGui.QFocusEvent) -> None:
         self.setStyleSheet(self.style_sheet_default)
+
+    def set_text(self, a0: str or int or None) -> None:
+        if a0 is None:
+            print("None->空字符串")
+            a0 = ""
+        if type(a0) == int:
+            a0 = str(a0)
+        self.setText(a0)
 
 
 class MyButton(QPushButton):
@@ -61,9 +77,17 @@ class MyFrame(QFrame):
 class MyLabel(QLabel):
     def __init__(self, label_text: str = ""):
         super().__init__()
-        self.setText(label_text)
+        self.set_text(label_text)
         self.style_sheet = 'border: 1px solid black;'
         self.setStyleSheet(self.style_sheet)
+
+    def set_text(self, a0: str or int or None) -> None:
+        if a0 is None:
+            print("None->空字符串")
+            a0 = ""
+        if type(a0) == int:
+            a0 = str(a0)
+        self.setText(a0)
 
 
 class StatuesWidgets:

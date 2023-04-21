@@ -8,7 +8,6 @@ from Enums import AchievementType, AdditionalPropertyType
 
 Base = declarative_base()
 
-
 """
 如果是第一次进入游戏，达成条件对应的属性为空。属性值为空。
 如果是基础属性突破，则属性和值均可填写。
@@ -32,6 +31,7 @@ Base = declarative_base()
 如果是ALL_RAISE_STAR，则对应属性类型为空，属性值为所有穿戴装备升星数量。
 """
 
+
 # 成就系统
 class Achievement(Base):
     """
@@ -40,27 +40,36 @@ class Achievement(Base):
     __tablename__ = "achievement"
 
     id = Column(Integer, primary_key=True, comment="成就ID")
+
     name = Column(String, comment="成就名称")
 
     achievement_type = Column(Integer, comment="成就类型")
 
     condition_property_type = Column(Integer, comment="达成条件对应的属性")
     condition_property_value = Column(Integer, comment="达成条件对应属性应该达到的值。")
+
     achievement_point = Column(Integer, comment="根据达成难度获得成就点数")
-    days_of_validity = Column(Integer, comment="有效期。以天为单位")
+
+    days_of_validity = Column(Integer, comment="有效期。以天为单位。如果是-1则代表是永久。")
     introduce = Column(String, comment="对于成就的介绍")
 
     def __init__(self,
                  *,
                  name: str,
                  achievement_type: AchievementType,
-                 condition_type: int,
+                 condition_property_type: int,
+                 condition_property_value: int,
                  achievement_point: int,
                  days_of_validity: int,
-                 introduce: str, ):
+                 introduce: str,
+                 ):
         self.name = name
+
         self.achievement_type = achievement_type
-        self.condition_type = condition_type
+
+        self.condition_property_type = condition_property_type
+        self.condition_property_value = condition_property_value
+
         self.achievement_point = achievement_point
         self.days_of_validity = days_of_validity
         self.introduce = introduce
@@ -69,18 +78,24 @@ class Achievement(Base):
 # 增
 def add(*,
         name: str,
-        achievement_type: AchievementType,
-        condition_type: int,
-        achievement_point: int,
-        days_of_validity: int,
-        introduce: str, ) -> Achievement:
+
+        achievement_type: int,
+
+        condition_property_type: int = None,
+        condition_property_value: int = None,
+
+        achievement_point: int = None,
+
+        days_of_validity: int = None,
+        introduce: str = None, ) -> Achievement:
     """
     创建成就
 
     Args:
         name (str): 成就名称
         achievement_type (str): 成就名称
-        condition_type (str): 达成条件
+        condition_property_type (str): 达成条件
+        condition_property_value (str): 达成条件需要的值
         achievement_point (str): 成就点数
         days_of_validity (str): 有效期，以天为单位
         introduce (str): 成就的介绍
@@ -89,8 +104,12 @@ def add(*,
         Achievement: 创建的成就
     """
     achievement = Achievement(name=name,
+
                               achievement_type=achievement_type,
-                              condition_type=condition_type,
+
+                              condition_property_type=condition_property_type,
+                              condition_property_value=condition_property_value,
+
                               achievement_point=achievement_point,
                               days_of_validity=days_of_validity,
                               introduce=introduce)
@@ -99,32 +118,47 @@ def add(*,
     return achievement
 
 
-def add_or_update_achievement(*, name: str, achievement_type: AchievementType, condition_type: str, introduce: str):
-    """
+def add_or_update_by_name(*,
+                          name: str,
+                          new_name: str,
 
-    :param name:
-    :param achievement_type:
-    :param condition_type:
-    :param introduce:
-    :return:
-    """
+                          achievement_type: int,
+
+                          condition_property_type: int = None,
+                          condition_property_value: int = None,
+
+                          achievement_point: int = None,
+
+                          days_of_validity: int = None,
+                          introduce: str = None, ) -> Achievement:
     if is_exists_by_name(name=name):
         return update_by_name(name=name,
+                              new_name=new_name,
                               new_achievement_type=achievement_type,
-                              new_condition_type=condition_type,
+                              new_condition_type=condition_property_type,
+                              new_condition_value=condition_property_value,
+
+                              new_achievement_point=achievement_point,
+                              new_days_of_validity=days_of_validity,
                               new_introduce=introduce,
                               )
     else:
         return add(
             name=name,
             achievement_type=achievement_type,
-            condition_type=condition_type,
+            condition_property_type=condition_property_type,
+            condition_property_value=condition_property_value,
+
+            achievement_point=achievement_point,
+            days_of_validity=days_of_validity,
             introduce=introduce,
         )
 
 
 # 删
-def delete_by_achievement_id(*, achievement_id: int) -> bool:
+def delete_by_achievement_id(*,
+                             achievement_id: int
+                             ) -> bool:
     """
     删除成就
 
@@ -137,37 +171,39 @@ def delete_by_achievement_id(*, achievement_id: int) -> bool:
     achievement = session.query(Achievement).filter_by(id=achievement_id).first()
     session.delete(achievement)
     session.commit()
+    return True
 
 
 # 改
 
 def update(*,
            achievement_id: int,
-           new_achievement_type: AchievementType = None,
            new_name: str = None,
-           new_condition_type: str = None,
+           new_achievement_type: AchievementType = None,
+           new_condition_type: int = None,
+           new_condition_value: int = None,
+           new_days_of_validity: int = None,
+           new_achievement_point: int = None,
            new_introduce: str = None,
            ) -> Achievement:
-    """
-    更新成就信息
-
-    Args:
-        achievement_id (int): 成就id
-        new_achievement_type (int): 成就的类型。
-        new_name (str): 新的成就名称
-        new_condition_type (str): 新的达成条件
-        new_introduce (str): 新的达成条件
-
-    Returns:
-        Achievement: 更新后的成就
-    """
     achievement = session.query(Achievement).filter_by(id=achievement_id).first()
-    if new_achievement_type:
-        achievement.achievement_type = new_achievement_type
+
     if new_name:
         achievement.name = new_name
+    if new_achievement_type:
+        achievement.achievement_type = new_achievement_type
+
     if new_condition_type:
-        achievement.condition_type = new_condition_type
+        achievement.condition_property_type = new_condition_type
+    if new_condition_value:
+        achievement.condition_property_value = new_condition_value
+
+    if new_days_of_validity:
+        achievement.days_of_validity = new_days_of_validity
+
+    if new_achievement_point:
+        achievement.achievement_point = new_achievement_point
+
     if new_introduce:
         achievement.introduce = new_introduce
     session.commit()
@@ -177,21 +213,25 @@ def update(*,
 
 def update_by_name(
         name: str,
-        new_achievement_type: AchievementType,
-        new_condition_type: str,
-        new_introduce: str, ):
-    """
-
-    :param name:
-    :param new_achievement_type:
-    :param new_condition_type:
-    :param new_introduce:
-    :return:
-    """
+        new_name: str,
+        new_achievement_type: int,
+        new_condition_type: int,
+        new_condition_value: int,
+        new_achievement_point: int,
+        new_days_of_validity: int,
+        new_introduce: str,
+):
     achievement = session.query(Achievement).filter_by(name=name).first()
+    achievement.name = new_name
     achievement.achievement_type = new_achievement_type
+
     achievement.condition_type = new_condition_type
+    achievement.condition_value = new_condition_value
+
+    achievement.achievement_point = new_achievement_point
+    achievement.days_of_validity = new_days_of_validity
     achievement.introduce = new_introduce
+
     session.commit()
     session.refresh(achievement)
     return achievement
@@ -212,7 +252,7 @@ def get_by_achievement_id(*, achievement_id: int) -> Achievement:
     return achievement
 
 
-def get_by_achievement_name(*, name: str) -> Achievement:
+def get_by_name(*, name: str) -> Achievement:
     """
     根据id查询成就
 
@@ -234,7 +274,8 @@ def is_exists_by_name(*,
     :param name:
     :return:
     """
-    return session.query(Achievement).filter_by(name=name).scalar() is not None
+    record = session.query(Achievement).filter_by(name=name).first()
+    return record is not None
 
 
 def get_all() -> List[Achievement]:

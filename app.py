@@ -205,7 +205,7 @@ class App:
             battle_property_system.add_new_player_additional_property_record(character_id=new_player.id)
 
             # 给新玩家一个初入世界的成就
-            one_achievement = achievement.get_by_achievement_name(name='初入世界')
+            one_achievement = achievement.get_by_name(name='初入世界')
             # 添加到用户的成就记录表中
             player_achievement_record.add(achievement_id=one_achievement.id,
                                           character_id=new_player.id,

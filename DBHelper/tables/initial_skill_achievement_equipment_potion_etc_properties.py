@@ -704,24 +704,30 @@ def get_additional_property_dict_by_base_property(*,
 def get_properties_by_skill_book_id(*,
                                     skill_book_id: int,
                                     ):
-    skill_properties = get_properties_by(source_type=AdditionSourceType.SKILL_BOOK.index, source_id=skill_book_id)
-    return skill_properties
+    properties = get_properties_by(source_type=AdditionSourceType.SKILL_BOOK.index, source_id=skill_book_id)
+    return properties
 
 
 def get_properties_by_status_id(*,
                                 status_id: int,
                                 ):
-    status_properties = get_properties_by(source_type=AdditionSourceType.STATUS.index, source_id=status_id)
-    return status_properties
+    properties = get_properties_by(source_type=AdditionSourceType.STATUS.index, source_id=status_id)
+    return properties
 
 
 def get_properties_by_base_property(*,
                                     base_property_id: int,
                                     ):
-    status_properties = get_properties_by(source_type=AdditionSourceType.BASE_ADDITIONAL.index,
+    properties = get_properties_by(source_type=AdditionSourceType.BASE_ADDITIONAL.index,
                                           source_id=base_property_id)
-    return status_properties
+    return properties
 
+def get_properties_by_achievement_id(*,
+                                    achievement_id: int,
+                                    ):
+    properties = get_properties_by(source_type=AdditionSourceType.ACHIEVEMENT.index,
+                                          source_id=achievement_id)
+    return properties
 
 def get_properties_dict_by_skill_book_id(*,
                                          skill_book_id: int,
