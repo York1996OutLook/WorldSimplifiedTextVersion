@@ -35,6 +35,8 @@ class Item:
     def __repr__(self):
         return f'Item({self.index}: {self.name}, {self.comment})'
 
+
+
 class SkillTarget:
     name = "作用目标"
     item_list = ItemList()
@@ -51,7 +53,6 @@ class StatusType:
 
     PASSIVE = Item(name='减益', comment='减益')
     POSITIVE =Item(name="增益", comment="增益")
-    NEUTRAL = Item(name="中立", comment="中立")
 
     default = PASSIVE
 

@@ -6,7 +6,7 @@ from typing import List, Optional
 
 import local_setting
 from DBHelper.session import session
-from Enums import ExpBookType, exp_book_cn_type_dict
+from Enums import ExpBookType
 from Utils import tools
 
 Base = declarative_base()

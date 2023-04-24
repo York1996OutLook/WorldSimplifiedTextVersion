@@ -7,21 +7,34 @@ import PyQt5.QtGui as QtGui
 
 from Enums import StatusType
 
+
 class TableItems:
-    """
-        self.current_data_table_combo_box.addItem("技能")
-        self.current_data_table_combo_box.addItem("状态")
-        self.current_data_table_combo_box.addItem("5大基础属性")
-    """
+    setting = '设置'  # 计划做成可以滚动的浏览框
+
     skill = "技能"
     status = "状态"
     base_property = '5大基础属性'
     achievement = '成就'
     gem = '宝石'
     box = '盒子'
-    mount = '坐骑'
     exp_book = '经验书'
     holiday = '节日'
+    equipment = '装备' # 可能会做成两个选择框的形式。自动出现一个combo_box
+    identify_book = '鉴定卷轴'
+    monster = '怪物'  # 包含技能设置
+    monster_type_show_time = '选择怪物类型选择出现时间'
+    potion = '药水'
+    raise_star_book = '升星卷轴'
+    raise_star_prob = '升星成功概率'
+    skill_cost_point = '学习技能消耗技能点'
+    level_exp = '升级所需经验'
+
+
+
+    player = '玩家'   # 建议不修改，仅仅查看而已
+    sell_store = '交易所'   # 建议不修改，仅仅查看而已
+
+
 
 
 class MyLineText(QLineEdit):
@@ -90,6 +103,25 @@ class MyLabel(QLabel):
         self.setText(a0)
 
 
+class EditType:
+    combo_box = 1
+    short_text = 2
+    long_text = 3
+    bool_combo_box = 4
+
+
+
+class DataEditType:
+    def __init__(self, *, key: str, label: str, edit_widget: EditType, choices=None, editable: bool = True,default=None):
+        self.key = key
+        self.label = label
+        self.edit_widget = edit_widget
+        self.choices = choices
+        self.editable = editable
+
+        self.default=default
+
+
 class StatuesWidgets:
     """
     和属性相关的若干控件
@@ -129,12 +161,6 @@ class PropertyWidgets:
         self.name_label = name_label
         self.value_text = value_text
         print(1)
-
-
-class EditType:
-    combo_box = 1
-    short_text = 2
-    long_text = 3
 
 
 def set_geo(*,
