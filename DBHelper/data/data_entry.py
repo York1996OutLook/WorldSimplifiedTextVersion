@@ -474,12 +474,12 @@ class MyMainWindow(QMainWindow):
     def init_item_setting_ui(self, *, setting_list: List[DataEditType]):
         print("init_item_setting_ui")
         widget_index = -1
-        for edit_type in setting_list:
+        for edit in setting_list:
             # in database_field, label_name, edit_type, choices, changeable
-            if edit_type in {EditType.short_text, EditType.combo_box}:
+            if edit.edit_widget in {EditType.short_text, EditType.combo_box}:
                 widget_index += 1
-            elif edit_type in {EditType.long_text}:
-                widget_index = (widget_index // 2 + 1) * 2
+            elif edit.edit_widget in {EditType.long_text}:
+                widget_index = (widget_index // 2 + 1) * 2  # 可视化的较长
             else:
                 raise ValueError()
 
