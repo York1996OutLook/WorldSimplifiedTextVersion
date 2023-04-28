@@ -6,18 +6,15 @@ from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 
 from DBHelper.session import session
+from DBHelper.tables.base_table import Basic, Base
 from Enums import AdditionSourceType, AdditionalPropertyType, EquipmentPropertyAvailability, StuffType
 import local_setting
 from Utils import tools
 
-Base = declarative_base()
 
-
-class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Base):
+class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
     """初始属性，基础属性加点、技能、装备(最大，最小，当前)、称号，临时药剂等常见的所有属性表，为永久表"""
     __tablename__ = 'initial_skill_achievement_equipment_etc_properties_record'
-
-    id = Column(Integer, primary_key=True)
 
     additional_source_type = Column(Integer, comment="带来属性提升的物品类型，比如成就初始属性，基础属性加点，称号，技能，装备.参考枚举类型 AdditionSourceType")
     additional_source_id = Column(Integer, comment="""
@@ -50,529 +47,382 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Base):
     additional_property_type = Column(Integer, comment="参考AdditionalPropertyType")
     additional_property_value = Column(Integer, comment="对应参考AdditionalPropertyType的value")
 
-    def __init__(self,
-                 *,
-                 additional_source_type: int,
+    @classmethod
+    def add_or_update_by_id(cls,
+                            *,
+                            _id: int,
+                            additional_source_type: int = None,
 
-                 additional_property_type: int,
-                 additional_property_value: int,
+                            additional_property_type: int = None,
+                            additional_property_value: int = None,
 
-                 additional_source_id: int = None,
-                 additional_source_property_index: int = None,
+                            additional_source_id: int = None,
+                            additional_source_property_index: int = None,
 
-                 property_availability: int = None,
-                 ):
-        """
+                            property_availability: int = None,
+                            ):
+        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
+        record = cls._add_or_update_by_id(**fields)
+        return record
 
-        类型含义参考上面的comment字段
-        :param additional_source_type:
-        :param additional_source_id:
-        :param additional_source_property_index:
-        :param property_availability:
-        :param additional_property_type:
-        :param additional_property_value:
-        """
-        self.additional_source_type = additional_source_type
-        self.additional_source_id = additional_source_id
-        self.additional_source_property_index = additional_source_property_index
-        self.property_availability = property_availability
-        self.additional_property_type = additional_property_type
-        self.additional_property_value = additional_property_value
+    @classmethod
+    def get_properties_by_skill_book_id(cls,
+                                        *,
+                                        skill_book_id: int,
+                                        ):
+        properties = get_properties_by(source_type=AdditionSourceType.SKILL_BOOK.index, source_id=skill_book_id)
+        return properties
 
+    # 增
+    @classmethod
+    def add(cls,
+            additional_source_type: int = None,
+            additional_source_id: int = None,
 
-# 增
-def add(
-        *,
-        additional_source_type: int,
-        additional_property_type: int,
-        additional_property_value: int,
+            additional_property_type: int = None,
+            additional_property_value: int = None,
 
-        additional_source_id: int = None,
-        additional_source_property_index: int = None,
-        property_availability: int = None,
-) -> InitialSkillAchievementEquipmentPotionEtcPropertiesRecord:
-    record = InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(
-        additional_source_type=additional_source_type,
-        additional_property_type=additional_property_type,
-        additional_property_value=additional_property_value,
-        additional_source_id=additional_source_id,
-        additional_source_property_index=additional_source_property_index,
-        property_availability=property_availability,
-    )
-    session.add(record)
-    session.commit()
-    return record
+            additional_source_property_index: int = None,
 
+            property_availability: int = None, ):
+        fields = cls.update_fields_from_signature(func=cls.add)
+        record = cls.add_with_kwargs(**fields)
+        return record
 
-def add_player_properties(*,
-                          character_id: int,
-                          additional_property_type: int,
-                          additional_property_value: int,
-                          ):
-    add(additional_source_type=AdditionSourceType.PLAYER.index,
-        additional_property_type=additional_property_type,
-        additional_property_value=additional_property_value,
-        additional_source_id=character_id)
+    @classmethod
+    def add_player_properties(cls,
+                              *,
+                              character_id: int,
+                              additional_property_type: int,
+                              additional_property_value: int,
+                              ):
+        record = cls.add(additional_source_type=AdditionSourceType.PLAYER.index,
+                         additional_source_id=character_id,
+                         additional_property_type=additional_property_type,
+                         additional_property_value=additional_property_value,
+                         )
+        return record
 
-
-def add_initial_properties(*,
-                           additional_property_type: int,
-                           additional_property_value: int,
-
-                           ):
-    add(additional_source_type=AdditionSourceType.INITIAL.index,
-        additional_property_type=additional_property_type,
-        additional_property_value=additional_property_value)
-
-
-def add_monster_properties(*,
-                           monster_id: int,
-                           additional_property_type: int,
-                           additional_property_value: int,
-                           ):
-    add(additional_source_type=AdditionSourceType.MONSTER.index,
-        additional_source_id=monster_id,
-        additional_property_type=additional_property_type,
-        additional_property_value=additional_property_value)
-
-
-def add_base_additional_properties(*,
-                                   base_property_type: int,
-                                   property_index: int,
-                                   additional_property_type: int,
-                                   additional_property_value: int):
-    """
-
-    :param base_property_type: 基础属性值。作为additional_source_id存到表格中；
-    :param property_index: 属性索引
-    :param additional_property_type: 基础属性增加的其它的额外属性
-    :param additional_property_value: 其它额外属性的值
-    :return:
-    """
-    add(additional_source_type=AdditionSourceType.BASE_ADDITIONAL.index,
-        additional_source_id=base_property_type,
-        additional_source_property_index=property_index,
-        additional_property_type=additional_property_type,
-        additional_property_value=additional_property_value)
-
-
-def add_equipment_properties(*,
-                             additional_property_type: int,
-                             additional_property_value: int,
-
-                             achievement_id: int = None,
-                             property_index: int = None,
-                             property_availability: EquipmentPropertyAvailability = None,
-                             ):
-    record = add(
-        additional_source_type=AdditionSourceType.EQUIPMENT_PROTOTYPE.index,
-        additional_property_type=additional_property_type,
-        additional_property_value=additional_property_value,
-        additional_source_id=achievement_id,
-        additional_source_property_index=property_index,
-        property_availability=property_availability,
-    )
-    return record
-
-
-def add_achievement_properties(*,
-                               achievement_id: int,
-                               additional_source_property_index: int,
+    @classmethod
+    def add_initial_properties(cls,
+                               *,
                                additional_property_type: int,
                                additional_property_value: int,
                                ):
-    add(
-        additional_source_type=AdditionSourceType.ACHIEVEMENT.index,
-        additional_property_type=additional_property_type,
-        additional_property_value=additional_property_value,
-        additional_source_id=achievement_id,
-        additional_source_property_index=additional_source_property_index,
-    )
+        record = cls.add(additional_source_type=AdditionSourceType.INITIAL.index,
+                         additional_property_type=additional_property_type,
+                         additional_property_value=additional_property_value,
+                         )
+        return record
 
-
-def add_player_base_property(
-        *,
-        character_id: int = None,
-
-        base_property_type: int,
-        base_property_value: int,
-
-):
-    """
-    新增一个基础属性
-    :param character_id:
-    :param base_property_type:
-    :param base_property_value:
-    :return:
-    """
-    add(
-        additional_source_id=character_id,
-
-        additional_source_type=AdditionSourceType.BASE_PROPERTY_POINT.index,
-        additional_property_type=base_property_type,
-        additional_property_value=base_property_value,
-    )
-
-
-# 删
-
-def del_initial_properties() -> bool:
-    """
-    删除成就对应的所有属性加成
-    :return:
-    """
-    session.query(InitialSkillAchievementEquipmentPotionEtcPropertiesRecord).filter(
-        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_type == AdditionSourceType.INITIAL.index,
-    ).delete(synchronize_session=False)
-
-    session.commit()
-    return True
-
-
-def del_achievement_properties(*,
-                               achievement_id: int = None,
+    @classmethod
+    def add_monster_properties(cls, *,
+                               monster_id: int,
+                               additional_property_type: int,
+                               additional_property_value: int,
                                ):
-    """
-    删除成就对应的所有属性加成
-    :param achievement_id:
-    :return:
-    """
-    session.query(InitialSkillAchievementEquipmentPotionEtcPropertiesRecord).filter(
-        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_type == AdditionSourceType.ACHIEVEMENT.index,
-        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_id == achievement_id,
-    ).delete(synchronize_session=False)
+        record = cls.add(additional_source_type=AdditionSourceType.MONSTER.index,
+                         additional_source_id=monster_id,
+                         additional_property_type=additional_property_type,
+                         additional_property_value=additional_property_value,
+                         )
+        return record
 
-    session.commit()
-    return True
+    @classmethod
+    def add_base_additional_properties(cls,
+                                       *,
+                                       base_property_type: int,
+                                       additional_source_property_index: int,
+                                       additional_property_type: int,
+                                       additional_property_value: int):
+        """
 
+        :param base_property_type: 基础属性值。作为additional_source_id存到表格中；
+        :param additional_source_property_index: 属性索引
+        :param additional_property_type: 基础属性增加的其它的额外属性
+        :param additional_property_value: 其它额外属性的值
+        :return:
+        """
+        record = cls.add(additional_source_type=AdditionSourceType.BASE_ADDITIONAL.index,
+                         additional_source_id=base_property_type,
+                         additional_source_property_index=additional_source_property_index,
+                         additional_property_type=additional_property_type,
+                         additional_property_value=additional_property_value,
+                         )
+        return record
 
-def del_equipment_prototype_properties(*,
-                                       equipment_id: int,
+    @classmethod
+    def add_equipment_properties(cls,
+                                 *,
+                                 equipment_stuff_id: int,
+                                 additional_source_property_index: int,
+
+                                 property_availability: int = None,
+                                 additional_property_type: int = None,
+                                 additional_property_value: int = None,
+                                 ):
+        record = cls.add(additional_source_type=AdditionSourceType.EQUIPMENT_PROTOTYPE.index,
+                         additional_source_id=equipment_stuff_id,
+                         additional_source_property_index=additional_source_property_index,
+                         property_availability=property_availability,
+                         additional_property_type=additional_property_type,
+                         additional_property_value=additional_property_value,
+                         )
+        return record
+
+    @classmethod
+    def add_achievement_properties(cls,
+                                   *,
+                                   achievement_id: int,
+                                   additional_source_property_index: int,
+                                   additional_property_type: int,
+                                   additional_property_value: int,
+                                   ):
+        record = cls.add_with_kwargs(additional_source_type=AdditionSourceType.ACHIEVEMENT_TITLE.index,
+                                     additional_source_id=achievement_id,
+                                     additional_source_property_index=additional_source_property_index,
+                                     additional_property_type=additional_property_type,
+                                     additional_property_value=additional_property_value,
+                                     )
+        return record
+
+    # 删
+    @classmethod
+    def del_initial_properties(cls) -> bool:
+        """
+        删除成就对应的所有属性加成
+        :return:
+        """
+        result = cls.del_all_by_kwargs(additional_source_type=AdditionSourceType.INITIAL.index)
+        return result
+
+    @classmethod
+    def del_achievement_properties(cls,
+                                   *,
+                                   achievement_id: int = None,
+                                   ) -> bool:
+        """
+        删除成就对应的所有属性加成
+        :param achievement_id:
+        :return:
+        """
+        result = cls.del_all_by_kwargs(additional_source_type=AdditionSourceType.ACHIEVEMENT_TITLE.index,
+                                       additional_source_id=achievement_id)
+        return result
+
+    @classmethod
+    def del_equipment_prototype_properties(cls,
+                                           *,
+                                           equipment_id: int,
+                                           ) -> bool:
+        """
+        删除某个装备原型的所有属性。
+        :param equipment_id:
+        :return:
+        """
+        result = cls.del_all_by_kwargs(additional_source_type=AdditionSourceType.EQUIPMENT_PROTOTYPE.index,
+                                       additional_source_id=equipment_id)
+        return result
+
+    @classmethod
+    def del_monster_prototype_properties(cls,
+                                         *,
+                                         monster_id: int,
+                                         ) -> bool:
+        """
+        删除某个装备原型的所有属性。
+        :param monster_id:
+        :return:
+        """
+        result = cls.del_all_by_kwargs(additional_source_type=AdditionSourceType.MONSTER.index,
+                                       additional_source_id=monster_id)
+        return result
+
+    @classmethod
+    def del_skill_book_properties(cls,
+                                  *,
+                                  skill_book_id: int,
+                                  ) -> bool:
+        """
+        删除某个装备原型的所有属性。
+        :param skill_book_id:
+        :return:
+        """
+
+        result = cls.del_all_by_kwargs(additional_source_type=AdditionSourceType.SKILL_BOOK.index,
+                                       additional_source_id=skill_book_id)
+        return result
+
+    @classmethod
+    def del_status_properties(cls,
+                              *,
+                              status_id: int,
+                              ) -> bool:
+        """
+        删除某个装备原型的所有属性。
+        :param status_id:
+        :return:
+        """
+        result = cls.del_all_by_kwargs(additional_source_type=AdditionSourceType.STATUS.index,
+                                       additional_source_id=status_id)
+        return result
+
+    @classmethod
+    def del_base_additional_properties(cls,
+                                       *,
+                                       base_property_type: int,
+                                       ) -> bool:
+        result = cls.del_all_by_kwargs(additional_source_type=AdditionSourceType.BASE_ADDITIONAL.index,
+                                       additional_source_id=base_property_type)
+        return result
+
+    # 改
+    @classmethod
+    def update_base_additional_properties(cls,
+                                          *,
+                                          base_property_type: int,
+                                          additional_property_type: int,
+
+                                          additional_property_value: int
+                                          ) -> "InitialSkillAchievementEquipmentPotionEtcPropertiesRecord":
+        query_dict = {
+            'additional_source_type': AdditionSourceType.BASE_ADDITIONAL.index,
+            'base_property_type': base_property_type,
+            'additional_property_type': additional_property_type,
+        }
+        update_dict = {
+            "additional_property_value": additional_property_value
+        }
+        record = cls.update_fields_by_query_dict(query_dict=query_dict, update_dict=update_dict)
+
+        return record
+
+    @classmethod
+    def update_player_base_property_by(cls,
+                                       *,
+                                       character_id: int,
+                                       base_property_type: int,
+                                       base_property_value: int,
                                        ):
-    """
-    删除某个装备原型的所有属性。
-    :param equipment_id:
-    :return:
-    """
-    session.query(InitialSkillAchievementEquipmentPotionEtcPropertiesRecord).filter(
-        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_type == AdditionSourceType.EQUIPMENT_PROTOTYPE.index,
-        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_id == equipment_id,
-    ).delete(synchronize_session=False)
+        """
+        更新基础属性
+        :param character_id:
+        :param base_property_type:
+        :param base_property_value:
+        :return:
+        """
+        query_dict = {
+            'additional_source_type': AdditionSourceType.BASE_PROPERTY_POINT.index,
+            'additional_source_id': character_id,
 
-    session.commit()
-    return True
+            'additional_property_type': base_property_type,
+        }
+        update_dict = {
+            "additional_property_value": base_property_value
+        }
+        record = cls.update_fields_by_query_dict(query_dict=query_dict, update_dict=update_dict)
+        return record
 
+    @classmethod
+    def update_player_property(cls,
+                               *,
+                               character_id: int = None,
 
-def del_monster_prototype_properties(*,
-                                     monster_id: int,
-                                     ):
-    """
-    删除某个装备原型的所有属性。
-    :param monster_id:
-    :return:
-    """
-    session.query(InitialSkillAchievementEquipmentPotionEtcPropertiesRecord).filter(
-        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_type == AdditionSourceType.MONSTER.index,
-        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_id == monster_id,
-    ).delete(synchronize_session=False)
+                               additional_property_type: int,
+                               additional_property_value: int,
+                               ) -> cls:
+        query_dict = {
+            'additional_source_type': AdditionSourceType.PLAYER.index,
+            'additional_source_id': character_id,
+            'additional_property_type': additional_property_type,
+        }
+        update_dict = {
+            "additional_property_value": additional_property_value
+        }
+        record = cls.update_fields_by_query_dict(query_dict=query_dict, update_dict=update_dict)
+        return record
 
-    session.commit()
-    return True
+    @classmethod
+    def update_skill_property(cls,
 
-
-def del_skill_book_properties(*,
-                              skill_book_id: int,
+                              *,
+                              skill_id: int,
+                              property_index: int,
+                              additional_property_type: int,
+                              additional_property_value: int,
                               ):
-    """
-    删除某个装备原型的所有属性。
-    :param skill_book_id:
-    :return:
-    """
-    session.query(InitialSkillAchievementEquipmentPotionEtcPropertiesRecord).filter(
-        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_type == AdditionSourceType.SKILL_BOOK.index,
-        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_id == skill_book_id,
-    ).delete(synchronize_session=False)
+        """
+        :param skill_id:    技能id
+        :param property_index:  属性的id。第一条属性，第二条属性，第三条属性，第四条属性
+        :param additional_property_type: 属性的类型
+        :param additional_property_value:   属性值
+        :return:
+        """
+        ...
 
-    session.commit()
-    return True
+    @classmethod
+    def update_skill_book_property(cls,
+                                   *,
+                                   skill_book_id: int = None,
+                                   property_index: int,
+                                   property_target: int,
+                                   additional_property_type: int,
+                                   additional_property_value: int,
+                                   ):
+        """
+        :param skill_book_id:    技能id
+        :param property_index:  属性的id。第一条属性，第二条属性，第三条属性，第四条属性
+        :param property_target: 属性的作用对象。对于被动技能来说，作用对象是自己，对于主动技能，作用对象可能是自己也可能是对方；
+        :param additional_property_type: 属性的类型
+        :param additional_property_value:   属性值
+        :return:
+        """
+        ...
 
+    @classmethod
+    def update_player_properties_dict(cls,
+                                      *,
+                                      character_id: int = None,
+                                      properties_dict: DefaultDict[int, int]
+                                      ):
+        """
+        更新用户的属性
+        :param character_id:
+        :param properties_dict:
+        :return:
+        """
+        ...
 
-def del_status_properties(*,
-                          status_id: int,
-                          ) -> bool:
-    """
-    删除某个装备原型的所有属性。
-    :param status_id:
-    :return:
-    """
-    session.query(InitialSkillAchievementEquipmentPotionEtcPropertiesRecord).filter(
-        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_type == AdditionSourceType.STATUS.index,
-        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_id == status_id,
-    ).delete(synchronize_session=False)
+    # 查
+    @classmethod
+    def is_exists(cls,
+                  *,
+                  additional_source_type: int = None,
+                  additional_source_id: int = None,
+                  additional_source_property_index: int = None,
+                  property_availability: int = None,
+                  additional_property_type: int = None,
+                  ):
+        fields = cls.update_fields_from_signature(func=cls.is_exists)
+        result = cls.is_exists_by_kwargs(**fields)
+        return result
 
-    session.commit()
-    return True
+    @classmethod
+    def get_properties_by(cls,
+                          *,
+                          additional_source_type: int,
+                          additional_source_id: int = None,
 
+                          additional_source_property_index: int = None,
+                          property_availability: EquipmentPropertyAvailability = None,
 
-def del_base_additional_properties(*,
-                                   base_property_type: int, ):
-    session.query(InitialSkillAchievementEquipmentPotionEtcPropertiesRecord).filter(
-        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_type == AdditionSourceType.BASE_ADDITIONAL.index,
-        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_id == base_property_type,
-    ).delete()
-    session.commit()
+                          additional_property_type: int = None,
+                          ) -> List["InitialSkillAchievementEquipmentPotionEtcPropertiesRecord"]:
 
+        fields = cls.update_fields_from_signature(func=cls.is_exists)
+        records=cls.get_all_by(**fields)
 
-# 改
-
-# def update_base_additional_properties(*,
-#                                       base_property_type: int,
-#                                       additional_property_type: int,
-#                                       additional_property_value: int):
-#     record = session.query(InitialSkillAchievementEquipmentPotionEtcPropertiesRecord).filter(
-#         InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_type == AdditionSourceType.BASE_ADDITIONAL.index,
-#         InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_id == base_property_type,
-#         InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_property_type == additional_property_type,
-#     ).first()
-#     record.additional_property_value = additional_property_value
-
-
-def update_or_add_new_base_property(
-        *,
-        character_id: int,
-        base_property_type: int,
-        base_property_value: int,
-):
-    """
-    更新基础属性。
-    :param character_id:
-    :param base_property_type:
-    :param base_property_value:
-    :return:
-    """
-    if is_exists_by_base_property(character_id=character_id, base_property_type=base_property_type):
-        return update_base_property_by(character_id=character_id,
-                                       base_property_type=base_property_type,
-                                       base_property_value=base_property_value)
-
-    return add_player_base_property(character_id=character_id,
-                                    base_property_type=base_property_type,
-                                    base_property_value=base_property_value)
-
-
-def update_base_property_by(*,
-                            character_id: int,
-                            base_property_type: int,
-                            base_property_value: int,
-                            ):
-    """
-    更新基础属性
-    :param character_id:
-    :param base_property_type:
-    :param base_property_value:
-    :return:
-    """
-    update_by(
-        source_type=AdditionSourceType.BASE_PROPERTY_POINT.index,
-        source_id=character_id,
-        additional_property_type=base_property_type,
-        additional_property_value=base_property_value,
-    )
-
-
-def update_by(
-        *,
-        source_type: int,
-        additional_property_type: int,
-        additional_property_value: int,
-
-        source_id: int = None,
-        additional_source_property_index: int = None,
-        property_availability: EquipmentPropertyAvailability = None,
-
-) -> InitialSkillAchievementEquipmentPotionEtcPropertiesRecord:
-    """
-    根据带来属性提升的物品类型和物品id查询对应的属性信息
-    Args:
-    source_type(int): 带来属性提升的物品类型
-    additional_property_type(int): 属性类型
-    additional_property_value(int): 属性值
-    source_id(int): 带来属性提升的物品id
-    additional_source_property_index:所属属性id。
-    is_identify_temp: 是否是临时鉴定属性
-    Returns:
-    Optional[InitialSkillAchievementEquipmentEtcPropertiesRecord]: 如果找到了对应的属性信息，返回该对象，否则返回None
-    """
-    query = session.query(InitialSkillAchievementEquipmentPotionEtcPropertiesRecord).filter(
-        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_type == source_type,
-        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_property_type == additional_property_type,
-    )
-    if source_id:
-        query = query.filter(
-            InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_id == source_id,
-        )
-    if additional_source_property_index:
-        query = query.filter(
-            InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_property_index == additional_source_property_index,
-        )
-    if property_availability:
-        query = query.filter(
-            InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.property_availability == property_availability,
-        )
-
-    record = query.first()
-    record.additional_property_value = additional_property_value
-    session.commit()
-    session.refresh(record)
-    return record
-
-
-def update_player_property(
-        *,
-        character_id: int = None,
-
-        additional_property_type: int,
-        additional_property_value: int,
-):
-    return update_by(source_type=AdditionSourceType.PLAYER.index,
-                     additional_property_type=additional_property_type,
-                     additional_property_value=additional_property_value,
-                     source_id=character_id)
-
-
-def update_skill_property(
-        *,
-        skill_id: int,
-        property_index: int,
-        additional_property_type: int,
-        additional_property_value: int,
-):
-    """
-    :param skill_id:    技能id
-    :param property_index:  属性的id。第一条属性，第二条属性，第三条属性，第四条属性
-    :param additional_property_type: 属性的类型
-    :param additional_property_value:   属性值
-    :return:
-    """
-    return update_by(source_type=AdditionSourceType.SKILL.index,
-                     additional_source_property_index=property_index,
-                     additional_property_type=additional_property_type,
-                     additional_property_value=additional_property_value,
-                     source_id=skill_id)
-
-
-def update_skill_book_property(
-        *,
-        skill_book_id: int = None,
-        property_index: int,
-        property_target: int,
-        additional_property_type: int,
-        additional_property_value: int,
-):
-    """
-    :param skill_book_id:    技能id
-    :param property_index:  属性的id。第一条属性，第二条属性，第三条属性，第四条属性
-    :param property_target: 属性的作用对象。对于被动技能来说，作用对象是自己，对于主动技能，作用对象可能是自己也可能是对方；
-    :param additional_property_type: 属性的类型
-    :param additional_property_value:   属性值
-    :return:
-    """
-    return update_by(source_type=AdditionSourceType.SKILL_BOOK.index,
-                     additional_source_property_index=property_index,
-                     property_availability=property_target,
-                     additional_property_type=additional_property_type,
-                     additional_property_value=additional_property_value,
-                     source_id=skill_book_id)
-
-
-def update_player_properties_dict(*,
-                                  character_id: int = None,
-                                  properties_dict: DefaultDict[int, int]
-                                  ):
-    """
-    更新用户的属性
-    :param character_id:
-    :param properties_dict:
-    :return:
-    """
-    for property_type_key in properties_dict:
-        update_player_property(
-            character_id=character_id,
-            additional_property_type=property_type_key,
-            additional_property_value=properties_dict[property_type_key],
-        )
-
-
-# 查
-def is_exists_by_base_property(*,
-                               character_id: int,
-                               base_property_type: int,
-                               ):
-    query = session.query(InitialSkillAchievementEquipmentPotionEtcPropertiesRecord).filter(
-        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_id == character_id,
-        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_property_type == base_property_type,
-    ).first()
-    return query is not None
-
-
-def is_exists_by_properties_additional_source_type_additional_property_type(
-        *,
-        additional_source_type: int,
-        additional_property_type: int,
-):
-    """
-    根据附加属性来源的类型和属性类型查询是否存在对应属性记录；
-    :param additional_source_type:
-    :param additional_property_type:
-    :return:
-    """
-    query = session.query(InitialSkillAchievementEquipmentPotionEtcPropertiesRecord).filter(
-        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_type == additional_source_type,
-        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_property_type == additional_property_type,
-    ).first()
-    return query is not None
-
-
-def get_properties_by(
-        *,
-        source_type: int,
-        source_id: int = None,
-
-        additional_source_property_index: int = None,
-        property_availability: EquipmentPropertyAvailability = None,
-
-        additional_property_type: int = None,
-) -> List[InitialSkillAchievementEquipmentPotionEtcPropertiesRecord]:
-    """
-    根据带来属性提升的物品类型和物品id查询对应的属性信息
-    Args:
-    source_type(int): 带来属性提升的物品类型
-    source_id(int): 带来属性提升的物品id
-    additional_source_property_index:所属属性id。
-    is_identify_temp: 是否是临时鉴定属性
-    Returns:
-    Optional[InitialSkillAchievementEquipmentEtcPropertiesRecord]: 如果找到了对应的属性信息，返回该对象，否则返回None
-    """
-    query = session.query(InitialSkillAchievementEquipmentPotionEtcPropertiesRecord).filter(
-        InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_type == source_type,
-    )
-    if source_id:
-        query = query.filter(
-            InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_id == source_id,
-        )
-    if additional_source_property_index:
-        query = query.filter(
-            InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_source_property_index == additional_source_property_index,
-        )
-    if property_availability:
-        query = query.filter(
-            InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.property_availability == property_availability,
-        )
-    if additional_property_type:
-        query = query.filter(
-            InitialSkillAchievementEquipmentPotionEtcPropertiesRecord.additional_property_type == additional_property_type,
-        )
-    return query.all()
+        return records
 
 
 # other
@@ -625,7 +475,7 @@ def get_properties_dict_by_achievement_id(*,
     :return:
     """
     properties_dict = get_properties_dict_by(
-        source_type=AdditionSourceType.ACHIEVEMENT.index,
+        source_type=AdditionSourceType.ACHIEVEMENT_TITLE.index,
         source_id=achievement_id,
     )
     return properties_dict
@@ -701,13 +551,6 @@ def get_additional_property_dict_by_base_property(*,
     return property_dict
 
 
-def get_properties_by_skill_book_id(*,
-                                    skill_book_id: int,
-                                    ):
-    properties = get_properties_by(source_type=AdditionSourceType.SKILL_BOOK.index, source_id=skill_book_id)
-    return properties
-
-
 def get_properties_by_status_id(*,
                                 status_id: int,
                                 ):
@@ -719,15 +562,17 @@ def get_properties_by_base_property(*,
                                     base_property_id: int,
                                     ):
     properties = get_properties_by(source_type=AdditionSourceType.BASE_ADDITIONAL.index,
-                                          source_id=base_property_id)
+                                   source_id=base_property_id)
     return properties
 
+
 def get_properties_by_achievement_id(*,
-                                    achievement_id: int,
-                                    ):
-    properties = get_properties_by(source_type=AdditionSourceType.ACHIEVEMENT.index,
-                                          source_id=achievement_id)
+                                     achievement_id: int,
+                                     ):
+    properties = get_properties_by(source_type=AdditionSourceType.ACHIEVEMENT_TITLE.index,
+                                   source_id=achievement_id)
     return properties
+
 
 def get_properties_dict_by_skill_book_id(*,
                                          skill_book_id: int,

@@ -3,55 +3,47 @@ from typing import List, Optional
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float, Boolean
 
-Base = declarative_base()
 
 from DBHelper.session import session
+from DBHelper.tables.base_table import Basic,Base
 
 
-class PlayerSkillRecord(Base):
+class PlayerSkillRecord(Basic,Base):
     """
-    已学习技能表。只存储最大等级。可能会被更新；
+    已学习技能表。只存储最大等级。可能会被更新;
     """
     __tablename__ = 'player_skill_record'
 
-    id = Column(Integer, primary_key=True)
+    character_id = Column(Integer, comment="character_id")
 
-    character_id = Column(Integer, comment="character_id")  # 参考人物表
-
-    skill_id = Column(Integer, comment="技能ID")  # ForeignKey(Skill.id)
+    skill_id = Column(Integer, comment="技能ID")
 
     skill_level = Column(Integer, comment="已经学习的技能等级")
     learning_timestamp = Column(Integer, comment="学习的时间")
 
-
-# 增
-def add(*,
-        character_id: int,
-        skill_id: int,
-        skill_level: int,
-        learning_timestamp: int) -> PlayerSkillRecord:
-    """
-    新增一个已经学习的技能记录
-    """
-    player_skill_record = PlayerSkillRecord(character_id=character_id,
-                                            skill_id=skill_id,
-                                            skill_level=skill_level,
-                                            learning_timestamp_id=learning_timestamp)
-    session.add(player_skill_record)
-    session.commit()
-    return player_skill_record
-
+    @classmethod
+    def add_or_update_by_ids(cls,
+                             *,
+                             _id: int = None,
+                             character_id: int = None,
+                             skill_id: int = None,
+                             skill_level: int = None,
+                             learning_timestamp: int = None
+                             ):
+        """
+        更新或创建技能学习记录
+        :param _id: 记录ID
+        :param character_id: 人物ID
+        :param skill_id: 技能ID
+        :param skill_level: 已学习技能等级
+        :param learning_timestamp: 学习时间
+        :return:
+        """
+        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_ids)
+        record = cls._add_or_update_by_id(**fields)
+        return record
 
 # 删
-def delete_by_record_id(*,
-                                                   skill_record_id: int):
-    """
-    删除已学习技能记录
-    :param skill_record_id: 记录的ID
-    :return: None
-    """
-    session.query(PlayerSkillRecord).filter(PlayerSkillRecord.id == skill_record_id).delete()
-    session.commit()
 
 
 # 改

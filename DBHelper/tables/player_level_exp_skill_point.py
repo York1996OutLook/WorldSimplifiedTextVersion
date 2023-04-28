@@ -3,36 +3,51 @@ from sqlalchemy import Column, Integer, String, Float, Boolean, func, desc
 
 from typing import Optional, List
 
-Base = declarative_base()
-
 from DBHelper.session import session
+from DBHelper.tables.base_table import Basic,Base
 
 
-class PlayerLevelExpSkillPoint(Base):
+
+class PlayerLevelExpSkillPoint(Basic,Base):
     """
     升级所需经验
     """
     __tablename__ = "player_level_exp_skill_point"
 
-    id = Column(Integer, primary_key=True)
-
     level = Column(Integer, comment="等级")
-    required_exp = Column(Integer, comment="所需经验。非叠加；")
+    required_exp = Column(Integer, comment="所需经验。非叠加;")
     skill_point = Column(Integer, comment="升到该等级能够获得的技能点数量")
 
+    @classmethod
+    def add_or_update_by_id(cls, *,
+                       _id: int,
+                       level: int = None,
+                       required_exp: int = None,
+                       skill_point: int = None
+                       ):
+        """
+        更新或创建等级及对应经验技能点记录
+        :param _id: 记录ID
+        :param level: 等级
+        :param required_exp: 所需经验
+        :param skill_point: 能够获得的技能点数量
+        :return:
+        """
+        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
+        record = cls._add_or_update_by_id(**fields)
+        return record
 
-# 增
-def add(level: int, required_exp: float) -> PlayerLevelExpSkillPoint:
-    """
-    新增一条升级所需经验
-    :param level: 等级
-    :param required_exp: 所需经验
-    :return: None
-    """
-    record = PlayerLevelExpSkillPoint(level=level, required_exp=required_exp)
-    session.add(record)
-    session.commit()
-    return record
+    @classmethod
+    def get_by_level(cls, level: int) -> "PlayerLevelExpSkillPoint":
+        """
+        通过等级获取对应记录
+        :param level: 等级
+        :return: PlayerLevelExpSkillPoint
+        """
+        record=cls.get_by_id()
+        record = session.query(cls).filter(cls.level == level).first()
+        return record
+
 
 
 # 删
@@ -46,30 +61,6 @@ def delete(level_id: int) -> None:
     record = session.query(PlayerLevelExpSkillPoint).filter(PlayerLevelExpSkillPoint.id == level_id)
     session.commit()
     return record
-
-
-# 改
-def update(level: int, required_exp: int = None, skill_point: int = None) -> PlayerLevelExpSkillPoint:
-    """
-    修改玩家升级所需经验
-
-    Args:
-        level: 等级
-        required_exp: 所需经验
-        skill_point: 获得的技能点数量
-
-    Returns:
-        None
-    """
-    player_level_exp = session.query(PlayerLevelExpSkillPoint).filter(PlayerLevelExpSkillPoint.level == level).first()
-    if required_exp:
-        player_level_exp.required_exp = required_exp
-    if skill_point:
-        player_level_exp.skill_point = skill_point
-
-    session.commit()
-    session.refresh(player_level_exp)
-    return player_level_exp
 
 
 # 查

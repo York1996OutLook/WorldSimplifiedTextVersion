@@ -1,19 +1,16 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float, Boolean
-from DBHelper.session import session
 
+from DBHelper.session import session
+from DBHelper.tables.base_table import Basic,Base
 from Enums import BattleType
 
-Base = declarative_base()
-
-
-class PlayerBattleRecord(Base):
+class PlayerBattleRecord(Basic,Base):
     """
     战斗中记录表
     """
     __tablename__ = "battle_record"
-    id = Column(Integer, primary_key=True)
-    battle_type = Column(Integer, comment="战斗类型，参考BattleType")
+    battle_type = Column(Integer, comment="战斗类型,参考BattleType")
 
     positive_character_id = Column(Integer, comment="主动攻击角色ID")
     passive_character_id = Column(Integer, comment="被动攻击角色ID")
@@ -21,126 +18,65 @@ class PlayerBattleRecord(Base):
     positive_won = Column(Boolean, comment="主动攻击人是否胜利")
     battle_text = Column(String, comment="战斗产生的文字说明")
 
+    @classmethod
+    def add_or_update_by_id(cls,
+                            *,
+                            _id: int,
+                            battle_type: int = None,
+                            positive_character_id: int = None,
+                            passive_character_id: int = None,
+                            positive_won: bool = None,
+                            battle_text: str = None
+                            ):
+        """
+        更新或创建战斗记录
+        :param _id: 记录ID
+        :param battle_type: 战斗类型
+        :param positive_character_id: 主动攻击角色ID
+        :param passive_character_id: 被动攻击角色ID
+        :param positive_won: 主动攻击人是否胜利
+        :param battle_text: 战斗产生的文字说明
+        :return:
+        """
+        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
+        record = cls._add_or_update_by_id(**fields)
+        return record
 
-# 增
-def add(*, battle_type: int, positive_id: int, passive_id: int, positive_won: bool,
-                      battle_text: str) -> PlayerBattleRecord:
-    """
-    向战斗记录表中添加一条记录
+    # 改
+    @classmethod
+    def update_won(cls,*, record_id: int, positive_won: bool) -> "PlayerBattleRecord":
 
-    Args:
-    - battle_type (int): 战斗类型
-    - positive_id (int): 主动攻击character ID
-    - passive_id (int): 被动攻击character ID
-    - positive_won (bool): 主动攻击人是否胜利
-    - battle_text (str): 战斗产生的文字说明
+        record=cls.update_kwargs_by_id(_id=record_id,positive_won=positive_won)
+        return record
 
-    Returns:
-    - None: 没有返回值
+    @classmethod
+    def update_text(cls,*, record_id: int, battle_text: str) -> "PlayerBattleRecord":
 
-    """
-    new_record = PlayerBattleRecord(
-        battle_type=battle_type,
-        positive_id=positive_id,
-        passive_id=passive_id,
-        positive_won=positive_won,
-        battle_text=battle_text
-    )
-    session.add(new_record)
-    session.commit()
-    return new_record
+        record=cls.update_kwargs_by_id(_id=record_id,battle_text=battle_text)
+        return record
 
-
-# 删
-def delete(*, record_id: int) -> None:
-    """
-    删除战斗记录表中的一条记录
-
-    Args:
-    - record_id (int): 要删除的记录的id
-
-    Returns:
-    - None: 没有返回值
-
-    """
-    record_to_delete = session.query(PlayerBattleRecord).filter(PlayerBattleRecord.id == record_id).first()
-    session.delete(record_to_delete)
-    session.commit()
-
-
-# 改
-def update_won(*, record_id: int, positive_won: bool) -> PlayerBattleRecord:
-    """
-    修改战斗记录表中的主动攻击是否获胜
-
-    Args:
-    - record_id (int): 要修改的记录的id
-    - positive_won (bool): 修改后的主动攻击是否获胜
-
-    Returns:
-    - None: 没有返回值
-
-    """
-    record_to_update = session.query(PlayerBattleRecord).filter(PlayerBattleRecord.id == record_id).first()
-    record_to_update.positive_won = positive_won
-    session.commit()
-    session.refresh(record_to_update)
-    return record_to_update
-
-
-def update_text(*, record_id: int, battle_text: str) -> PlayerBattleRecord:
-    """
-    修改战斗记录表中的战斗产生的文字说明
-
-    Args:
-    - record_id (int): 要修改的记录的id
-    - battle_text (str): 修改后的战斗产生的文字说明
-
-    Returns:
-    - None: 没有返回值
-
-    """
-    record_to_update = session.query(PlayerBattleRecord).filter(PlayerBattleRecord.id == record_id).first()
-    record_to_update.battle_text = battle_text
-    session.commit()
-    session.refresh(record_to_update)
-    return record_to_update
-
-
-def update_positive_id(*, record_id: int, positive_character_id: int) -> PlayerBattleRecord:
-    """
-    修改战斗记录表中的主动攻击characterID
-
-    Args:
-    - record_id (int): 要修改的记录的id
-    - positive_id (int): 修改后的主动攻击character ID
-
-    Returns:
-    - None: 没有返回值
-
-    """
-    record_to_update = session.query(PlayerBattleRecord).filter(PlayerBattleRecord.id == record_id).first()
-    record_to_update.positive_id = positive_character_id
-    session.commit()
-    session.refresh(record_to_update)
-    return record_to_update
+    @classmethod
+    def update_positive_id(cls,*, record_id: int, positive_character_id: int) -> "PlayerBattleRecord":
+        record=cls.update_kwargs_by_id(_id=record_id,positive_character_id=positive_character_id)
+        return record
 
 
 # 查询
+    @classmethod
+    def get_battles_by_positive_id(cls,*, positive_id: int):
+        """
+        查询主动攻击者是positive_id的所有战斗记录
+        """
+        records=cls.get_all_by(positive_id=positive_id)
+        return records
 
-def get_battles_by_positive_id(*, positive_id:int):
-    """
-    查询主动攻击者是positive_id的所有战斗记录
-    """
-    return session.query(PlayerBattleRecord).filter_by(positive_id=positive_id).all()
-
-
-def get_battles_by_passive_id(*, passive_id:int):
-    """
-    查询被动攻击者是passive_id的所有战斗记录
-    """
-    return session.query(PlayerBattleRecord).filter_by(passive_id=passive_id).all()
-
+    @classmethod
+    def get_battles_by_passive_id(cls,*, passive_id: int):
+        """
+        查询被动攻击者是passive_id的所有战斗记录
+        """
+        records=cls.get_all_by(passive_id=passive_id)
+        return records
 
 def get_battles_by_battle_type(*, battle_type: BattleType):
     """
@@ -155,9 +91,3 @@ def get_battles_by_result(*, positive_won: bool):
     """
     return session.query(PlayerBattleRecord).filter_by(positive_won=positive_won).all()
 
-
-def get_all_battles():
-    """
-    查询所有战斗记录
-    """
-    return session.query(PlayerBattleRecord).all()

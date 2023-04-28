@@ -218,7 +218,7 @@ def get_player_initial_skills_achievements_equipments_properties_dict(*, charact
     # 玩家->成就称号->属性提升
     achievement_properties_dict = get_player_achievement_title_additional_properties_dict_by_character_id(
         character_id=character_id)
-    log_system.log_properties(additional_source_type=AdditionSourceType.ACHIEVEMENT,
+    log_system.log_properties(additional_source_type=AdditionSourceType.ACHIEVEMENT_TITLE,
                               properties_dict=achievement_properties_dict)
 
     # 玩家->装备+升星+镶嵌宝石->属性提升

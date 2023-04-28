@@ -3,82 +3,44 @@ from sqlalchemy import Column, Integer, String, Float, Boolean, desc
 
 from typing import Optional, List
 
-Base = declarative_base()
 
 from DBHelper.session import session
+from DBHelper.tables.base_table import Basic,Base
 
 
-class PlayerLotteryRecord(Base):
+class PlayerLotteryRecord(Basic,Base):
     """
     玩家抽奖记录表
     """
     __tablename__ = 'player_lottery_record'
 
-    id = Column(Integer, primary_key=True, comment='抽奖记录ID')
-
     character_id = Column(Integer, comment="角色ID")
 
-    lottery_num = Column(Integer, comment="抽奖获得的数字；")
-    lottery_timestamp = Column(Integer, comment="最后一次抽奖的时间戳；")
+    lottery_num = Column(Integer, comment="抽奖获得的数字;")
+    lottery_timestamp = Column(Integer, comment="最后一次抽奖的时间戳;")
 
     lucky_num = Column(Integer, comment="当天设置的幸运数字")
 
-
-# 增
-def add(*, character_id: int,
-                              lottery_num: int,
-                              lottery_timestamp: int,
-                              lucky_num: int
-                              ) -> PlayerLotteryRecord:
-    """
-    新增玩家抽奖记录
-    :param character_id: 角色ID
-    :param lottery_num: 抽奖获得的数字
-    :param lottery_timestamp: 最后一次抽奖的时间戳
-    :param lucky_num: 当天设置的幸运数字
-    :return: None
-    """
-    record = PlayerLotteryRecord(
-        character_id=character_id,
-        lottery_num=lottery_num,
-        lottery_timestamp=lottery_timestamp,
-        lucky_num=lucky_num
-    )
-    session.add(record)
-    session.commit()
-    return record
-
-
-# 删
-def delete(*, record_id: int):
-    """
-    删除玩家抽奖记录
-    :param record_id: 记录ID
-    :return: None
-    """
-    record = session.query(PlayerLotteryRecord).filter_by(id=record_id).first()
-    session.delete(record)
-    session.commit()
-
-
-# 改
-def update(*, record_id: int, lottery_num: int, lottery_timestamp: int,
-                                 lucky_num: int) -> PlayerLotteryRecord:
-    """
-    修改玩家抽奖记录
-    :param record_id: 记录ID
-    :param lottery_num: 抽奖获得的数字
-    :param lottery_timestamp: 最后一次抽奖的时间戳
-    :param lucky_num: 当天设置的幸运数字
-    :return: PlayerLotteryRecord
-    """
-    record = session.query(PlayerLotteryRecord).filter_by(id=record_id).first()
-    record.lottery_num = lottery_num
-    record.lottery_timestamp = lottery_timestamp
-    record.lucky_num = lucky_num
-    session.commit()
-    session.refresh(record)
-    return record
+    @classmethod
+    def add_or_update_by_id(cls, *,
+                       _id: int,
+                       character_id: int = None,
+                       lottery_num: int = None,
+                       lottery_timestamp: int = None,
+                       lucky_num: int = None
+                       ):
+        """
+        更新或创建抽奖记录
+        :param _id: 记录ID
+        :param character_id: 角色ID
+        :param lottery_num: 抽奖获得的数字
+        :param lottery_timestamp: 最后一次抽奖的时间戳
+        :param lucky_num: 当天设置的幸运数字
+        :return:
+        """
+        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
+        record = cls._add_or_update_by_id(**fields)
+        return record
 
 
 # 查

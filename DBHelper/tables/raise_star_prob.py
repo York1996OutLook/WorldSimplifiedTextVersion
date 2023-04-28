@@ -4,66 +4,50 @@ from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
 from DBHelper.session import session
+from DBHelper.tables.base_table import Basic,Base
 
-Base = declarative_base()
 
-
-class RaiseStarProb(Base):
+class RaiseStarProb(Basic,Base):
     """
     升星概率表
 
     """
     __tablename__ = 'raise_star_prob'
 
-    id = Column(Integer, primary_key=True)
-    star_count = Column(String, comment="当前升星数量")
-    success_prob = Column(String, comment="从上一星星数量升级到当前数量的星星成功的概率，100为决定成功，0是无法成功")
+    star_count = Column(Integer, comment="当前升星数量")
+    success_prob = Column(Integer, comment="从上一星星数量升级到当前数量的星星成功的概率,100为决定成功,0是无法成功")
 
-    def __init__(self,
-                 *,
-                 star_count: str,
-                 success_prob: str
-                 ):
-        self.star_count = star_count
-        self.success_prob = success_prob
+    @classmethod
+    def add_or_update_by_id(cls,
+                            *,
+                            _id: int = None,
+                            star_count: int = None,
+                            success_prob: int = None
+                            ):
+        """
+        更新或创建升星概率记录
+        :param _id: 记录ID
+        :param star_count: 当前升星数量
+        :param success_prob: 从上一星星数量升级到当前数量的星星成功的概率,100为决定成功,0是无法成功
+        :return:
+        """
+        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
+        record = cls._add_or_update_by_id(**fields)
+        return record
+
+    @classmethod
+    def get_by_star_count(cls, star_count: int) -> "RaiseStarProb":
+        """
+        通过星星数量获取升星概率记录
+        :param star_count: 星星数量
+        :return: RaiseStarProb
+        """
+        record=cls.get_one_by_kwargs(star_count=star_count)
+        return record
 
 
 # 增
-def add(*,
-        star_count: str,
-        success_prob: str
-        ) -> RaiseStarProb:
-    """
-    新增升星概率记录
-    :param star_count: 当前升星数量
-    :param success_prob: 从上一星星数量升级到当前数量的星星成功的概率，100为决定成功，0是无法成功
-    :return: RaiseStarProb object
-    """
-    raise_star_prob = RaiseStarProb(star_count=star_count, success_prob=success_prob)
-    session.add(raise_star_prob)
-    session.commit()
-    return raise_star_prob
-
-
-def add_or_update(*,
-                  star_count: str,
-                  success_prob: str
-                  ) -> RaiseStarProb:
-    """
-    根据star_count判断是否存在，如果已经存在，则更新，如果不存在，则新建记录；
-    :param star_count: 当前升星数量
-    :param success_prob: 从上一星星数量升级到当前数量的星星成功的概率，100为决定成功，0是无法成功
-    :return: RaiseStarProb object
-    """
-    if is_exists_by_star_count(star_count=star_count):
-        raise_star_prob = update_success_prob_by_start_count(star_count=star_count, success_prob=success_prob)
-    else:
-        raise_star_prob = add(star_count=star_count, success_prob=success_prob)
-    return raise_star_prob
-
-
 # 删
-
 # 改
 def update_success_prob_by_start_count(*,
                                        star_count: str,

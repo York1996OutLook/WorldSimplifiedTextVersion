@@ -161,7 +161,7 @@ class AchievementType:
 
     item_list = ItemList()
 
-    VIP = Item(name='VIP称号', comment="充值动作完成后会触发")
+    VIP = Item(name='VIP称号', comment="开通vip后会触发")
     CHARGE = Item(name='充值', comment="充值动作完成后会触发")
     GOLD_NUM = Item(name="黄金数量", comment="黄金数量增加后可能会触发")
     BASE_PROPERTY_TYPE = Item(name="基础属性突破", comment="黄金数量增加后可能会触发")
@@ -306,8 +306,6 @@ class GemInlayingStatus:
     default = NOT_INLAYING
 
 
-
-
 class AdditionalPropertyType:
     """
     装备、技能、称号所有可能的属性
@@ -315,74 +313,111 @@ class AdditionalPropertyType:
     name = '所有属性'
     item_list = ItemList()
 
-    PHYSIQUE = Item(name="体质", comment="帧率")
-    PHYSIQUE_ADD_PERCENT = Item(name="体质百分比", comment="体质百分比")
+    PHYSIQUE = Item(name="体质", comment="体质")
+    PHYSIQUE_PERCENT = Item(name="体质百分比", comment="体质百分比")
 
     STRENGTH = Item(name="力量", comment="力量")
-    STRENGTH_ADD_PERCENT = Item(name="力量百分比", comment="力量百分比")
+    STRENGTH_PERCENT = Item(name="力量百分比", comment="力量百分比")
 
     AGILITY = Item(name="敏捷", comment="敏捷")
-    AGILITY_ADD_PERCENT = Item(name="敏捷百分比", comment="敏捷百分比")
+    AGILITY_PERCENT = Item(name="敏捷百分比", comment="敏捷百分比")
 
     INTELLIGENCE = Item(name="智力", comment="智力")
-    INTELLIGENCE_ADD_PERCENT = Item(name="智力百分比", comment="智力百分比")
+    INTELLIGENCE_PERCENT = Item(name="智力百分比", comment="智力百分比")
 
     PERCEPTION = Item(name="感知", comment="感知")
-    PERCEPTION_ADD_PERCENT = Item(name="感知百分比", comment="感知百分比")
+    PERCEPTION_PERCENT = Item(name="感知百分比", comment="感知百分比")
 
-    MANA_SHIELD = Item(name="法力护盾", comment="出手速度")
-    MANA_SHIELD_ADD_PERCENT = Item(name="法力护盾百分比", comment="出手速度百分比")
+    MANA_SHIELD = Item(name="法力护盾", comment="法力护盾")
+    MANA_SHIELD_PERCENT = Item(name="法力护盾百分比", comment="出手速度百分比")
+
+    DEDUCT_MANA_SHIELD = Item(name="扣除法力护盾", comment="")
+    DEDUCT_MANA_SHIELD_PERCENT = Item(name="扣除当前法力护盾百分比", comment="")
+    DEDUCT_MANA_SHIELD_UPPER_LIMIT_PERCENT = Item(name="扣除法力护盾上限百分比", comment="")
 
     ATTACK_SPEED = Item(name="出手速度", comment="出手速度")
-    ATTACK_SPEED_ADD_PERCENT = Item(name="出手速度百分比", comment="出手速度百分比")
+    ATTACK_SPEED_PERCENT = Item(name="出手速度百分比", comment="出手速度百分比")
+
+    DEDUCT_ATTACK_SPEED = Item(name="扣除出手速度", comment="")
+    DEDUCT_ATTACK_SPEED_PERCENT = Item(name="扣除当前出手速度百分比", comment="")
+    DEDUCT_ATTACK_SPEED_UPPER_LIMIT_PERCENT = Item(name="扣除出手速度上限百分比", comment="")
 
     PHYSICS_ATTACK = Item(name="物理攻击力", comment="物理攻击力")
-    PHYSICS_ATTACK_ADD_PERCENT = Item(name="物理攻击力百分比", comment="物理攻击力百分比")
+    PHYSICS_ATTACK_PERCENT = Item(name="物理攻击力百分比", comment="物理攻击力百分比")
 
     HEALTH = Item(name="生命上限", comment="生命上限")
-    HEALTH_ADD_PERCENT = Item(name="生命上限百分比", comment="生命上限百分比")
-    # 增加生命上限的通过状态实现；
+    HEALTH_PERCENT = Item(name="生命上限百分比", comment="生命上限百分比")
+
+    DEDUCT_HEALTH = Item(name="扣除生命值",comment="")
+    DEDUCT_HEALTH_PERCENT = Item(name="扣除当前生命值百分比",comment="")
+    DEDUCT_HEALTH_UPPER_LIMIT_PERCENT = Item(name="扣除生命上限百分比",comment="")
 
     HEALTH_RECOVERY = Item(name="生命恢复", comment="恢复生命")
-    HEALTH_RECOVERY_ADD_PERCENT = Item(name="生命恢复百分比", comment="生命恢复百分比")
-    HEALTH_RECOVERY_ALL_PERCENT = Item(name="恢复百分比生命", comment="恢复百分比生命")
+    HEALTH_RECOVERY_PERCENT = Item(name="生命恢复百分比", comment="生命恢复百分比")
+    HEALTH_RECOVERY_UPPER_LIMIT_PERCENT = Item(name="恢复百分比生命", comment="恢复百分比生命")
 
     HEALTH_ABSORPTION = Item(name="生命吸收", comment="出手速度")
-    HEALTH_ABSORPTION_ADD_PERCENT = Item(name="生命吸收百分比", comment="出手速度百分比")
+    HEALTH_ABSORPTION_PERCENT = Item(name="生命吸收百分比", comment="生命吸收百分比")
 
     MANA = Item(name="法力上限", comment="法力上限")
-    MANA_ADD_PERCENT = Item(name="法力上限百分比", comment="法力上限百分比")
+    MANA_PERCENT = Item(name="法力上限百分比", comment="法力上限百分比")
+
+    DEDUCT_MANA = Item(name="扣除法力值",comment="")
+    DEDUCT_MANA_PERCENT = Item(name="扣除当前法力值百分比",comment="")
+    DEDUCT_MANA_UPPER_LIMIT_PERCENT = Item(name="扣除法力值上限百分比",comment="")
 
     MANA_RECOVERY = Item(name="法力恢复", comment="法力恢复")
-    MANA_RECOVERY_ADD_PERCENT = Item(name="法力恢复百分比", comment="法力恢复百分比")
-    MANA_RECOVERY_ALL_PERCENT = Item(name="回复百分比法力", comment="回复百分比法力")
+    MANA_RECOVERY_PERCENT = Item(name="法力恢复百分比", comment="法力恢复百分比")
+    MANA_RECOVERY_UPPER_LIMIT_PERCENT = Item(name="回复百分比法力", comment="回复百分比法力")
 
-    MANA_ABSORPTION = Item(name="法力上限", comment="法力上限")
-    MANA_ABSORPTION_ADD_PERCENT = Item(name="法力上限百分比", comment="法力上限百分比")
+    MANA_ABSORPTION = Item(name="法力吸收", comment="法力吸收")
+    MANA_ABSORPTION_PERCENT = Item(name="法力吸收百分比", comment="法力吸收百分比")
 
     COUNTERATTACK = Item(name="反击", comment="反击")
-    COUNTERATTACK_ADD_PERCENT = Item(name="反击百分比", comment="反击百分比")
+    COUNTERATTACK_PERCENT = Item(name="反击百分比", comment="反击百分比")
 
     IGNORE_COUNTERATTACK = Item(name="无视反击", comment="无视反击")
-    IGNORE_COUNTERATTACK_ADD_PERCENT = Item(name="无视反击百分比", comment="无视反击百分比")
+    IGNORE_COUNTERATTACK_PERCENT = Item(name="无视反击百分比", comment="无视反击百分比")
+
+    DEDUCT_COUNTERATTACK = Item(name="扣除反击值",comment="")
+    DEDUCT_COUNTERATTACK_PERCENT = Item(name="扣除当前反击值百分比",comment="")
+    DEDUCT_COUNTERATTACK_UPPER_LIMIT_PERCENT = Item(name="扣除反击值上限百分比",comment="")
 
     CRITICAL_POINT = Item(name="致命点", comment="致命点")
-    CRITICAL_POINT_ADD_PERCENT = Item(name="致命点百分比", comment="致命点百分比")
+    CRITICAL_POINT_PERCENT = Item(name="致命点百分比", comment="致命点百分比")
 
     STATE_RESISTANCE = Item(name="状态抵抗", comment="状态抵抗")
-    STATE_RESISTANCE_ADD_PERCENT = Item(name="状态抵抗百分比", comment="状态抵抗百分比")
+    STATE_RESISTANCE_PERCENT = Item(name="状态抵抗百分比", comment="状态抵抗百分比")
     IGNORE_STATE_RESISTANCE = Item(name="无视状态抵抗", comment="无视状态抵抗")
-    IGNORE_STATE_RESISTANCE_ADD_PERCENT = Item(name="无视状态抵抗百分比", comment="无视状态抵抗百分比")
+    IGNORE_STATE_RESISTANCE_PERCENT = Item(name="无视状态抵抗百分比", comment="无视状态抵抗百分比")
+
+    DEDUCT_STATE_RESISTANCE = Item(name="扣除状态抵抗",comment="")
+    DEDUCT_STATE_RESISTANCE_PERCENT = Item(name="扣除当前状态抵抗百分比",comment="")
+    DEDUCT_STATE_RESISTANCE_UPPER_PERCENT = Item(name="扣除状态抵抗上限百分比",comment="")
 
     INSIGHT = Item(name="洞察", comment="洞察")
     INSIGHT_PERCENT = Item(name="洞察百分比", comment="洞察百分比")
     IGNORE_INSIGHT = Item(name="无视洞察", comment="无视洞察")
-    IGNORE_INSIGHT_PERCENT = Item(name="无视洞察百分比", comment="状态抵抗百分比")
+    IGNORE_INSIGHT_PERCENT = Item(name="无视洞察百分比", comment="无视洞察百分比")
+
+    DEDUCT_INSIGHT = Item(name="扣除洞察",comment="")
+    DEDUCT_INSIGHT_PERCENT = Item(name="扣除当前洞察百分比",comment="")
+    DEDUCT_INSIGHT_UPPER_LIMIT_PERCENT = Item(name="扣除洞察上限百分比",comment="")
 
     HIT = Item(name="命中", comment="命中")
+    FORCED_HIT = Item(name="强制命中率", comment="100为满，先根据强制命中率计算是否命中，如果不命中，则根据命中计算；")
     HIT_PERCENT = Item(name="命中百分比", comment="命中百分比")
+
+    DEDUCT_HIT = Item(name="扣除命中",comment="")
+    DEDUCT_HIT_PERCENT = Item(name="扣除当前命中百分比",comment="")
+    DEDUCT_HIT_UPPER_LIMIT_PERCENT = Item(name="扣除命中上限百分比",comment="")
+
     DODGE = Item(name="闪避", comment="闪避")
     DODGE_PERCENT = Item(name="闪避百分比", comment="闪避百分比")
+
+    DEDUCT_DODGE = Item(name="扣除闪避",comment="")
+    DEDUCT_DODGE_PERCENT = Item(name="扣除当前闪避百分比",comment="")
+    DEDUCT_DODGE_UPPER_LIMIT_PERCENT = Item(name="扣除命中上限百分比",comment="")
 
     WEAPON_DAMAGE = Item(name="武器伤害", comment="武器伤害")
     WEAPON_DAMAGE_PERCENT = Item(name="武器伤害百分比", comment="武器伤害百分比")
@@ -395,12 +430,16 @@ class AdditionalPropertyType:
     IGNORE_DAMAGE_REDUCTION = Item(name="无视伤害减免", comment="无视伤害减免")
     IGNORE_DAMAGE_REDUCTION_PERCENT = Item(name="无视伤害减免百分比", comment="无视伤害减免百分比")
 
+    DEDUCT_DAMAGE_REDUCTION = Item(name="扣除伤害减免",comment="")
+    DEDUCT_DAMAGE_REDUCTION_PERCENT = Item(name="扣除当前伤害减免百分比",comment="")
+    DEDUCT_DAMAGE_REDUCTION_UPPER_LIMIT_PERCENT = Item(name="扣除伤害减免上限百分比",comment="")
+
     DAMAGE_SHIELD = Item(name="免伤护盾", comment="免伤护盾")
 
     DAMAGE_PERCENT = Item(name="造成伤害百分比", comment="造成伤害百分比，状态用到")
     TAKE_DAMAGE_PERCENT = Item(name="承受伤害百分比", comment="承受伤害百分比，状态用到")
 
-    EXP_ADD_PERCENT = Item(name="经验百分比", comment="经验百分比")
+    EXP_PERCENT = Item(name="经验百分比", comment="经验百分比")
 
     default = PHYSIQUE
 

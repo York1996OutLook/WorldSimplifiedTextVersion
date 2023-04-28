@@ -5,144 +5,53 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from DBHelper.session import session
 from Enums import AdditionalPropertyType
+from DBHelper.tables.base_table import Entity
 
 Base = declarative_base()
 
 
 # 药剂系统
-class Potion(Base):
+class Potion(Entity):
     """
     药剂
     """
     __tablename__ = "potion"
 
-    id = Column(Integer, primary_key=True, comment="药剂ID")
-    name = Column(String, comment="药剂名称")
-
-    additional_property_type = Column(Integer, comment="附加属性的类型，参考AdditionalPropertyType")
+    additional_property_type = Column(Integer, comment="附加属性的类型,参考AdditionalPropertyType")
     additional_property_value = Column(Integer, comment="附加属性的值")
 
-    duration_by_min = Column(Integer, comment="有效期，以分钟为单位")
+    duration_by_min = Column(Integer, comment="有效期,以分钟为单位")
 
     is_bind = Column(Boolean, comment="刚出来的时候是否已经绑定")
 
-    def __init__(self,
-                 *,
-                 name: str,
-                 additional_property_type: AdditionalPropertyType,
-                 additional_property_value: int,
-                 duration_by_min: int,
-                 is_bind: bool):
-        self.name = name
-        self.additional_property_type = additional_property_type
-        self.additional_property_value = additional_property_value
-        self.duration_by_min = duration_by_min
-        self.is_bind = is_bind
+    @classmethod
+    def add_or_update_by_name(cls,
+                              *,
+                              name: str,
+                              additional_property_type: int = None,
+                              additional_property_value: int = None,
+                              duration_by_min: int = None,
+                              is_bind: bool = None
+                              ) -> "Potion":
+        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_name)
+        record = cls._add_or_update_by_name(**fields)
+        return record
 
+    @classmethod
+    def add_or_update_by_id(
+            cls,
+            *,
+            _id: int,
 
-# 增
-def add(*,
-        name: str,
-        additional_property_type: AdditionalPropertyType,
-        additional_property_value: int,
-        duration_by_min: int,
-        is_bind: bool,
-        ) -> Potion:
-    """
-
-    :param name:
-    :param additional_property_type:
-    :param additional_property_value:
-    :param duration_by_min:
-    :param is_bind:
-    :return:
-    """
-    potion = Potion(name=name, additional_property_type=additional_property_type,
-                    additional_property_value=additional_property_value, duration_by_min=duration_by_min,
-                    is_bind=is_bind)
-    session.add(potion)
-    session.commit()
-    return potion
-
-
-def add_or_update_by_name(*,
-                          name: str,
-                          additional_property_type: AdditionalPropertyType,
-                          additional_property_value: int,
-                          duration_by_min: int,
-                          is_bind: bool,
-                          ) -> Potion:
-    if is_exists_by_name(name=name):
-        potion = update_by_name(
-            name=name,
-            additional_property_type=additional_property_type,
-            additional_property_value=additional_property_value,
-            duration_by_min=duration_by_min,
-            is_bind=is_bind
-        )
-    else:
-        potion = add(name=name,
-                     additional_property_type=additional_property_type,
-                     additional_property_value=additional_property_value,
-                     duration_by_min=duration_by_min,
-                     is_bind=is_bind
-                     )
-    return potion
-
-
-# 删
-
-# 改
-def update_by_name(*,
-                   name: str,
-                   additional_property_type: AdditionalPropertyType = None,
-                   additional_property_value: int = None,
-                   duration_by_min: int = None,
-                   is_bind: bool = None, ) -> Potion:
-    potion = session.query(Potion).filter(Potion.name == name).first()
-    if additional_property_type is not None:
-        potion.additional_property_type = additional_property_type
-    if additional_property_value is not None:
-        potion.additional_property_value = additional_property_value
-    if duration_by_min is not None:
-        potion.duration_by_min = duration_by_min
-    if is_bind is not None:
-        potion.is_bind = is_bind
-
-    session.commit()
-    return potion
-
-
-# 查
-
-def get_by_id(*,
-              _id: int
-              ) -> Potion:
-    """
-    根据potion的id查询你potion
-    """
-    potion = session.query(Potion).filter(Potion.id == _id).first()
-    return potion
-
-
-def is_exists_by_name(*, name: str):
-    """
-    根据name判断是否存在
-    :param name:
-    :return:
-    """
-    potion = session.query(Potion).filter(Potion.name == name).first()
-    return potion is not None
-
-
-def get_by_name(*, name: str) -> Potion:
-    """
-    根据name判断是否存在
-    :param name:
-    :return:
-    """
-    potion = session.query(Potion).filter(Potion.name == name).first()
-    return potion
+            name: str = None,
+            additional_property_type: int = None,
+            additional_property_value: int = None,
+            duration_by_min: int = None,
+            is_bind: bool = None
+    ) -> "Potion":
+        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
+        record = cls._add_or_update_by_id(**fields)
+        return record
 
 
 if __name__ == '__main__':

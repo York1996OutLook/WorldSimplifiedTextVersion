@@ -3,15 +3,12 @@ from typing import List
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float, Boolean
 
-Base = declarative_base()
 from DBHelper.session import session
+from DBHelper.tables.base_table import Basic,Base
 
 
-# 交易所记录
-class PlayerSellStoreRecord(Base):
+class PlayerSellStoreRecord(Basic,Base):
     __tablename__ = 'player_sell_store_record'
-
-    id = Column(Integer, primary_key=True)
 
     owner_character_id = Column(Integer, comment="参考player表")
 
@@ -25,131 +22,44 @@ class PlayerSellStoreRecord(Base):
     deal_timestamp = Column(Integer, comment='交易成交时间')
 
     tax_rate = Column(Float, comment='税率')
-    taxed_price = Column(Float, comment='加税后价格；不足1则按照1进行计算')
+    taxed_price = Column(Float, comment='加税后价格;不足1则按照1进行计算')
 
-
-# 增
-def add(*,
-                          owner_character_id: int,
-                          stuff_name: str,
-                          stuff_count: int,
-                          original_price: int,
-                          initial_sell_timestamp: int,
-                          tax_rate: float) -> PlayerSellStoreRecord:
-    """
-    增加一条交易所记录
-
-    Args:
-        owner_character_id (int): 拥有者玩家ID
-        stuff_name (str): 物品名称
-        stuff_count (int): 物品数量
-        original_price (int): 原始售价
-        initial_sell_timestamp (int): 初始挂售时间
-        tax_rate (float): 税率
-    """
-    taxed_price = original_price * (1 + tax_rate)
-    new_record = PlayerSellStoreRecord(owner_character_id=owner_character_id, stuff_name=stuff_name,
-                                       stuff_count=stuff_count,
-                                       original_price=original_price, initial_sell_timestamp=initial_sell_timestamp,
-                                       is_sold=False, deal_timestamp=None, tax_rate=tax_rate, taxed_price=taxed_price)
-    session.add(new_record)
-    session.commit()
-    return new_record
-
-
-# 删除
-def delete_by_record_id(*, sell_store_record_id: int):
-    """
-    删除一条交易所记录
-
-    Args:
-        sell_store_record_id (int): 记录的ID
-    """
-    record = session.query(PlayerSellStoreRecord).get(sell_store_record_id)
-    session.delete(record)
-    session.commit()
-
-
-# 改
-def update(*,
-                             record_id: int,
-                             new_owner_character_id: int = None,
-                             new_stuff_name: str = None,
-                             new_stuff_count: int = None,
-                             new_original_price: int = None,
-                             new_initial_sell_timestamp: int = None,
-                             new_tax_rate: float = None):
-    """
-    修改交易所记录
-
-    Args:
-        record_id (int): 记录的ID
-        new_owner_character_id (int, optional): 新的拥有者玩家ID
-        new_stuff_name (str, optional): 新的物品名称
-        new_stuff_count (int, optional): 新的物品数量
-        new_original_price (int, optional): 新的原始售价
-        new_initial_sell_timestamp (int, optional): 新的初始挂售时间
-        new_tax_rate (float, optional): 新的税率
-    """
-    record = session.query(PlayerSellStoreRecord).get(record_id)
-    if new_owner_character_id:
-        record.owner_character_id = new_owner_character_id
-    if new_stuff_name:
-        record.stuff_name = new_stuff_name
-    if new_stuff_count:
-        record.stuff_count = new_stuff_count
-    if new_original_price:
-        record.original_price = new_original_price
-    if new_initial_sell_timestamp:
-        record.initial_sell_timestamp = new_initial_sell_timestamp
-    if new_tax_rate:
-        record.tax_rate = new_tax_rate
-    session.commit()
-
-
-# 查
-
-def get_sell_store_records(*,
-                             owner_character_id: int = None,
-                             stuff_name: str = None,
-                             is_sold: bool = None):
-    """
-    查询交易所记录
-
-    Args:
-        owner_character_id (int, optional): 拥有者玩家ID
-        stuff_name (str, optional): 物品名称
-        is_sold (bool, optional): 是否被购买
-
-    Returns:
-        list of SellStoreRecord: 符合条件的记录的列表
-    """
-    query = session.query(PlayerSellStoreRecord)
-    if owner_character_id:
-        query = query.filter_by(owner_character_id=owner_character_id)
-    if stuff_name:
-        query = query.filter_by(stuff_name=stuff_name)
-    if is_sold is not None:
-        query = query.filter_by(is_sold=is_sold)
-    return query.all()
-
-
-def get_by_record_id(*, record_id: int) -> PlayerSellStoreRecord:
-    """
-    根据id查询交易所记录
-
-    Args:
-        record_id (int): 记录的ID
-
-    Returns:
-        SellStoreRecord: 符合条件的记录
-    """
-    return session.query(PlayerSellStoreRecord).filter_by(id=record_id).first()
+    @classmethod
+    def add_or_update_by_id(cls,
+                            *,
+                            _id: int = None,
+                            owner_character_id: int = None,
+                            stuff_type: int = None,
+                            stuff_record_id: int = None,
+                            original_price: int = None,
+                            initial_sell_timestamp: int = None,
+                            is_sold: bool = None,
+                            deal_timestamp: int = None,
+                            tax_rate: float = None,
+                            taxed_price: float = None
+                            ):
+        """
+        更新或创建交易记录
+        :param _id: 记录ID
+        :param owner_character_id: 参考player表
+        :param stuff_type: 物品类型
+        :param stuff_record_id: 物品记录ID
+        :param original_price: 原始售价
+        :param initial_sell_timestamp: 初始挂售时间
+        :param is_sold: 是否被购买
+        :param deal_timestamp: 交易成交时间
+        :param tax_rate: 税率
+        :param taxed_price: 加税后价格;不足1则按照1进行计算
+        :return:
+        """
+        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
+        record = cls._add_or_update_by_id(**fields)
+        return record
 
 
 def get_all_by_timestamp_range(*,
-                                            start_timestamp: int = None,
-                                            end_timestamp: int = None):
+                               start_timestamp: int = None,
+                               end_timestamp: int = None):
     """
     根据时间查询交易所记录
 

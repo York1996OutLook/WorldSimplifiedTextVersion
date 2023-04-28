@@ -4,77 +4,49 @@ from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 
 from DBHelper.session import session
+from DBHelper.tables.base_table import Basic,Base
 from Utils.tools import find_smallest_missing
 from Enums import StuffType
 
-Base = declarative_base()
 
-
-class PlayerStuffRecord(Base):
+class PlayerStuffRecord(Basic,Base):
     """
     装备、物品、称号等的属性
     """
     __tablename__ = 'player_stuff_record'
-    id = Column(Integer, primary_key=True)
 
     character_id = Column(Integer, comment="人物id")
-    stuff_type = Column(Integer, comment="物品的类型，参考StuffType")
-    stuff_id = Column(Integer, comment="物品id")  # 根据类型去找ID
+    stuff_type = Column(Integer, comment="物品的类型,参考StuffType")
+    stuff_id = Column(Integer, comment="物品id")
 
     stuff_num = Column(Integer, comment="数量")
     is_bind = Column(Boolean, comment="是否已经绑定")
-    is_wearing = Column(Boolean, comment="是否穿戴中")  # 如果没有穿戴中，则认为是在背包中；
+    is_wearing = Column(Boolean, comment="是否穿戴中")
 
-    position_in_bag = Column(Integer, comment="在背包中的位置，从1开始，目前没有设定背包大小.0代表没有在背包中。")
+    position_in_bag = Column(Integer, comment="在背包中的位置,从1开始,目前没有设定背包大小.0代表没有在背包中。")
 
-    # 根据（升星后的数量*加成百分比+1）* 基础属性计算升星后的属性值；
     current_stars_num = Column(Integer, comment="当前升星数量")
     gem_inlaying_status = Column(Integer, comment="宝石镶嵌的状态。参考 GemInlayingStatus")
 
+    @classmethod
+    def add_or_update_by_id(cls,
+                            *,
+                            _id: int = None,
+                            character_id: int = None,
+                            stuff_type: int = None,
+                            stuff_id: int = None,
+                            stuff_num: int = None,
+                            is_bind: bool = None,
+                            is_wearing: bool = None,
+                            position_in_bag: int = None,
+                            current_stars_num: int = None,
+                            gem_inlaying_status: int = None
+                            ):
+        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
+        record = cls._add_or_update_by_id(**fields)
+        return record
 
 # 增
-def add(*,
-        character_id: int,
-        stuff_type: StuffType,
-        stuff_id: int,
-
-        stuff_num: int,
-
-        is_bind: bool,
-
-        is_wearing: bool,
-
-        position_in_bag: int,
-
-        current_stars_num: int) -> PlayerStuffRecord:
-    """
-    新增一条玩家物品记录
-    :param character_id: 人物id
-    :param stuff_id: 物品id
-    :param stuff_type: 物品类型
-    :param stuff_num: 数量
-    :param is_bind: 是否已经绑定
-    :param is_wearing: 是否穿戴中
-    :param position_in_bag: 在背包中的位置，从1开始，目前没有设定背包大小。
-    如果穿戴中，则其在背包中的位置属性没有意义。从穿戴到背包的时候会分配新的位置。
-    :param current_stars_num: 当前升星数量
-    :return: PlayerStuffRecord
-    """
-    record = PlayerStuffRecord(
-        character_id=character_id,
-        stuff_type=stuff_type,
-        stuff_id=stuff_id,
-        stuff_num=stuff_num,
-        is_bind=is_bind,
-        is_wearing=is_wearing,
-        position_in_bag=position_in_bag,
-
-        current_stars_num=current_stars_num,
-    )
-    session.add(record)
-    session.commit()
-    return record
-
 
 # 删
 
@@ -126,16 +98,6 @@ def update_stuff_wearing_and_position(*,
 
 # 查
 
-def get_by_record_id(*,
-                     record_id: int
-                     ) -> PlayerStuffRecord:
-    """
-    根据 id 查询 player_stuff_record 记录
-    :param record_id: 记录的 id
-    :return: PlayerStuffRecord 对象
-    """
-    record = session.query(PlayerStuffRecord).filter_by(id=record_id).first()
-    return record
 
 
 def get_all_wearing_equipments_by_character_id(*,

@@ -4,31 +4,48 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float, Boolean
 
 from DBHelper.session import session
+from DBHelper.tables.base_table import Basic
 
 Base = declarative_base()
 
 
-class EquipmentGemRecord(Base):
+class EquipmentGemRecord(Basic, Base):
     __tablename__ = 'equipment_gem_record'
-
-    id = Column(Integer, primary_key=True)
 
     equipment_id = Column(Integer, comment="装备id")
     gem_id = Column(Integer, comment="当前宝石的id")
 
+    # 增改
+    @classmethod
+    def add_or_update_by_id(
+            cls,
+            *,
+            _id: int,
 
-# 查询
-def get_all_gems_by_equipment_id(*,
-                                 equipment_id: int
-                                 ) -> List[EquipmentGemRecord]:
-    """根据装备id查询所有宝石记录
+            equipment_id: int = None,
+            gem_id: int = None
+    ) -> "EquipmentGemRecord":
+        """
+        实际上equipment_id，gem_id不可为空
+        """
 
-    Args:
-    equipment_id (int): 装备id
+        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
+        record = cls._add_or_update_by_id(**fields)
+        return record
 
-    Returns:
-    List[EquipmentGemRecord]: 宝石记录列表
-    """
+    # 查询
+    @classmethod
+    def get_all_gems_by_equipment_id(cls,
+                                     *,
+                                     equipment_id: int
+                                     ) -> List["EquipmentGemRecord"]:
+        """根据装备id查询所有宝石记录
 
-    gems = session.query(EquipmentGemRecord).filter(EquipmentGemRecord.equipment_id == equipment_id).all()
-    return gems
+        Args:
+        equipment_id (int): 装备id
+
+        Returns:
+        List[EquipmentGemRecord]: 宝石记录列表
+        """
+        records=cls.get_all_by(equipment_id=equipment_id)
+        return records

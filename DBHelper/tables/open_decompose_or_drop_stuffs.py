@@ -5,38 +5,36 @@ from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
 from DBHelper.session import session
+from DBHelper.tables.base_table import Basic,Base
 from Enums import StuffType, AdditionSourceType
 
-Base = declarative_base()
 
-
-class OpenDecomposeOrDropStuffsRecord(Base):
+class OpenDecomposeOrDropStuffsRecord(Basic,Base):
     """
     打开 分解 掉落的物品记录
     """
     __tablename__ = 'open_decompose_or_drop_stuffs_record'
-    id = Column(Integer, primary_key=True)
 
-    source_type = Column(Integer, comment="被分解、打开物品的类型，参考StuffType")
+    source_type = Column(Integer, comment="被分解、打开物品的类型,参考StuffType")
     source_id = Column(Integer, comment="被分解、打开物品的id")
 
-    get_stuff_type = Column(Integer, comment="物品的类型，参考枚举类型StuffType。")  # 参考枚举类型
-    get_stuff_id = Column(Integer, comment="物品的ID")  # 参考物品id
-    get_stuff_prob = Column(Integer, comment="出现的概率，独立计算概率。比如50%A物品，50%B物品，最后的结果可能是空，A，B,A+B四种情况！")
+    get_stuff_type = Column(Integer, comment="物品的类型,参考枚举类型StuffType。")
+    get_stuff_id = Column(Integer, comment="物品的ID")
+    get_stuff_prob = Column(Integer, comment="出现的概率,独立计算概率。比如50%A物品,50%B物品,最后的结果可能是空,A,B,A+B四种情况!")
 
-    def __init__(self, *,
-                 source_type: StuffType,
-                 source_id: int,
-                 get_stuff_type: StuffType,
-                 get_stuff_id: int,
-                 get_stuff_prob: int
-                 ):
-        self.source_type = source_type
-        self.source_id = source_id
-
-        self.get_stuff_type = get_stuff_type
-        self.get_stuff_id = get_stuff_id
-        self.get_stuff_prob = get_stuff_prob
+    @classmethod
+    def add_or_update_by_id(cls,
+                            *,
+                            _id:int,
+                            source_type: int = None,
+                            source_id: int = None,
+                            get_stuff_type: int = None,
+                            get_stuff_id: int = None,
+                            get_stuff_prob: int = None
+                            ):
+        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
+        record = cls._add_or_update_by_id(**fields)
+        return record
 
 
 # 增
@@ -161,8 +159,8 @@ def get_by(*,
 
 
 def get_monster_drop_equipments(*,
-                               monster_id: int,
-                               ) -> List[OpenDecomposeOrDropStuffsRecord]:
+                                monster_id: int,
+                                ) -> List[OpenDecomposeOrDropStuffsRecord]:
     """
 
     :param monster_id:boss编号

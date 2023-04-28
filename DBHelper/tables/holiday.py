@@ -4,88 +4,45 @@ from sqlalchemy import Column, Integer, String, Float, Boolean
 from Enums import CalendarType
 
 from DBHelper.session import session
+from DBHelper.tables.base_table import Entity
 
 Base = declarative_base()
 
 
-class Holiday(Base):
+class Holiday(Entity):
     __tablename__ = 'holiday'
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String, comment="节日名字")
     month = Column(Integer, comment="月份")
     day = Column(Integer, comment="日期")
 
-    calendar_type = Column(Integer, comment="农历还是公历，参考CalendarType")
+    calendar_type = Column(Integer, comment="农历还是公历,参考CalendarType")
 
-    def __init__(self, *, name: str, month: int, day: int, calendar_type: CalendarType):
-        self.name = name
-        self.month = month
-        self.day = day
-        self.calendar_type = calendar_type
+    @classmethod
+    def add_or_update_by_name(cls,
+                              *,
+                              name: str,
+                              month: int = None,
+                              day: int = None,
+                              calendar_type: int = None,
+                              ) -> "Holiday":
+        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_name)
+        record = cls._add_or_update_by_name(**fields)
+        return record
 
+    @classmethod
+    def add_or_update_by_id(
+            cls,
+            *,
+            _id: int,
 
-# 增
-def add(*, name: str, month: int, day: int, calendar_type: CalendarType) -> Holiday:
-    """
-    新增一个节日
-    :param name:
-    :param month:
-    :param day:
-    :param calendar_type:
-    :return:
-    """
-    holiday = Holiday(name=name, month=month, day=day, calendar_type=calendar_type)
-    session.add(holiday)
-    session.commit()
-    return holiday
-
-
-def add_or_update(*, name: str, month: int, day: int, calendar_type: CalendarType) -> Holiday:
-    """
-    根据是否存在写新增还是更新
-    :param name:
-    :param month:
-    :param day:
-    :param calendar_type:
-    :return:
-    """
-    if is_exists_by_name(name=name):
-        holiday = update_by_name(name=name, month=month, day=day, calendar_type=calendar_type)
-        return holiday
-    holiday = add(name=name, month=month, day=day, calendar_type=calendar_type)
-    return holiday
-
-
-# 删
-
-# 改
-def update_by_name(*, name: str, month: int, day: int, calendar_type: CalendarType) -> Holiday:
-    """
-    根据name进行更新。后期可能会增加
-    :param name:
-    :param month:
-    :param day:
-    :param calendar_type:
-    :return:
-    """
-    holiday = session.query(Holiday).filter(Holiday.name == name).first()
-    holiday.month = month
-    holiday.day = day
-    holiday.calendar_type = calendar_type
-    session.commit()
-    return holiday
-
-
-# 查
-def is_exists_by_name(*, name: str):
-    """
-    判断是否存在
-    :param name:
-    :return:
-    """
-    holiday = session.query(Holiday).filter(Holiday.name == name).first()
-    return holiday is not None
+            name: str = None,
+            month: int = None,
+            day: int = None,
+            calendar_type: int = None,
+    ) -> "Holiday":
+        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
+        record = cls._add_or_update_by_id(**fields)
+        return record
 
 
 if __name__ == '__main__':

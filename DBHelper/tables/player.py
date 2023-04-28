@@ -5,57 +5,48 @@ from typing import Optional, List
 Base = declarative_base()
 
 from DBHelper.session import session
+from DBHelper.tables.base_table import Basic
 
 
-class Player(Base):
+class Player(Basic, Base):
     """
     人物属性表
     """
     __tablename__ = 'player'
 
-    id = Column(Integer, primary_key=True, comment='ID')
+    nickname = Column(String, comment='昵称(QQ昵称),不唯一!')
+
     player_id = Column(Integer, comment="QQ")
-    nickname = Column(String, comment='昵称（QQ昵称）')
 
     first_login_timestamp = Column(Integer, comment="第一次登录的时间戳")
 
     current_level = Column(Integer, comment='当前等级')
-    current_experience = Column(Integer, comment='当前经验值，为当前经验值')
+    current_experience = Column(Integer, comment='当前经验值,为当前经验值')
 
-    game_sign = Column(String, comment="游戏中的签名，可以被其他角色查看到属性")
+    game_sign = Column(String, comment="游戏中的签名,可以被其他角色查看到属性")
 
-    gold_num = Column(Integer, comment="黄金数量，游戏唯一游戏币")
+    gold_num = Column(Integer, comment="黄金数量,游戏唯一游戏币")
 
     pk_rank = Column(Integer, comment="pk排名次")
     achievement_id = Column(Integer, comment="成就id")
 
-
-# 增
-def add(*,
-               player_id: int,
-               nickname: str,
-               current_level: int,
-               game_sign: str
-               ) -> Player:
-    """
-    新增玩家记录
-    :param player_id: qq
-    :param nickname: 昵称（QQ昵称）
-    :param current_level: 昵称（QQ昵称）
-    :param game_sign: 昵称（QQ昵称）
-    :return:
-    """
-    player = Player(player_id=player_id,
-                    nickname=nickname,
-                    current_level=current_level,
-                    current_experience=0,
-                    game_sign=game_sign,
-                    pk_rank=0,
-                    gold_num=0,
-                    )
-    session.add(player)
-    session.commit()
-    return player
+    @classmethod
+    def add_or_update_by_id(cls,
+                            *,
+                            _id: int = None,
+                            nickname: str = None,
+                            player_id: int = None,
+                            first_login_timestamp: int = None,
+                            current_level: int = None,
+                            current_experience: int = None,
+                            game_sign: str = None,
+                            gold_num: int = None,
+                            pk_rank: int = None,
+                            achievement_id: int = None
+                            ):
+        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
+        record = cls._add_or_update_by_id(**fields)
+        return record
 
 
 # 删
@@ -71,21 +62,7 @@ def delete_by_player_id(*, player_id: int) -> None:
     session.commit()
 
 
-def delete_by_id(*, character_id: int) -> None:
-    """
-    根据player_id删除人物
-
-    :param character_id: 人物的id，非player ID
-    :return: None
-    """
-    player = session.query(Player).filter(Player.id == character_id).first()
-    session.delete(player)
-    session.commit()
-
-
 # 改
-
-
 def update_player(*,
                   character_id: int,
                   nickname: Optional[str] = None,
@@ -94,7 +71,7 @@ def update_player(*,
                   game_sign: Optional[str] = None,
                   pk_rank: Optional[int] = None,
                   achievement_id: int = None
-                  )->Player:
+                  ) -> Player:
     """
     更新人物属性
     :param character_id: 人物ID
@@ -125,9 +102,9 @@ def update_player(*,
 
 
 def update_achievement_id(*,
-                                 character_id: int,
-                                 achievement_id: int,
-                                 )->Player:
+                          character_id: int,
+                          achievement_id: int,
+                          ) -> Player:
     """
     更新人物属性
     :param character_id: 人物ID
@@ -138,7 +115,6 @@ def update_achievement_id(*,
     player.achievement_id = achievement_id
     session.commit()
     session.refresh(player)
-
 
 
 # 查
@@ -179,4 +155,3 @@ def get_by_character_id(*, character_id: int) -> Player:
     """
     player = session.query(Player).filter_by(id=character_id).first()
     return player
-

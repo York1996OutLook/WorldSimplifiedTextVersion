@@ -14,7 +14,6 @@ class SkillCostPoint(Base):
     每升一级给50个技能点，90级的时候，能够学完所有技能；
     """
     __tablename__ = 'skill_point'
-    id = Column(Integer, primary_key=True)
     level = Column(Integer, comment="等级")
     need_point = Column(Integer, comment="所需技能点")
 

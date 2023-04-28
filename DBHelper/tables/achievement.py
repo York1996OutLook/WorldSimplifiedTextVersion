@@ -1,3 +1,4 @@
+import inspect
 from typing import List
 
 from sqlalchemy import Column, Integer, String
@@ -5,6 +6,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from DBHelper.session import session
 from Enums import AchievementType, AdditionalPropertyType
+from DBHelper.tables.base_table import Entity
 
 Base = declarative_base()
 
@@ -33,15 +35,11 @@ Base = declarative_base()
 
 
 # 成就系统
-class Achievement(Base):
+class Achievement(Entity):
     """
     有哪些成就可以达成
     """
     __tablename__ = "achievement"
-
-    id = Column(Integer, primary_key=True, comment="成就ID")
-
-    name = Column(String, comment="成就名称")
 
     achievement_type = Column(Integer, comment="成就类型")
 
@@ -53,238 +51,42 @@ class Achievement(Base):
     days_of_validity = Column(Integer, comment="有效期。以天为单位。如果是-1则代表是永久。")
     introduce = Column(String, comment="对于成就的介绍")
 
-    def __init__(self,
-                 *,
-                 name: str,
-                 achievement_type: AchievementType,
-                 condition_property_type: int,
-                 condition_property_value: int,
-                 achievement_point: int,
-                 days_of_validity: int,
-                 introduce: str,
-                 ):
-        self.name = name
+    @classmethod
+    def add_or_update_by_name(cls,
+                              *,
+                              name: str,
 
-        self.achievement_type = achievement_type
+                              achievement_type: int = None,
 
-        self.condition_property_type = condition_property_type
-        self.condition_property_value = condition_property_value
+                              condition_property_type: int = None,
+                              condition_property_value: int = None,
 
-        self.achievement_point = achievement_point
-        self.days_of_validity = days_of_validity
-        self.introduce = introduce
+                              achievement_point: int = None,
 
+                              days_of_validity: int = None,
+                              introduce: str = None,
+                              ) -> "Achievement":
 
-# 增
-def add(*,
-        name: str,
+        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_name)
+        record = cls._add_or_update_by_name(**fields)
+        return record
 
-        achievement_type: int,
+    # 改
+    @classmethod
+    def add_or_update_by_id(
+            cls,
+            *,
+            _id: int,
 
-        condition_property_type: int = None,
-        condition_property_value: int = None,
+            name: str = None,
+            achievement_type: AchievementType = None,
+            condition_type: int = None,
+            condition_value: int = None,
+            days_of_validity: int = None,
+            achievement_point: int = None,
+            introduce: str = None,
+    ) -> "Achievement":
 
-        achievement_point: int = None,
-
-        days_of_validity: int = None,
-        introduce: str = None, ) -> Achievement:
-    """
-    创建成就
-
-    Args:
-        name (str): 成就名称
-        achievement_type (str): 成就名称
-        condition_property_type (str): 达成条件
-        condition_property_value (str): 达成条件需要的值
-        achievement_point (str): 成就点数
-        days_of_validity (str): 有效期，以天为单位
-        introduce (str): 成就的介绍
-
-    Returns:
-        Achievement: 创建的成就
-    """
-    achievement = Achievement(name=name,
-
-                              achievement_type=achievement_type,
-
-                              condition_property_type=condition_property_type,
-                              condition_property_value=condition_property_value,
-
-                              achievement_point=achievement_point,
-                              days_of_validity=days_of_validity,
-                              introduce=introduce)
-    session.add(achievement)
-    session.commit()
-    return achievement
-
-
-def add_or_update_by_name(*,
-                          name: str,
-                          new_name: str,
-
-                          achievement_type: int,
-
-                          condition_property_type: int = None,
-                          condition_property_value: int = None,
-
-                          achievement_point: int = None,
-
-                          days_of_validity: int = None,
-                          introduce: str = None, ) -> Achievement:
-    if is_exists_by_name(name=name):
-        return update_by_name(name=name,
-                              new_name=new_name,
-                              new_achievement_type=achievement_type,
-                              new_condition_type=condition_property_type,
-                              new_condition_value=condition_property_value,
-
-                              new_achievement_point=achievement_point,
-                              new_days_of_validity=days_of_validity,
-                              new_introduce=introduce,
-                              )
-    else:
-        return add(
-            name=name,
-            achievement_type=achievement_type,
-            condition_property_type=condition_property_type,
-            condition_property_value=condition_property_value,
-
-            achievement_point=achievement_point,
-            days_of_validity=days_of_validity,
-            introduce=introduce,
-        )
-
-
-# 删
-def delete_by_achievement_id(*,
-                             achievement_id: int
-                             ) -> bool:
-    """
-    删除成就
-
-    Args:
-        achievement_id (int): 成就id
-
-    Returns:
-        bool: 删除是否成功
-    """
-    achievement = session.query(Achievement).filter_by(id=achievement_id).first()
-    session.delete(achievement)
-    session.commit()
-    return True
-
-
-# 改
-
-def update(*,
-           achievement_id: int,
-           new_name: str = None,
-           new_achievement_type: AchievementType = None,
-           new_condition_type: int = None,
-           new_condition_value: int = None,
-           new_days_of_validity: int = None,
-           new_achievement_point: int = None,
-           new_introduce: str = None,
-           ) -> Achievement:
-    achievement = session.query(Achievement).filter_by(id=achievement_id).first()
-
-    if new_name:
-        achievement.name = new_name
-    if new_achievement_type:
-        achievement.achievement_type = new_achievement_type
-
-    if new_condition_type:
-        achievement.condition_property_type = new_condition_type
-    if new_condition_value:
-        achievement.condition_property_value = new_condition_value
-
-    if new_days_of_validity:
-        achievement.days_of_validity = new_days_of_validity
-
-    if new_achievement_point:
-        achievement.achievement_point = new_achievement_point
-
-    if new_introduce:
-        achievement.introduce = new_introduce
-    session.commit()
-    session.refresh(achievement)
-    return achievement
-
-
-def update_by_name(
-        name: str,
-        new_name: str,
-        new_achievement_type: int,
-        new_condition_type: int,
-        new_condition_value: int,
-        new_achievement_point: int,
-        new_days_of_validity: int,
-        new_introduce: str,
-):
-    achievement = session.query(Achievement).filter_by(name=name).first()
-    achievement.name = new_name
-    achievement.achievement_type = new_achievement_type
-
-    achievement.condition_type = new_condition_type
-    achievement.condition_value = new_condition_value
-
-    achievement.achievement_point = new_achievement_point
-    achievement.days_of_validity = new_days_of_validity
-    achievement.introduce = new_introduce
-
-    session.commit()
-    session.refresh(achievement)
-    return achievement
-
-
-# 查
-def get_by_achievement_id(*, achievement_id: int) -> Achievement:
-    """
-    根据id查询成就
-
-    Args:
-        achievement_id (int): 成就id
-
-    Returns:
-        Achievement: 查询到的成就
-    """
-    achievement = session.query(Achievement).filter_by(id=achievement_id).first()
-    return achievement
-
-
-def get_by_name(*, name: str) -> Achievement:
-    """
-    根据id查询成就
-
-    Args:
-        name (str): 成就名字
-
-    Returns:
-        Achievement: 查询到的成就
-    """
-    achievement = session.query(Achievement).filter_by(name=name).first()
-    return achievement
-
-
-def is_exists_by_name(*,
-                      name: str
-                      ) -> bool:
-    """
-    根据name查询是否存在；
-    :param name:
-    :return:
-    """
-    record = session.query(Achievement).filter_by(name=name).first()
-    return record is not None
-
-
-def get_all() -> List[Achievement]:
-    """
-    查询所有成就
-
-    Returns:
-        List[Achievement]: 所
-    有的所有成就列表
-    """
-    achievements = session.query(Achievement).all()
-    return achievements
+        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
+        record = cls._add_or_update_by_id(**fields)
+        return record
