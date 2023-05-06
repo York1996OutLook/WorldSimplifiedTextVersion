@@ -28,6 +28,7 @@ class PlayerMailRecord(Basic,Base):
     mail_type = Column(Integer, comment="邮件类型,参考MailType")
 
     is_already_read = Column(Boolean, comment="是否已经打开过了")
+    is_already_deleted = Column(Boolean, comment="是否已经打开过了")
 
     addition_message = Column(Integer, comment="邮件发送的时候的附加信息,接受放能够看到;")
     send_timestamp = Column(Integer, comment="邮件发送的时间")
@@ -43,6 +44,7 @@ class PlayerMailRecord(Basic,Base):
                             give: int = None,
                             mail_type: int = None,
                             is_already_read: bool = None,
+                            is_already_deleted: bool = None,
                             addition_message: int = None,
                             send_timestamp: int = None
                             ):

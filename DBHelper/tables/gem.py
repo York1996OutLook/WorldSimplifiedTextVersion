@@ -13,7 +13,7 @@ from Utils import tools
 Base = declarative_base()
 
 
-class Gem(Entity):
+class Gem(Entity,Base):
     __tablename__ = 'gem'
 
     additional_property_type = Column(Integer, comment="参考AdditionalPropertyType")

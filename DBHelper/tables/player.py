@@ -27,7 +27,6 @@ class Player(Basic, Base):
 
     gold_num = Column(Integer, comment="黄金数量,游戏唯一游戏币")
 
-    pk_rank = Column(Integer, comment="pk排名次")
     achievement_id = Column(Integer, comment="成就id")
 
     @classmethod
@@ -41,7 +40,6 @@ class Player(Basic, Base):
                             current_experience: int = None,
                             game_sign: str = None,
                             gold_num: int = None,
-                            pk_rank: int = None,
                             achievement_id: int = None
                             ):
         fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
@@ -69,7 +67,6 @@ def update_player(*,
                   current_level: Optional[int] = None,
                   current_experience: Optional[int] = None,
                   game_sign: Optional[str] = None,
-                  pk_rank: Optional[int] = None,
                   achievement_id: int = None
                   ) -> Player:
     """
@@ -92,8 +89,6 @@ def update_player(*,
         player.current_experience = current_experience
     if game_sign is not None:
         player.game_sign = game_sign
-    if pk_rank is not None:
-        player.pk_rank = pk_rank
     if achievement_id is None:
         player.achievement_id = achievement_id
     session.commit()

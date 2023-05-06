@@ -37,10 +37,10 @@ class Worker(Person, Base):
     ww = 3
 
 
-a = Student().get_by_name(name='1')
+a = Student.get_by_name(name='weeqw')
 
-b = Teacher().get_by_name(name='1')
-c = Worker().get_by_name(name='1')
+b = Teacher.get_by_name(name='1')
+c = Worker.get_by_name(name='1')
 
 print(a)  # <__main__.Student object at 0x10d1715c0>
 print(b)  # <__main__.Teacher object at 0x10d1716a0>

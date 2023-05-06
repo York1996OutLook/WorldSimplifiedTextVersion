@@ -8,11 +8,11 @@ from DBHelper.tables.base_table import Entity
 
 Base = declarative_base()
 
-class RaiseStarBook(Entity):
+class RaiseStarBook(Entity,Base):
     """
     打开 分解 掉落的物品记录
     """
-    __tablename__ = 'identify_book'
+    __tablename__ = 'raise_star_book'
     introduce = Column(String, comment="介绍")
 
     is_bind = Column(Boolean, comment="新出现的时候是否已经绑定")

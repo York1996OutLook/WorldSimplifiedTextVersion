@@ -3,12 +3,11 @@ from typing import List, Optional
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float, Boolean
 
-
 from DBHelper.session import session
-from DBHelper.tables.base_table import Basic,Base
+from DBHelper.tables.base_table import Basic, Base
 
 
-class PlayerSkillRecord(Basic,Base):
+class PlayerSkillRecord(Basic, Base):
     """
     已学习技能表。只存储最大等级。可能会被更新;
     """
@@ -19,17 +18,17 @@ class PlayerSkillRecord(Basic,Base):
     skill_id = Column(Integer, comment="技能ID")
 
     skill_level = Column(Integer, comment="已经学习的技能等级")
-    learning_timestamp = Column(Integer, comment="学习的时间")
+    learning_timestamp = Column(Integer, comment="最后更新的时间戳")
 
     @classmethod
-    def add_or_update_by_ids(cls,
-                             *,
-                             _id: int = None,
-                             character_id: int = None,
-                             skill_id: int = None,
-                             skill_level: int = None,
-                             learning_timestamp: int = None
-                             ):
+    def add_or_update_by_id(cls,
+                            *,
+                            _id: int = None,
+                            character_id: int = None,
+                            skill_id: int = None,
+                            skill_level: int = None,
+                            learning_timestamp: int = None
+                            ):
         """
         更新或创建技能学习记录
         :param _id: 记录ID
@@ -39,19 +38,20 @@ class PlayerSkillRecord(Basic,Base):
         :param learning_timestamp: 学习时间
         :return:
         """
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_ids)
+        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
         record = cls._add_or_update_by_id(**fields)
         return record
+
 
 # 删
 
 
 # 改
 def update_by_character_id_skill_id(*,
-                                                         character_id: int,
-                                                         skill_id: int,
-                                                         new_skill_level: int,
-                                                         new_learning_timestamp: int) -> None:
+                                    character_id: int,
+                                    skill_id: int,
+                                    new_skill_level: int,
+                                    new_learning_timestamp: int) -> None:
     """
     更新已学习技能记录
 
@@ -67,11 +67,10 @@ def update_by_character_id_skill_id(*,
     session.commit()
 
 
-
 def update_level_by_record_id(*,
-                                                     record_id: int,
-                                                     skill_level: int,
-                                                     learning_timestamp: int):
+                              record_id: int,
+                              skill_level: int,
+                              learning_timestamp: int):
     """
     根据已学习技能记录的id进行修改等級
     :param record_id: 记录id

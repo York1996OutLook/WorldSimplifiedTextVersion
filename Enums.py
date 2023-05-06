@@ -17,9 +17,13 @@ class ItemList:
         return self.items
 
     def get_name_by_index(self, *, index: int):
+        if index not in self.index_name_dict:
+            return None
         return self.index_name_dict[index]
 
     def get_index_by_name(self, *, name: str):
+        if name not in self.name_index_dict:
+            return None
         return self.name_index_dict[name]
 
 
@@ -55,6 +59,7 @@ def get_dict(*, items: List[Item]):
 class SkillLevel:
     name = "技能等级"
     item_list = ItemList()
+
     ONE = Item(name='1', comment="等级1", )
     TWO = Item(name='2', comment="等级2", )
     THREE = Item(name='3', comment="等级3")
@@ -66,6 +71,17 @@ class SkillLevel:
     NINE = Item(name='9', comment="等级9")
 
     default = NINE
+
+
+class DataType:
+    name = "数据类型"
+    item_list = ItemList()
+
+    INTEGER = Item(name="整数类型", comment="整数类型")
+    BOOL = Item(name="布尔类型", comment="整数类型")
+    STRING = Item(name="字符串", comment="整数类型")
+    TEXT = Item(name="文本", comment="整数类型")
+    default = INTEGER
 
 
 class LearningApproach:
@@ -112,6 +128,12 @@ class StatusType:
     NEUTRAL = Item(name="中立", comment="中立")
 
     default = PASSIVE
+
+
+class BindType:
+    name = '绑定类型'
+
+    long_string = 2
 
 
 class AchievementPropertyType:
@@ -247,18 +269,28 @@ class StuffType:
     item_list = ItemList()
     EQUIPMENT = Item(name='装备', comment="装备，包含武器、装备、坐骑")
     BOX = Item(name='箱子', comment="允许一次性使用多个")
-    GEM = Item(name='宝石', comment="加不同属性的宝石")
-    RAISE_STAR_BOOK = Item(name='升星卷轴', comment="升星卷轴")
-    IDENTIFY_BOOK = Item(name='装备属性鉴定卷轴', comment="1个属性")
+    GEM = Item(name='宝石', comment="加不同属性的宝石。不能一次镶嵌多个")
+    RAISE_STAR_BOOK = Item(name='升星卷轴', comment="可以一次性使用多个")
+    IDENTIFY_BOOK = Item(name='装备属性鉴定卷轴', comment="1个属性，不可以一次性使用多个")
     SKILL_IDENTIFY_BOOK = Item(name='装备技能鉴定卷轴', comment="1个属性")
     EXP_BOOK = Item(name='经验卷轴', comment="为人物增加经验")
     SKILL_BOOK = Item(name='人物技能卷轴', comment="技能书")
+    SKILL_SLOT = Item(name='人物技能槽', comment="技能书")
     POTION = Item(name='药水', comment="药剂，一般是临时的")
     DUST = Item(name='装备粉尘', comment="装备分解获得，计划用来鉴定装备的时候用")
     ACHIEVEMENT_TITLE_BOOK = Item(name='成就称号', comment="称号，使用后可以获得某个称号。部分称号为自动获得，不一定要通过使用成就称号来获得。")
     MONSTER = Item(name='怪物', comment="暂时不清楚后续是否会用到")
+    WorldHeroMedal = Item(name='世界英雄勋章', comment="暂时不清楚后续是否会用到")
 
     default = EQUIPMENT
+
+
+multiple_use_stuffs = {
+    StuffType.BOX,
+    StuffType.RAISE_STAR_BOOK,
+    StuffType.EXP_BOOK,
+    StuffType.SKILL_BOOK,
+}
 
 
 class BeingType:
@@ -348,9 +380,9 @@ class AdditionalPropertyType:
     HEALTH = Item(name="生命上限", comment="生命上限")
     HEALTH_PERCENT = Item(name="生命上限百分比", comment="生命上限百分比")
 
-    DEDUCT_HEALTH = Item(name="扣除生命值",comment="")
-    DEDUCT_HEALTH_PERCENT = Item(name="扣除当前生命值百分比",comment="")
-    DEDUCT_HEALTH_UPPER_LIMIT_PERCENT = Item(name="扣除生命上限百分比",comment="")
+    DEDUCT_HEALTH = Item(name="扣除生命值", comment="")
+    DEDUCT_HEALTH_PERCENT = Item(name="扣除当前生命值百分比", comment="")
+    DEDUCT_HEALTH_UPPER_LIMIT_PERCENT = Item(name="扣除生命上限百分比", comment="")
 
     HEALTH_RECOVERY = Item(name="生命恢复", comment="恢复生命")
     HEALTH_RECOVERY_PERCENT = Item(name="生命恢复百分比", comment="生命恢复百分比")
@@ -362,9 +394,9 @@ class AdditionalPropertyType:
     MANA = Item(name="法力上限", comment="法力上限")
     MANA_PERCENT = Item(name="法力上限百分比", comment="法力上限百分比")
 
-    DEDUCT_MANA = Item(name="扣除法力值",comment="")
-    DEDUCT_MANA_PERCENT = Item(name="扣除当前法力值百分比",comment="")
-    DEDUCT_MANA_UPPER_LIMIT_PERCENT = Item(name="扣除法力值上限百分比",comment="")
+    DEDUCT_MANA = Item(name="扣除法力值", comment="")
+    DEDUCT_MANA_PERCENT = Item(name="扣除当前法力值百分比", comment="")
+    DEDUCT_MANA_UPPER_LIMIT_PERCENT = Item(name="扣除法力值上限百分比", comment="")
 
     MANA_RECOVERY = Item(name="法力恢复", comment="法力恢复")
     MANA_RECOVERY_PERCENT = Item(name="法力恢复百分比", comment="法力恢复百分比")
@@ -379,9 +411,9 @@ class AdditionalPropertyType:
     IGNORE_COUNTERATTACK = Item(name="无视反击", comment="无视反击")
     IGNORE_COUNTERATTACK_PERCENT = Item(name="无视反击百分比", comment="无视反击百分比")
 
-    DEDUCT_COUNTERATTACK = Item(name="扣除反击值",comment="")
-    DEDUCT_COUNTERATTACK_PERCENT = Item(name="扣除当前反击值百分比",comment="")
-    DEDUCT_COUNTERATTACK_UPPER_LIMIT_PERCENT = Item(name="扣除反击值上限百分比",comment="")
+    DEDUCT_COUNTERATTACK = Item(name="扣除反击值", comment="")
+    DEDUCT_COUNTERATTACK_PERCENT = Item(name="扣除当前反击值百分比", comment="")
+    DEDUCT_COUNTERATTACK_UPPER_LIMIT_PERCENT = Item(name="扣除反击值上限百分比", comment="")
 
     CRITICAL_POINT = Item(name="致命点", comment="致命点")
     CRITICAL_POINT_PERCENT = Item(name="致命点百分比", comment="致命点百分比")
@@ -391,33 +423,33 @@ class AdditionalPropertyType:
     IGNORE_STATE_RESISTANCE = Item(name="无视状态抵抗", comment="无视状态抵抗")
     IGNORE_STATE_RESISTANCE_PERCENT = Item(name="无视状态抵抗百分比", comment="无视状态抵抗百分比")
 
-    DEDUCT_STATE_RESISTANCE = Item(name="扣除状态抵抗",comment="")
-    DEDUCT_STATE_RESISTANCE_PERCENT = Item(name="扣除当前状态抵抗百分比",comment="")
-    DEDUCT_STATE_RESISTANCE_UPPER_PERCENT = Item(name="扣除状态抵抗上限百分比",comment="")
+    DEDUCT_STATE_RESISTANCE = Item(name="扣除状态抵抗", comment="")
+    DEDUCT_STATE_RESISTANCE_PERCENT = Item(name="扣除当前状态抵抗百分比", comment="")
+    DEDUCT_STATE_RESISTANCE_UPPER_PERCENT = Item(name="扣除状态抵抗上限百分比", comment="")
 
     INSIGHT = Item(name="洞察", comment="洞察")
     INSIGHT_PERCENT = Item(name="洞察百分比", comment="洞察百分比")
     IGNORE_INSIGHT = Item(name="无视洞察", comment="无视洞察")
     IGNORE_INSIGHT_PERCENT = Item(name="无视洞察百分比", comment="无视洞察百分比")
 
-    DEDUCT_INSIGHT = Item(name="扣除洞察",comment="")
-    DEDUCT_INSIGHT_PERCENT = Item(name="扣除当前洞察百分比",comment="")
-    DEDUCT_INSIGHT_UPPER_LIMIT_PERCENT = Item(name="扣除洞察上限百分比",comment="")
+    DEDUCT_INSIGHT = Item(name="扣除洞察", comment="")
+    DEDUCT_INSIGHT_PERCENT = Item(name="扣除当前洞察百分比", comment="")
+    DEDUCT_INSIGHT_UPPER_LIMIT_PERCENT = Item(name="扣除洞察上限百分比", comment="")
 
     HIT = Item(name="命中", comment="命中")
     FORCED_HIT = Item(name="强制命中率", comment="100为满，先根据强制命中率计算是否命中，如果不命中，则根据命中计算；")
     HIT_PERCENT = Item(name="命中百分比", comment="命中百分比")
 
-    DEDUCT_HIT = Item(name="扣除命中",comment="")
-    DEDUCT_HIT_PERCENT = Item(name="扣除当前命中百分比",comment="")
-    DEDUCT_HIT_UPPER_LIMIT_PERCENT = Item(name="扣除命中上限百分比",comment="")
+    DEDUCT_HIT = Item(name="扣除命中", comment="")
+    DEDUCT_HIT_PERCENT = Item(name="扣除当前命中百分比", comment="")
+    DEDUCT_HIT_UPPER_LIMIT_PERCENT = Item(name="扣除命中上限百分比", comment="")
 
     DODGE = Item(name="闪避", comment="闪避")
     DODGE_PERCENT = Item(name="闪避百分比", comment="闪避百分比")
 
-    DEDUCT_DODGE = Item(name="扣除闪避",comment="")
-    DEDUCT_DODGE_PERCENT = Item(name="扣除当前闪避百分比",comment="")
-    DEDUCT_DODGE_UPPER_LIMIT_PERCENT = Item(name="扣除命中上限百分比",comment="")
+    DEDUCT_DODGE = Item(name="扣除闪避", comment="")
+    DEDUCT_DODGE_PERCENT = Item(name="扣除当前闪避百分比", comment="")
+    DEDUCT_DODGE_UPPER_LIMIT_PERCENT = Item(name="扣除命中上限百分比", comment="")
 
     WEAPON_DAMAGE = Item(name="武器伤害", comment="武器伤害")
     WEAPON_DAMAGE_PERCENT = Item(name="武器伤害百分比", comment="武器伤害百分比")
@@ -430,9 +462,9 @@ class AdditionalPropertyType:
     IGNORE_DAMAGE_REDUCTION = Item(name="无视伤害减免", comment="无视伤害减免")
     IGNORE_DAMAGE_REDUCTION_PERCENT = Item(name="无视伤害减免百分比", comment="无视伤害减免百分比")
 
-    DEDUCT_DAMAGE_REDUCTION = Item(name="扣除伤害减免",comment="")
-    DEDUCT_DAMAGE_REDUCTION_PERCENT = Item(name="扣除当前伤害减免百分比",comment="")
-    DEDUCT_DAMAGE_REDUCTION_UPPER_LIMIT_PERCENT = Item(name="扣除伤害减免上限百分比",comment="")
+    DEDUCT_DAMAGE_REDUCTION = Item(name="扣除伤害减免", comment="")
+    DEDUCT_DAMAGE_REDUCTION_PERCENT = Item(name="扣除当前伤害减免百分比", comment="")
+    DEDUCT_DAMAGE_REDUCTION_UPPER_LIMIT_PERCENT = Item(name="扣除伤害减免上限百分比", comment="")
 
     DAMAGE_SHIELD = Item(name="免伤护盾", comment="免伤护盾")
 

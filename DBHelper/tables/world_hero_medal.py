@@ -9,11 +9,11 @@ from Enums import StatusType
 from DBHelper.tables.base_table import Entity, Base
 
 
-class WorldHeroMedal(Entity, Base):
+class WorldHeroMedal(Entity,Base):
     """
     世界英雄勋章
     """
-    __tablename__ = "battle_status"
+    __tablename__ = "world_hero_medal"
 
     is_bind = Column(Boolean, comment="是否绑定")
 

@@ -8,7 +8,7 @@ from Enums import PartType, EquipmentQuality
 
 Base = declarative_base()
 
-class Equipment(Entity):
+class Equipment(Entity,Base):
     """
     装备的属性
     """

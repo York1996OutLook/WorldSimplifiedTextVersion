@@ -10,10 +10,14 @@ Base = declarative_base()
 
 
 class EquipmentGemRecord(Basic, Base):
+    """
+    装备镶嵌宝石记录表；一个宝石一个记录表；
+    """
     __tablename__ = 'equipment_gem_record'
 
     equipment_id = Column(Integer, comment="装备id")
     gem_id = Column(Integer, comment="当前宝石的id")
+    inlay_time = Column(Integer, comment="镶嵌时间")
 
     # 增改
     @classmethod
@@ -47,5 +51,5 @@ class EquipmentGemRecord(Basic, Base):
         Returns:
         List[EquipmentGemRecord]: 宝石记录列表
         """
-        records=cls.get_all_by(equipment_id=equipment_id)
+        records = cls.get_all_by(equipment_id=equipment_id)
         return records

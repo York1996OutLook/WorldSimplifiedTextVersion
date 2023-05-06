@@ -11,13 +11,11 @@ from DBHelper.session import session
 from DBHelper.tables.base_table import Entity
 
 
-class Skill(Entity):
+class Skill(Entity,Base):
     """
     人物可学习或者怪物的技能
     """
     __tablename__ = 'skill'
-    id=Column(Integer,primary_key=True)
-    name = Column(String)
     learning_approach = Column(Integer, default=LearningApproach.IN_SKILL_ACADEMY.index,
                                comment="是否可以直接进行学习,如果能的话代表能够在技能所学习,否则可能是装备附带的技能。")
     skill_type = Column(Integer, default=SkillType.PASSIVE.index, comment="技能类型")

@@ -14,7 +14,7 @@ from DBHelper.session import session
 from DBHelper.tables.base_table import Entity
 
 
-class Setting(Entity):
+class Setting(Entity,Base):
     """
     比如:
     一个人最多可以学习多少个技能,10

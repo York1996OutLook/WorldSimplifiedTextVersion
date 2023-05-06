@@ -9,11 +9,13 @@ from Enums import StatusType
 from DBHelper.tables.base_table import Entity,Base
 
 
-class BattleStatus(Entity, Base):
+class BattleStatus(Entity,Base):
     """
     战斗中的属性,比如中毒,火烧等等;
     """
+    cn_name='战斗属性'
     __tablename__ = "battle_status"
+
 
     status_type = Column(Integer, comment="状态类型")
     effect_expression = Column(String, comment="效果介绍")

@@ -9,7 +9,7 @@ from DBHelper.tables.base_table import Entity
 Base = declarative_base()
 
 
-class Tips(Entity):
+class Tips(Entity,Base):
     """
     某些情况下,关于整个游戏的小技巧和知识点提示;
     """

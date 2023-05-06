@@ -12,11 +12,11 @@ from Utils import tools
 Base = declarative_base()
 
 
-class Box(Entity):
+class Box(Entity, Base):
     """
     箱子，一般均可以出售
     """
-
+    cn="箱子"
     __tablename__ = 'box'
 
     is_bind = Column(Boolean, comment="是否已经绑定")
@@ -24,14 +24,13 @@ class Box(Entity):
     introduction = Column(String, comment="说明")
 
     @classmethod
-    def add_or_update_by_name(cls, *, name: str, is_bind: bool=None, introduction: str=None):
+    def add_or_update_by_name(cls, *, name: str, is_bind: bool = None, introduction: str = None):
         fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
         record = cls._add_or_update_by_name(**fields)
         return record
 
-
     @classmethod
-    def add_or_update_by_id(cls, *, _id: int, is_bind: bool=None, introduction: str=None):
+    def add_or_update_by_id(cls, *, _id: int, is_bind: bool = None, introduction: str = None):
         fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
         record = cls._add_or_update_by_id(**fields)
         return record

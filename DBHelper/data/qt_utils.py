@@ -1,25 +1,85 @@
 # 2023年4月21日 QLineEdit支持setText(None)
 
+from collections import defaultdict
+import inspect
+
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QLineEdit, \
     QPushButton, QListWidget, QMessageBox, QFrame, QComboBox
 from PyQt5.QtCore import pyqtSignal, pyqtBoundSignal, QMetaObject
 import PyQt5.QtGui as QtGui
 
-from Enums import StatusType
+from DBHelper.tables.base_table import Basic
+from DBHelper.db import *
+from Enums import DataType, AdditionSourceType
+
+
+class TableItemList:
+    def __init__(self):
+        TableItem.item_list = self
+
+        self.items = []
+        self.name_index_dict = defaultdict(None)
+        self.index_name_dict = defaultdict(None)
+        self.counter = 0
+
+    def clear(self):
+        self.items = []
+
+    def get_items(self):
+        return self.items
+
+    def get_by_index(self, *, index: int) -> "TableItem":
+        return self.index_name_dict[index]
+
+    def get_by_name(self, *, name: str) -> "TableItem":
+        return self.name_index_dict[name]
+
+
+class TableItem:
+    item_list = None
+
+    def __init__(self, *,
+                 table_class=None,
+                 comment: str = '',
+                 index: int = None,
+                 addition_source_type: AdditionSourceType = None
+                 ):
+        if index:
+            self.index = index
+        else:
+            self.index = len(self.item_list.items) + 1
+
+        self.table_class = table_class
+        self.name = table_class.__cn__
+        self.comment = comment
+        self.addition_source_type = addition_source_type
+
+        self.item_list.items.append(self)
+        self.item_list.name_index_dict[self.name] = self
+        self.item_list.index_name_dict[self.index] = self
+
+    def __repr__(self):
+        return f'TableItem({self.index}: {self.name}, {self.comment})'
 
 
 class TableItems:
+    item_list = TableItemList()
+    achievement = TableItem(table_class=Achievement, addition_source_type=AdditionSourceType.ACHIEVEMENT_TITLE)
+    setting = TableItem(table_class=Setting)
+
+    achievement_title_book = TableItem(table_class=AchievementTitleBook)
+
+    achievement_title_book = "称号书"
     setting = '设置'  # 计划做成可以滚动的浏览框
 
     skill = "技能"
-    status = "状态"
+    battle_status = "状态"
     base_property = '5大基础属性'
-    achievement = '成就'
     gem = '宝石'
     box = '盒子'
     exp_book = '经验书'
     holiday = '节日'
-    equipment = '装备' # 可能会做成两个选择框的形式。自动出现一个combo_box
+    equipment = '装备'  # 可能会做成两个选择框的形式。自动出现一个combo_box
     identify_book = '鉴定卷轴'
     monster = '怪物'  # 包含技能设置
     monster_type_show_time = '选择怪物类型选择出现时间'
@@ -28,13 +88,14 @@ class TableItems:
     raise_star_prob = '升星成功概率'
     skill_cost_point = '学习技能消耗技能点'
     level_exp = '升级所需经验'
+    skill_slot = '技能槽'
+    tips = '提示'  # 建议不修改，仅仅查看而已
+    world_hero_medal = '世界英雄勋章'  # 建议不修改，仅仅查看而已
 
+    player = '玩家'  # 建议不修改，仅仅查看而已
+    sell_store = '交易所'  # 建议不修改，仅仅查看而已
 
-
-    player = '玩家'   # 建议不修改，仅仅查看而已
-    sell_store = '交易所'   # 建议不修改，仅仅查看而已
-
-
+    default = achievement
 
 
 class MyLineText(QLineEdit):
@@ -59,19 +120,30 @@ class MyLineText(QLineEdit):
     def focusOutEvent(self, a0: QtGui.QFocusEvent) -> None:
         self.setStyleSheet(self.style_sheet_default)
 
-    def set_text(self, a0: str or int or None) -> None:
-        if a0 is None:
+    def set_text(self, *, text: str or int or None) -> None:
+        if text is None:
             print("None->空字符串")
-            a0 = ""
-        if type(a0) == int:
-            a0 = str(a0)
-        self.setText(a0)
+            text = ""
+        if type(text) == int:
+            text = str(text)
+        self.setText(text)
 
 
 class MyButton(QPushButton):
     def __init__(self, *, text: str):
         super().__init__()
         self.setText(text)
+
+    def disconnect_all(self) -> bool:
+        try:
+            self.disconnect()
+        except:
+            return
+
+
+class MyListBox(QListWidget):
+    def __init__(self):
+        super().__init__()
 
     def disconnect_all(self) -> bool:
         try:
@@ -90,36 +162,45 @@ class MyFrame(QFrame):
 class MyLabel(QLabel):
     def __init__(self, label_text: str = ""):
         super().__init__()
-        self.set_text(label_text)
+        self.set_text(text=label_text)
         self.style_sheet = 'border: 1px solid black;'
         self.setStyleSheet(self.style_sheet)
 
-    def set_text(self, a0: str or int or None) -> None:
-        if a0 is None:
+    def set_text(self, *, text: str or int or None) -> None:
+        if text is None:
             print("None->空字符串")
-            a0 = ""
-        if type(a0) == int:
-            a0 = str(a0)
-        self.setText(a0)
+            text = ""
+        if type(text) == int:
+            text = str(text)
+        self.setText(text)
 
 
-class EditType:
+class EditWidgetType:
     combo_box = 1
     short_text = 2
     long_text = 3
     bool_combo_box = 4
 
 
-
-class DataEditType:
-    def __init__(self, *, key: str, label: str, edit_widget: EditType, choices=None, editable: bool = True,default=None):
+class DataEdit:
+    def __init__(self, *,
+                 data_type: DataType,
+                 key: str,
+                 cn: str,
+                 edit_widget_type: EditWidgetType,
+                 choices=None,
+                 editable: bool = True,
+                 default=None):
+        self.data_type = data_type
         self.key = key
-        self.label = label
-        self.edit_widget = edit_widget
+        self.cn = cn
+        self.edit_widget_type = edit_widget_type
         self.choices = choices
         self.editable = editable
 
-        self.default=default
+        self.edit_widget: MyLineText or MyComboBox or MyListBox = None
+
+        self.default = default
 
 
 class StatuesWidgets:
@@ -135,6 +216,17 @@ class StatuesWidgets:
         self.statues_index_label = statues_index_label
         self.statues_name_text = statues_name_text
         self.statues_name_label = statues_name_label
+
+
+class MyComboBox(QComboBox):
+    def __init__(self):
+        super(MyComboBox, self).__init__()
+
+    def set_text(self, *, text: str):
+        self.setCurrentText(text)
+
+    def text(self):
+        return self.currentText()
 
 
 class PropertyWidgets:

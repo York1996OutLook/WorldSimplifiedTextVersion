@@ -8,7 +8,7 @@ from DBHelper.tables.base_table import Entity
 
 Base = declarative_base()
 
-class IdentifyBook(Entity):
+class IdentifyBook(Entity,Base):
     """
     打开 分解 掉落的物品记录
     """

@@ -9,7 +9,7 @@ from DBHelper.tables.base_table import Entity
 Base = declarative_base()
 
 
-class Holiday(Entity):
+class Holiday(Entity,Base):
     __tablename__ = 'holiday'
 
     month = Column(Integer, comment="月份")

@@ -1,14 +1,21 @@
+import inspect
 import sys
-from typing import List
+from typing import List, Dict
 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QListWidget, QMessageBox, QComboBox
+from sqlalchemy.orm.attributes import InstrumentedAttribute
+
+from PyQt5.QtWidgets import QApplication, QMainWindow, QListWidget, QMessageBox
 import sip
+from sqlalchemy import Integer, String, Text, Boolean, Float
 
 from DBHelper.db import *
 from Enums import BasePropertyType, LearningApproach, SkillTarget, SkillType, SkillLevel, \
-    AdditionalPropertyType, StatusType, AchievementPropertyType, AchievementType, ExpBookType
-from qt_utils import EditType, MyLineText, MyLabel, MyFrame, set_geo, StatuesWidgets, PropertyWidgets, MyButton, \
-    TableItems, DataEditType
+    AdditionalPropertyType, StatusType, AchievementPropertyType, AchievementType, \
+    ExpBookType, DataType
+from qt_utils import EditWidgetType, MyLineText, MyLabel, MyFrame, set_geo, StatuesWidgets, PropertyWidgets, MyButton, \
+    TableItems, DataEdit, MyListBox, MyComboBox
+from DBHelper.tables.base_table import CustomColumn as Column
+from DBHelper.tables.base_table import Basic, Entity
 
 
 class MyMainWindow(QMainWindow):
@@ -51,21 +58,22 @@ class MyMainWindow(QMainWindow):
 
         # 选择修改哪个表格
         self.current_data_table_label = MyLabel()
-        self.current_data_table_combo_box = QComboBox()
+        self.current_data_table_combo_box = MyComboBox()
 
         # 显示表中所有数据
-        self.itemsListWidget = QListWidget()
+        self.recordsListWidget = MyListBox()
 
         # 显示属性
-        self.properties_widgets_list = []  # 包含index_label,name_text,value_text,
-        self.all_property_list_widget = QListWidget()
+        self.properties_widgets_list: List[PropertyWidgets] = []  # 包含index_label,name_text,value_text,
+        self.all_property_list_widget = MyListBox()
 
         # 所有条目
-        self.items = []
+        self.records: List[Entity] = []
+        self.cur_table: Entity = None
+        self.edit_items: Dict[str, DataEdit] = dict()
 
         # 设置区域
-        self.setting_widget_dict = dict()
-
+        self.delButton = MyButton(text='删除选中')
         self.saveButton = MyButton(text='保存')
 
         self.new_name_label = MyLabel()
@@ -154,18 +162,19 @@ class MyMainWindow(QMainWindow):
                 width=self.button_width,
                 height=self.item_height)
         self.current_data_table_combo_box.addItem(TableItems.skill)
-        self.current_data_table_combo_box.addItem(TableItems.status)
+        self.current_data_table_combo_box.addItem(TableItems.battle_status)
         self.current_data_table_combo_box.addItem(TableItems.base_property)
-        self.current_data_table_combo_box.addItem(TableItems.achievement)
-        self.current_data_table_combo_box.setCurrentText(TableItems.achievement)
+        self.current_data_table_combo_box.addItem(TableItems.achievement.name)
+        self.current_data_table_combo_box.addItem(TableItems.gem)
+        self.current_data_table_combo_box.setCurrentText(TableItems.achievement.name)
 
         self.current_data_table_combo_box.currentIndexChanged.connect(self.data_table_select_changed)
 
         self.data_table_select_changed(self.current_data_table_combo_box.currentIndex())
 
     def init_items_list(self):
-        self.itemsListWidget = QListWidget()
-        set_geo(cur_widget=self.itemsListWidget,
+        self.recordsListWidget = MyListBox()
+        set_geo(cur_widget=self.recordsListWidget,
                 parent_widget=self.left_region,
                 x1=0,
                 y1=self.item_height,
@@ -174,20 +183,13 @@ class MyMainWindow(QMainWindow):
 
     def show_all_items(self):
         current_text = self.current_data_table_combo_box.currentText()
-        if current_text == TableItems.skill:
-            items = [one_skill.name for one_skill in Skill.get_all()]
-        elif current_text == TableItems.status:  # 状态
-            items = [one_status.name for one_status in BattleStatus.get_all()]
-        elif current_text == TableItems.base_property:  # 状态
-            items = BasePropertyType.item_list.name_index_dict.keys()
-        elif current_text == TableItems.achievement:  # 成就
-            items = [one_achievement.name for one_achievement in Achievement.get_all()]
-        else:
-            raise ValueError("还没实现其它表格的编辑")
+        table_class = TableItems.item_list.get_by_name(name=current_text).table_class
 
-        self.items = items
-        self.itemsListWidget.clear()
-        self.itemsListWidget.addItems(items)
+        item_names = [entity.name for entity in table_class.get_all()]
+
+        self.records = item_names
+        self.recordsListWidget.clear()
+        self.recordsListWidget.addItems(item_names)
 
     def data_table_select_changed(self, index: int):
         print('data_table_select_changed', index)
@@ -195,131 +197,182 @@ class MyMainWindow(QMainWindow):
         self.clear_temp_widgets()
 
         current_text = self.current_data_table_combo_box.currentText()
-        if current_text == TableItems.skill:
-            setting_list = [
-                DataEditType(key='skill_name', label='技能名称:', edit_widget=EditType.short_text, ),
-                DataEditType(key='level', label='等级:', edit_widget=EditType.combo_box, choices=SkillLevel,
-                             default=SkillLevel.NINE),
-                DataEditType(key='learning_approach', label='学习途径:', edit_widget=EditType.combo_box,
-                             choices=LearningApproach),
-                DataEditType(key='skill_type', label='技能类型:', edit_widget=EditType.combo_box, choices=SkillType),
-                DataEditType(key='target', label='作用对象:', edit_widget=EditType.combo_box, choices=SkillTarget),
-                DataEditType(key='effect_expression', label='技能说明:', edit_widget=EditType.long_text),
-            ]
-            item_changed_event = self.handle_skill_changed
-            item_add_event = self.add_skill_event
-            item_save_event = self.save_skill_property
 
-        elif current_text == TableItems.status:  # 状态
-            setting_list = [
-                DataEditType(key='name', label='状态名称:', edit_widget=EditType.short_text, editable=False),
-                DataEditType(key='status_type', label='状态类型:', edit_widget=EditType.combo_box, choices=StatusType),
-                DataEditType(key='effect_expression', label='效果介绍:', edit_widget=EditType.long_text,
-                             choices=StatusType),
-            ]
-            item_changed_event = self.handle_status_changed
-            item_add_event = self.add_status_event
-            item_save_event = self.save_base_property
+        table_item = TableItems.item_list.get_by_name(name=current_text)
 
-        elif current_text == TableItems.base_property:  # 状态
-            setting_list = [
-                DataEditType(key='name', label='基础属性', edit_widget=EditType.short_text, editable=False),
-            ]
-            item_changed_event = self.handle_base_property_changed
-            item_add_event = self.add_base_property_event
-            item_save_event = self.save_base_property
+        self.cur_table = table_item.table_class
+        columns = inspect.getmembers(Achievement)
 
-        elif current_text == TableItems.achievement:  # 成就
-            setting_list = [
-                DataEditType(key='name', label='成就名称', edit_widget=EditType.short_text),
-                DataEditType(key='achievement_type', label='成就类型', edit_widget=EditType.combo_box,
-                             choices=AchievementType, ),
+        self.edit_items.clear()
 
-                DataEditType(key='condition_property_type', label='达成属性', edit_widget=EditType.combo_box,
-                             choices=AchievementPropertyType, ),
-                DataEditType(key='condition_property_value', label='属性值', edit_widget=EditType.short_text, ),
+        for column in columns:
+            key = column[0]
+            if key == "id":
+                continue
+            one_column: Column = getattr(table_item.table_class, key)
+            if not isinstance(one_column, InstrumentedAttribute):
+                continue
 
-                DataEditType(key='days_of_validity', label='有效期/天:', edit_widget=EditType.short_text, ),
-                DataEditType(key='achievement_point', label='成就点数:', edit_widget=EditType.short_text, ),
-                DataEditType(key='introduce', label='成就说明:', edit_widget=EditType.long_text, ),
-            ]
-            item_changed_event = self.handle_achievement_changed
-            item_add_event = self.add_achievement_event
-            item_save_event = self.save_achievement
+            default = one_column.default
+            if isinstance(one_column.type, Boolean):
+                data_type = DataType.BOOL
+                edit_type = EditWidgetType.bool_combo_box
+            elif isinstance(one_column.type, Integer):
+                data_type = DataType.INTEGER
+                edit_type = EditWidgetType.short_text
+            elif isinstance(one_column.type, Text):
+                data_type = DataType.TEXT
+                edit_type = EditWidgetType.long_text
+            elif isinstance(one_column.type, String):
+                data_type = DataType.STRING
+                edit_type = EditWidgetType.short_text
+            else:
+                raise ValueError("还没有实现")
+            if one_column.bind_type is not None:
+                edit_type = EditWidgetType.combo_box
 
-        elif current_text == TableItems.gem:
-            setting_list = [
-                DataEditType(key='name', label='名称:', edit_widget=EditType.short_text, ),
-                DataEditType(key='additional_property_type', label='名称:', edit_widget=EditType.short_text, ),
-                DataEditType(key='increase', label='增加值:', edit_widget=EditType.short_text, ),
-                DataEditType(key='is_bind', label='是否绑定:', edit_widget=EditType.bool_combo_box, default=False),
-            ]
-            item_changed_event = self.handle_gem_changed
-            item_add_event = self.add_gem_event
-            item_save_event = self.save_gem_event
-        elif current_text == TableItems.box:
-            setting_list = [
-                DataEditType(key='name', label='名称:', edit_widget=EditType.short_text, ),
-                DataEditType(key='is_bind', label='是否绑定:', edit_widget=EditType.bool_combo_box, ),
-                DataEditType(key='introduction', label='介绍:', edit_widget=EditType.long_text),
-            ]
-            item_changed_event = self.handle_box_changed
-            item_add_event = self.add_box_event
-            item_save_event = self.save_box_event
-        elif current_text == TableItems.exp_book:
-            setting_list = [
-                DataEditType(key='name', label='名称:', edit_widget=EditType.short_text, ),
-                DataEditType(key='book_type', label='类型:', edit_widget=EditType.bool_combo_box, choices=ExpBookType),
-                DataEditType(key='exp_value', label='经验:', edit_widget=EditType.short_text),
-            ]
-            item_changed_event = self.handle_exp_book_changed
-            item_add_event = self.add_exp_book_event
-            item_save_event = self.save_exp_book_event
-        elif current_text == TableItems.holiday:
-            setting_list = [
-                DataEditType(key='name', label='名称:', edit_widget=EditType.short_text),
-                DataEditType(key='month', label='月份：', edit_widget=EditType.short_text),
-                DataEditType(key='day', label='日期:', edit_widget=EditType.short_text),
-            ]
-            item_changed_event = self.handle_holiday_changed
-            item_add_event = self.add_holiday_book
-            item_save_event = self.save_holiday_book
-        elif current_text == TableItems.gem:
-            ...
-        elif current_text == TableItems.identify_book:
-            ...
-        elif current_text == TableItems.monster:
-            ...
-        elif current_text == TableItems.monster_type_show_time:
-            ...
-        elif current_text == TableItems.potion:
-            ...
-        elif current_text == TableItems.raise_star_book:
-            ...
-        elif current_text == TableItems.raise_star_prob:
-            ...
-        elif current_text == TableItems.skill_cost_point:
-            ...
-        elif current_text == TableItems.level_exp:
-            ...
-        elif current_text == TableItems.player:
-            ...
-        elif current_text == TableItems.sell_store:
-            ...
-        else:
-            raise ValueError("还没实现其它表格的编辑")
+            new_edit_item = DataEdit(
+                data_type=data_type,
+                key=key,
+                cn=one_column.cn,
+                edit_widget_type=edit_type,
+                choices=one_column.bind_type,
+                editable=True,
+                default=default)
+
+            self.edit_items[key] = new_edit_item
+
+        # if current_text == TableItems.skill:
+        #     setting_list = [
+        #         DataEditType(key='name', label='技能名称:', edit_widget=EditWidgetType.short_text, ),
+        #         DataEditType(key='level', label='等级:', edit_widget=EditWidgetType.combo_box, choices=SkillLevel,
+        #                      default=SkillLevel.NINE),
+        #         DataEditType(key='learning_approach', label='学习途径:', edit_widget=EditWidgetType.combo_box,
+        #                      choices=LearningApproach),
+        #         DataEditType(key='skill_type', label='技能类型:', edit_widget=EditWidgetType.combo_box, choices=SkillType),
+        #         DataEditType(key='target', label='作用对象:', edit_widget=EditWidgetType.combo_box, choices=SkillTarget),
+        #         DataEditType(key='effect_expression', label='技能说明:', edit_widget=EditWidgetType.long_text),
+        #     ]
+        #     record_changed_event = self.handle_skill_changed
+        #     item_add_event = self.add_skill_event
+        #     item_save_event = self.save_skill_property
+        #
+        # elif current_text == TableItems.battle_status:  # 状态
+        #     setting_list = [
+        #         DataEditType(key='name', label='状态名称:', edit_widget=EditWidgetType.short_text, editable=True),
+        #         DataEditType(key='status_type', label='状态类型:', edit_widget=EditWidgetType.combo_box, choices=StatusType),
+        #         DataEditType(key='effect_expression', label='效果介绍:', edit_widget=EditWidgetType.long_text),
+        #     ]
+        #     record_changed_event = self.handle_status_changed
+        #     item_add_event = self.add_status_event
+        #     item_save_event = self.save_base_property
+        #
+        # elif current_text == TableItems.base_property:  # 状态
+        #     setting_list = [
+        #         DataEditType(key='name', label='基础属性', edit_widget=EditWidgetType.short_text, editable=False),
+        #     ]
+        #     record_changed_event = self.handle_base_property_changed
+        #     item_add_event = self.add_base_property_event
+        #     item_save_event = self.save_base_property
+        #
+        # elif current_text == TableItems.achievement:  # 成就
+        #
+        #
+        #     setting_list = [
+        #         DataEditType(key='name', label='成就名称', edit_widget=EditWidgetType.short_text),
+        #         DataEditType(key='achievement_type', label='成就类型', edit_widget=EditWidgetType.combo_box,
+        #                      choices=AchievementType, ),
+        #
+        #         DataEditType(key='condition_property_type', label='达成属性', edit_widget=EditWidgetType.combo_box,
+        #                      choices=AchievementPropertyType, ),
+        #         DataEditType(key='condition_property_value', label='属性值', edit_widget=EditWidgetType.short_text, ),
+        #
+        #         DataEditType(key='days_of_validity', label='有效期/天:', edit_widget=EditWidgetType.short_text, ),
+        #         DataEditType(key='achievement_point', label='成就点数:', edit_widget=EditWidgetType.short_text, ),
+        #         DataEditType(key='introduce', label='成就说明:', edit_widget=EditWidgetType.long_text, ),
+        #     ]
+        #     record_changed_event = self.handle_achievement_changed
+        #     item_add_event = self.add_record_event
+        #     item_save_event = self.save_record_record
+        #
+        # elif current_text == TableItems.gem:
+        #     setting_list = [
+        #         DataEditType(key='name', label='名称:', edit_widget=EditWidgetType.short_text, ),
+        #         DataEditType(key='additional_property_type', label='属性名称:', edit_widget=EditWidgetType.combo_box,
+        #                      choices=AdditionalPropertyType),
+        #         DataEditType(key='increase', label='增加值:', edit_widget=EditWidgetType.short_text, ),
+        #         DataEditType(key='is_bind', label='是否绑定:', edit_widget=EditWidgetType.bool_combo_box, default=False),
+        #     ]
+        #     record_changed_event = self.handle_gem_changed
+        #     item_add_event = self.add_gem_event
+        #     item_save_event = self.save_gem_event
+        # elif current_text == TableItems.box:
+        #     setting_list = [
+        #         DataEditType(key='name', label='名称:', edit_widget=EditWidgetType.short_text, ),
+        #         DataEditType(key='is_bind', label='是否绑定:', edit_widget=EditWidgetType.bool_combo_box, ),
+        #         DataEditType(key='introduction', label='介绍:', edit_widget=EditWidgetType.long_text),
+        #     ]
+        #     record_changed_event = self.handle_box_changed
+        #     item_add_event = self.add_box_event
+        #     item_save_event = self.save_box_event
+        # elif current_text == TableItems.exp_book:
+        #     setting_list = [
+        #         DataEditType(key='name', label='名称:', edit_widget=EditWidgetType.short_text, ),
+        #         DataEditType(key='book_type', label='类型:', edit_widget=EditWidgetType.bool_combo_box, choices=ExpBookType),
+        #         DataEditType(key='exp_value', label='经验:', edit_widget=EditWidgetType.short_text),
+        #     ]
+        #     record_changed_event = self.handle_exp_book_changed
+        #     item_add_event = self.add_exp_book_event
+        #     item_save_event = self.save_exp_book_event
+        # elif current_text == TableItems.holiday:
+        #     setting_list = [
+        #         DataEditType(key='name', label='名称:', edit_widget=EditWidgetType.short_text),
+        #         DataEditType(key='month', label='月份：', edit_widget=EditWidgetType.short_text),
+        #         DataEditType(key='day', label='日期:', edit_widget=EditWidgetType.short_text),
+        #     ]
+        #     record_changed_event = self.handle_holiday_changed
+        #     item_add_event = self.add_holiday_book
+        #     item_save_event = self.save_holiday_book
+        # elif current_text == TableItems.gem:
+        #     ...
+        # elif current_text == TableItems.identify_book:
+        #     ...
+        # elif current_text == TableItems.monster:
+        #     ...
+        # elif current_text == TableItems.monster_type_show_time:
+        #     ...
+        # elif current_text == TableItems.potion:
+        #     ...
+        # elif current_text == TableItems.raise_star_book:
+        #     ...
+        # elif current_text == TableItems.raise_star_prob:
+        #     ...
+        # elif current_text == TableItems.skill_cost_point:
+        #     ...
+        # elif current_text == TableItems.level_exp:
+        #     ...
+        # elif current_text == TableItems.player:
+        #     ...
+        # elif current_text == TableItems.sell_store:
+        #     ...
+        #
+        # else:
+        #     raise ValueError("还没实现其它表格的编辑")
+        self.delButton.disconnect_all()
+        self.delButton.clicked.connect(self.del_record)
+
+        self.recordsListWidget.disconnect_all()
+        self.recordsListWidget.currentItemChanged.connect(self.record_changed_event)
 
         self.show_all_items()
 
-        self.itemsListWidget.currentItemChanged.connect(item_changed_event)
-
         self.add_entry_button.disconnect_all()
-        self.add_entry_button.clicked.connect(item_add_event)
+        self.add_entry_button.clicked.connect(self.add_record_event)
 
         self.saveButton.disconnect_all()
-        self.saveButton.clicked.connect(item_save_event)
+        self.saveButton.clicked.connect(self.save_record_record)
 
-        self.init_item_setting_ui(setting_list=setting_list)
+        self.init_item_setting_ui()
         self.update()
         self.repaint()
 
@@ -331,7 +384,7 @@ class MyMainWindow(QMainWindow):
             name_text = MyLineText(index)
             # -------------------------------------
             target_label = MyLabel()
-            target_combo_box = QComboBox()
+            target_combo_box = MyComboBox()
             # -------------------------------------
             name_label = MyLabel()
             value_text = MyLineText(index)
@@ -400,35 +453,49 @@ class MyMainWindow(QMainWindow):
 
     def init_bottom_widgets(self):
         print("init_bottom_widgets")
+
+        horizontal_index = 0
+        # 删除按钮
+        set_geo(cur_widget=self.delButton,
+                parent_widget=self.bottom_region,
+                x1=self.interval * horizontal_index + self.button_width * horizontal_index,
+                y1=self.button_top_margin,
+                width=self.button_width,
+                height=self.item_height)
+
+        horizontal_index += 2
         # 新增 技能文本框，按钮
         set_geo(cur_widget=self.new_name_label,
                 parent_widget=self.bottom_region,
-                x1=self.interval * 0 + self.button_width * 0,
+                x1=self.interval * horizontal_index + self.button_width * horizontal_index,
                 y1=self.button_top_margin,
                 width=self.button_width,
                 height=self.item_height
                 )
         self.new_name_label.setText('新名称')
 
+        horizontal_index += 1
         set_geo(cur_widget=self.new_name_text,
                 parent_widget=self.bottom_region,
-                x1=self.interval * 1 + self.button_width * 1,
+                x1=self.interval * horizontal_index + self.button_width * horizontal_index,
+                y1=self.button_top_margin,
+                width=self.button_width,
+                height=self.item_height
+                )
+        horizontal_index += 1
+        set_geo(cur_widget=self.add_entry_button,
+                parent_widget=self.bottom_region,
+                x1=self.interval * horizontal_index + self.button_width * horizontal_index,
                 y1=self.button_top_margin,
                 width=self.button_width,
                 height=self.item_height
                 )
 
-        set_geo(cur_widget=self.add_entry_button,
-                parent_widget=self.bottom_region,
-                x1=self.interval * 2 + self.button_width * 2,
-                y1=self.button_top_margin,
-                width=self.button_width,
-                height=self.item_height
-                )
         # 保存按钮
+        horizontal_index += 1
         set_geo(cur_widget=self.saveButton,
                 parent_widget=self.bottom_region,
-                x1=self.interval * 4 + self.button_width * 4,
+                x1=self.interval * horizontal_index + self.button_width * horizontal_index,
                 y1=self.button_top_margin,
                 width=self.button_width,
                 height=self.item_height)
@@ -488,18 +555,19 @@ class MyMainWindow(QMainWindow):
 
     def clear_temp_widgets(self):
         print("clear_temp_widgets")
-        self.setting_widget_dict.clear()
+        self.edit_items.clear()
         for item in self.right_top_region.children():
             sip.delete(item)
 
-    def init_item_setting_ui(self, *, setting_list: List[DataEditType]):
+    def init_item_setting_ui(self):
         print("init_item_setting_ui")
         widget_index = -1
-        for edit in setting_list:
-            # in database_field, label_name, edit_type, choices, changeable
-            if edit.edit_widget in {EditType.short_text, EditType.combo_box}:
+        for key in self.edit_items:
+            edit_item = self.edit_items[key]
+            if edit_item.edit_widget_type in {EditWidgetType.short_text, EditWidgetType.combo_box,
+                                              EditWidgetType.bool_combo_box}:
                 widget_index += 1
-            elif edit.edit_widget in {EditType.long_text}:
+            elif edit_item.edit_widget_type in {EditWidgetType.long_text}:
                 widget_index = (widget_index // 2 + 1) * 2  # 可视化的较长
             else:
                 raise ValueError()
@@ -518,7 +586,7 @@ class MyMainWindow(QMainWindow):
             print(label_x1, label_y1, edit_y1, edit_y1)
 
             # label
-            label = MyLabel(label_text=edit.label)
+            label = MyLabel(label_text=edit_item.cn)
             set_geo(cur_widget=label,
                     parent_widget=self.right_top_region,
                     x1=label_x1,
@@ -528,7 +596,7 @@ class MyMainWindow(QMainWindow):
             label.show()
 
             # edit
-            if edit.edit_widget == EditType.short_text:
+            if edit_item.edit_widget_type == EditWidgetType.short_text:
                 edit_widget = MyLineText()
                 set_geo(cur_widget=edit_widget,
                         parent_widget=self.right_top_region,
@@ -536,9 +604,9 @@ class MyMainWindow(QMainWindow):
                         y1=edit_y1,
                         width=self.short_text_width,
                         height=self.item_height)
-                edit_widget.set_text(edit.choices)
+                edit_widget.set_text(text=edit_item.choices)
 
-            elif edit.edit_widget in (EditType.long_text,):
+            elif edit_item.edit_widget_type in (EditWidgetType.long_text,):
                 edit_widget = MyLineText()
                 set_geo(cur_widget=edit_widget,
                         parent_widget=self.right_top_region,
@@ -546,12 +614,24 @@ class MyMainWindow(QMainWindow):
                         y1=edit_y1,
                         width=self.long_text_width,
                         height=self.item_height)
-                edit_widget.set_text(edit.choices)
+                edit_widget.set_text(text=edit_item.choices)
+                widget_index += 1
 
-            elif edit.edit_widget in (EditType.combo_box,):
-                edit_widget = QComboBox()
-                edit_widget.addItems(list(edit.choices.item_list.name_index_dict.keys()))
-                edit_widget.setCurrentIndex(edit.choices.default.index - 1)
+            elif edit_item.edit_widget_type in (EditWidgetType.combo_box,):
+                edit_widget = MyComboBox()
+                edit_widget.addItems(list(edit_item.choices.item_list.name_index_dict.keys()))
+                edit_widget.setCurrentIndex(edit_item.choices.default.index - 1)
+                set_geo(cur_widget=edit_widget,
+                        parent_widget=self.right_top_region,
+                        x1=edit_x1,
+                        y1=edit_y1,
+                        width=self.short_text_width,
+                        height=self.item_height)
+            elif edit_item.edit_widget_type in {EditWidgetType.bool_combo_box}:
+                edit_widget = MyComboBox()
+                edit_widget.addItems(["True", "False"])
+
+                edit_widget.setEditText(str(edit_item.default))
                 set_geo(cur_widget=edit_widget,
                         parent_widget=self.right_top_region,
                         x1=edit_x1,
@@ -561,45 +641,18 @@ class MyMainWindow(QMainWindow):
             else:
                 raise ValueError("暂时没有实现其他类型的edit")
 
-            if edit.edit_widget in (EditType.combo_box,):
+            if edit_item.edit_widget_type in (EditWidgetType.combo_box,):
                 edit_widget.currentIndexChanged.connect(self.enable_save_button)
-            elif edit.edit_widget in (EditType.short_text, EditType.long_text):
+            elif edit_item.edit_widget_type in (EditWidgetType.short_text, EditWidgetType.long_text):
                 edit_widget.textChanged.connect(self.enable_save_button)
 
-            if not edit.editable:
+            if not edit_item.editable:
                 edit_widget.setEnabled(False)
             edit_widget.show()
-            self.setting_widget_dict[edit.key] = edit_widget
-            self.setting_widget_dict[f'{edit.key}_choices'] = edit.choices
+            self.edit_items[edit_item.key].edit_widget = edit_widget
 
-    def add_skill_event(self):
-        print("add_skill_event")
-        new_name = self.new_name_text.text().strip()
-        if new_name == "":
-            QMessageBox.information(self, '出错了！', '技能名称不可为空')
-            return
-        if Skill.is_exists_by_name(name=new_name):
-            QMessageBox.information(self, '出错了！', '技能名称已经存在了')
-            return
-        Skill.add_with_name(name=new_name)
-        self.new_name_text.clear()
-        self.show_all_items()
-
-    def add_status_event(self):
-        print("add_status_event")
-        new_name = self.new_name_text.text().strip()
-        if new_name == "":
-            QMessageBox.information(self, '出错了！', '技能名称不可为空')
-            return
-        if BattleStatus.is_exists_by_name(name=new_name):
-            QMessageBox.information(self, '出错了！', '技能名称已经存在了')
-            return
-        BattleStatus.add_with_name(name=new_name)
-        self.new_name_text.clear()
-        self.show_all_items()
-
-    def add_achievement_event(self):
-        print("add_achievement_event")
+    def add_record_event(self):
+        print("add_record_event")
         new_name = self.new_name_text.text().strip()
         if new_name == "":
             QMessageBox.information(self, '出错了！', '成就不可为空')
@@ -607,25 +660,10 @@ class MyMainWindow(QMainWindow):
         if Achievement.is_exists_by_name(name=new_name):
             QMessageBox.information(self, '出错了！', '成就已经存在了')
             return
-        Achievement.add_or_update_by_name(name=new_name, achievement_type=AchievementPropertyType.default.index)
+        self.cur_table.add_or_update_by_name(name=new_name)
         self.new_name_text.clear()
         self.show_all_items()
 
-    def add_base_property_event(self):
-        print("add_status_event")
-        QMessageBox.information(self, '出错了！', '基础属性对应其他属性加成不可以修改！')
-
-    def add_gem_event(self):
-        print("add_status_event")
-        QMessageBox.information(self, '出错了！', '基础属性对应其他属性加成不可以修改！')
-    def add_box_event(self):
-        print("add_status_event")
-        QMessageBox.information(self, '出错了！', '基础属性对应其他属性加成不可以修改！')
-    def add_exp_book_event(self):
-        print("add_status_event")
-        QMessageBox.information(self, '出错了！', '基础属性对应其他属性加成不可以修改！')
-    def add_holiday_book(self):
-        ...
     def on_property_text_focus(self, index: int, text: str):
         print("on_property_text_focus")
         self.current_properties_index = index
@@ -668,22 +706,24 @@ class MyMainWindow(QMainWindow):
         self.name_label = name_label
         self.value_text = value_text"""
         property_name = self.all_property_list_widget.currentItem().text()
-        self.properties_widgets_list[self.current_properties_index].name_label.set_text(property_name)
+        self.properties_widgets_list[self.current_properties_index].name_label.set_text(text=property_name)
 
     def clear_properties(self):
         for properties_widget in self.properties_widgets_list:
-            properties_widget.name_text.set_text("")
-            properties_widget.name_label.set_text("")
-            properties_widget.value_text.set_text("")
+            properties_widget.name_text.set_text(text="")
+            properties_widget.name_label.set_text(text="")
+            properties_widget.value_text.set_text(text="")
 
     def handle_skill_changed(self, item):
         """
         点击技能列表
         """
+        if item is None:
+            return
         print('skill changed')
         selected_name = item.text()
         one_skill = Skill.get_by_name(name=selected_name)
-        self.setting_widget_dict["skill_name"].set_text(selected_name)
+        self.setting_widget_dict["name"].set_text(text=selected_name)
         self.setting_widget_dict['level'].setCurrentIndex(SkillLevel.default.index - 1)
 
         skill_type = one_skill.skill_type
@@ -699,7 +739,7 @@ class MyMainWindow(QMainWindow):
         self.setting_widget_dict['learning_approach'].setCurrentText(learning_approach_str)
 
         effect_expression = one_skill.effect_expression
-        self.setting_widget_dict['effect_expression'].set_text(effect_expression)
+        self.setting_widget_dict['effect_expression'].set_text(text=effect_expression)
 
         one_skill_book = SkillBook.get_by_skill_id_skill_level(skill_id=one_skill.id, level=9)
         # 显示属性：
@@ -711,9 +751,9 @@ class MyMainWindow(QMainWindow):
                 property_name = AdditionalPropertyType.item_list.index_name_dict[
                     skill_property.additional_property_type]
                 property_index = skill_property.additional_source_property_index
-                self.properties_widgets_list[property_index].name_text.set_text(property_name)
-                self.properties_widgets_list[property_index].name_label.set_text(property_name)
-                self.properties_widgets_list[property_index].value_text.set_text(
+                self.properties_widgets_list[property_index].name_text.set_text(text=property_name)
+                self.properties_widgets_list[property_index].name_label.set_text(text=property_name)
+                self.properties_widgets_list[property_index].value_text.set_text(text=
                     skill_property.additional_property_value)
 
                 property_target = skill_property.property_availability
@@ -723,14 +763,16 @@ class MyMainWindow(QMainWindow):
         self.saveButton.setEnabled(False)
 
     def handle_status_changed(self, item):
+        if item is None:
+            return
         print('status changed')
-        selected_status_name = item.text()
+        selected_name = item.text()
 
-        self.setting_widget_dict["name"].set_text(selected_status_name)
-        one_status = BattleStatus.get_by_name(name=selected_status_name)
+        self.setting_widget_dict["name"].set_text(text=selected_name)
+        one_status = BattleStatus.get_by_name(name=selected_name)
 
         self.setting_widget_dict['status_type'].setCurrentIndex(one_status.status_type - 1)
-        self.setting_widget_dict['effect_expression'].set_text(one_status.effect_expression)
+        self.setting_widget_dict['effect_expression'].set_text(text=one_status.effect_expression)
 
         status_properties = MiscProperties.get_properties_by_status_id(status_id=one_status.id)
         self.show_properties(properties=status_properties)
@@ -739,12 +781,14 @@ class MyMainWindow(QMainWindow):
         self.saveButton.setEnabled(False)
 
     def handle_base_property_changed(self, item):
+        if item is None:  # clear的时候会触发
+            return
         print('base_property changed')
-        selected_status_name = item.text()
+        selected_name = item.text()
 
-        self.setting_widget_dict["skill_name"].set_text(selected_status_name)
+        self.setting_widget_dict["name"].set_text(selected_name)
 
-        base_property_id = BasePropertyType.item_list.name_index_dict[selected_status_name]
+        base_property_id = BasePropertyType.item_list.name_index_dict[selected_name]
 
         properties = MiscProperties.get_properties_by_base_property(base_property_id=base_property_id)
         self.show_properties(properties=properties)
@@ -752,43 +796,23 @@ class MyMainWindow(QMainWindow):
         # 显示保存按钮
         self.saveButton.setEnabled(False)
 
-    def handle_achievement_changed(self, item):
+    def record_changed_event(self, item):
         if not item:
             print("item is None")
             return
 
-        print('base_property changed')
-        achievement_name = item.text()
+        record_name = item.text()
 
-        self.setting_widget_dict["name"].set_text(achievement_name)
+        record = self.cur_table.get_by_name(name=record_name)
 
-        one_achievement = Achievement.get_by_name(name=achievement_name)
-        achievement_type_cn = AchievementType.item_list.index_name_dict[one_achievement.achievement_type]
-        self.setting_widget_dict['achievement_type'].setCurrentText(achievement_type_cn)
+        for key in self.edit_items:
+            value = getattr(record, key)
+            edit_item = self.edit_items[key]
+            if edit_item.choices is not None:
+                value = edit_item.choices.item_list.get_name_by_index(index=value)
+            self.edit_items[key].edit_widget.set_text(text=value)
 
-        condition_property_type = one_achievement.condition_property_type
-        if condition_property_type:
-            condition_property_type_cn = AchievementPropertyType.item_list.index_name_dict[
-                one_achievement.condition_property_type]
-        else:
-            condition_property_type_cn = ""
-        self.setting_widget_dict['condition_property_type'].setCurrentText(condition_property_type_cn)
-
-        condition_property_value = one_achievement.condition_property_value
-        self.setting_widget_dict['condition_property_value'].set_text(condition_property_value)
-
-        days_of_validity = one_achievement.days_of_validity
-        self.setting_widget_dict['days_of_validity'].set_text(days_of_validity)
-
-        achievement_point = one_achievement.achievement_point
-        self.setting_widget_dict['achievement_point'].set_text(achievement_point)
-
-        introduce = one_achievement.introduce
-        self.setting_widget_dict['introduce'].set_text(introduce)
-
-        properties = MiscProperties.get_properties_by_achievement_id(achievement_id=one_achievement.id)
-
-        self.show_properties(properties=properties)
+        # self.show_properties(properties=properties)
         self.saveButton.setEnabled(False)
 
     def handle_gem_changed(self, item):
@@ -814,16 +838,16 @@ class MyMainWindow(QMainWindow):
         self.setting_widget_dict['condition_property_type'].setCurrentText(condition_property_type_cn)
 
         condition_property_value = one_achievement.condition_property_value
-        self.setting_widget_dict['condition_property_value'].set_text(condition_property_value)
+        self.setting_widget_dict['condition_property_value'].set_text(text=condition_property_value)
 
         days_of_validity = one_achievement.days_of_validity
-        self.setting_widget_dict['days_of_validity'].set_text(days_of_validity)
+        self.setting_widget_dict['days_of_validity'].set_text(text=days_of_validity)
 
         achievement_point = one_achievement.achievement_point
-        self.setting_widget_dict['achievement_point'].set_text(achievement_point)
+        self.setting_widget_dict['achievement_point'].set_text(text=achievement_point)
 
         introduce = one_achievement.introduce
-        self.setting_widget_dict['introduce'].set_text(introduce)
+        self.setting_widget_dict['introduce'].set_text(text=introduce)
 
         properties = MiscProperties.get_properties_by_achievement_id(achievement_id=one_achievement.id)
 
@@ -838,7 +862,7 @@ class MyMainWindow(QMainWindow):
         print('gem changed')
         achievement_name = item.text()
 
-        self.setting_widget_dict["name"].set_text(achievement_name)
+        self.setting_widget_dict["name"].set_text(text=achievement_name)
 
         one_achievement = Gem.get_by_name(name=achievement_name)
         achievement_type_cn = AchievementType.item_list.index_name_dict[one_achievement.achievement_type]
@@ -853,35 +877,30 @@ class MyMainWindow(QMainWindow):
         self.setting_widget_dict['condition_property_type'].setCurrentText(condition_property_type_cn)
 
         condition_property_value = one_achievement.condition_property_value
-        self.setting_widget_dict['condition_property_value'].set_text(condition_property_value)
+        self.setting_widget_dict['condition_property_value'].set_text(text=condition_property_value)
 
         days_of_validity = one_achievement.days_of_validity
-        self.setting_widget_dict['days_of_validity'].set_text(days_of_validity)
+        self.setting_widget_dict['days_of_validity'].set_text(text=days_of_validity)
 
         achievement_point = one_achievement.achievement_point
-        self.setting_widget_dict['achievement_point'].set_text(achievement_point)
+        self.setting_widget_dict['achievement_point'].set_text(text=achievement_point)
 
         introduce = one_achievement.introduce
-        self.setting_widget_dict['introduce'].set_text(introduce)
+        self.setting_widget_dict['introduce'].set_text(text=introduce)
 
         properties = MiscProperties.get_properties_by_achievement_id(achievement_id=one_achievement.id)
 
         self.show_properties(properties=properties)
         self.saveButton.setEnabled(False)
 
-    def handle_exp_book_changed(self):
-        ...
-
-    def handle_holiday_changed(self):
-        ...
 
     def show_properties(self, *, properties: List):
         for status_property in properties:
             property_name = AdditionalPropertyType.item_list.index_name_dict[status_property.additional_property_type]
             property_index = status_property.additional_source_property_index
-            self.properties_widgets_list[property_index].name_text.set_text(property_name)
-            self.properties_widgets_list[property_index].name_label.set_text(property_name)
-            self.properties_widgets_list[property_index].value_text.set_text(status_property.additional_property_value)
+            self.properties_widgets_list[property_index].name_text.set_text(text=property_name)
+            self.properties_widgets_list[property_index].name_label.set_text(text=property_name)
+            self.properties_widgets_list[property_index].value_text.set_text(text=status_property.additional_property_value)
         # 显示保存按钮
 
     def enable_save_button(self):
@@ -890,25 +909,25 @@ class MyMainWindow(QMainWindow):
 
     def save_skill_property(self):
         print("save_skill_property")
-        selected_name = self.itemsListWidget.currentItem().text().strip()
-        new_name = self.setting_widget_dict["skill_name"].text().strip()
+        selected_name = self.recordsListWidget.currentItem().text().strip()
+        new_name = self.setting_widget_dict["name"].text().strip()
         target_name = self.setting_widget_dict["target"].currentText().strip()
         target = SkillTarget.item_list.name_index_dict[target_name]
         one_skill = Skill.get_by_name(name=selected_name)
 
         if selected_name != new_name:
             # 如果名字发生了修改。修改后技能的id不会发生变化
-            Skill.update_name_by_id(_id=one_skill.id, name=new_name)
+            Skill.update_name_by_id(_id=one_skill.id, new_name=new_name)
             print(f'技能名称从{selected_name}->{new_name}')
 
         skill_level = int(self.setting_widget_dict['level'].currentText())
         one_skill_book = SkillBook.get_by_skill_id_skill_level(skill_id=one_skill.id, level=skill_level)
 
-        # 如果数据库里面有对应的技能数，则进行删除，如果没有直接插入；
+        # 如果数据库里面有对应的技能书，则进行删除，如果没有直接插入；
         if one_skill_book is not None:
             MiscProperties.del_skill_book_properties(skill_book_id=one_skill_book.id)
         else:
-            one_skill_book = SkillBook.add(skill_id=one_skill.id, level=skill_level)
+            one_skill_book = SkillBook.add_or_update_by_id(_id=one_skill.id, level=skill_level)
 
         for index, properties_widget in enumerate(self.properties_widgets_list):
             property_cn_name = properties_widget.name_label.text()
@@ -932,7 +951,7 @@ class MyMainWindow(QMainWindow):
     def save_status_property(self):
         print("save_status_property")
 
-        selected_name = self.itemsListWidget.currentItem().text().strip()
+        selected_name = self.recordsListWidget.currentItem().text().strip()
         new_name = self.setting_widget_dict["name"].text().strip()
         effect_expression = self.setting_widget_dict["effect_expression"].text().strip()
         status_type = self.setting_widget_dict["status_type"].currentIndex() + 1
@@ -970,7 +989,7 @@ class MyMainWindow(QMainWindow):
     def save_base_property(self):
         print("save_base_property")
 
-        selected_name = self.itemsListWidget.currentItem().text().strip()
+        selected_name = self.recordsListWidget.currentItem().text().strip()
         # name不会发生修改
         # 基础属性的索引
         base_property_index = BasePropertyType.item_list.name_index_dict[selected_name]
@@ -989,7 +1008,7 @@ class MyMainWindow(QMainWindow):
             property_value = int(property_value_text)
             MiscProperties.add_base_additional_properties(
                 base_property_type=base_property_index,
-                property_index=index,
+                additional_source_property_index=index,
                 additional_property_type=property_num,
                 additional_property_value=property_value,
             )
@@ -997,41 +1016,53 @@ class MyMainWindow(QMainWindow):
         self.saveButton.setEnabled(False)  # 隐藏保存按钮
         self.show_all_items()
 
-    def save_achievement(self):
-        print("save_achievement")
+    def del_record(self):
+        """
+        删除当前选中的记录
+        """
+        current_name = self.recordsListWidget.currentItem().text()
+        confirm = input(f"确定要删除{current_name}吗?如果确认请输出yes，输入其它内容被视为不删除。")
+        if confirm == "yes":
+            self.cur_table.del_by_name(name=current_name)
+            print(f"删除name为 {current_name} 的记录成功！")
+        self.show_all_items()
 
-        selected_name = self.itemsListWidget.currentItem().text().strip()
-        new_name = self.new_name_text.text().strip()
-        # name不会发生修改
-        cur_achievement = Achievement.get_by_name(name=selected_name)
+    def save_record_record(self):
+        print("save_record_record")
 
-        achievement_type_cn = self.setting_widget_dict['achievement_type'].currentText()
-        achievement_type = AchievementType.item_list.name_index_dict[achievement_type_cn]
+        record: Entity = self.cur_table.get_by_name(name=self.recordsListWidget.currentItem().text())
 
-        condition_property_type_cn = self.setting_widget_dict['condition_property_type'].currentText()
-        condition_property_type = AchievementPropertyType.item_list.name_index_dict[condition_property_type_cn]
+        update_args = dict()
+        for key in self.edit_items:
+            data_edit = self.edit_items[key]
+            value = data_edit.edit_widget.text()
 
-        condition_property_value = self.setting_widget_dict['condition_property_value'].text()
+            if data_edit.choices is not None:
+                value = data_edit.choices.item_list.get_index_by_name(name=value)
 
-        days_of_validity = int(self.setting_widget_dict['days_of_validity'].text())
-        achievement_point = int(self.setting_widget_dict['achievement_point'].text())
+            if data_edit.data_type == DataType.INTEGER:
+                if value == "":
+                    value = -1
+                else:
+                    value = int(value)
+            elif data_edit.data_type in (DataType.STRING, DataType.TEXT):
+                ...
+            elif data_edit.data_type == DataType.BOOL:
+                if value == "True":
+                    value = True
+                elif value == "False":
+                    value = False
+                else:
+                    raise ValueError("不支持的类型")
 
-        introduce = self.setting_widget_dict['introduce'].text()
+            update_args[key] = value
 
-        Achievement.update(achievement_id=cur_achievement.id,
-                           new_achievement_type=achievement_type,
-                           new_name=new_name,
+        record.update_kwargs_by_id(_id=record.id, **update_args)
 
-                           new_condition_type=condition_property_type,
-                           new_condition_value=condition_property_value,
-
-                           new_days_of_validity=days_of_validity,
-                           new_achievement_point=achievement_point,
-
-                           new_introduce=introduce
-                           )
-
-        # 删除
+        # 对表格对应的属性进行操作；
+        ########################################################
+        # 删除对应属性
+        MiscProperties.del_all_by_kwargs()
         MiscProperties.del_achievement_properties(achievement_id=cur_achievement.id)
 
         for index, properties_widget in enumerate(self.properties_widgets_list):
@@ -1050,13 +1081,15 @@ class MyMainWindow(QMainWindow):
                 additional_property_value=property_value,
             )
             print(f"成就名称名称：{selected_name}，第{index + 1}条属性：{property_cn_name}=属性值{property_value} 更新成功。")
+        ########################################################
+
         self.saveButton.setEnabled(False)  # 隐藏保存按钮
         self.show_all_items()
 
     def save_gem_event(self):
         print("save_gem")
 
-        selected_name = self.itemsListWidget.currentItem().text().strip()
+        selected_name = self.recordsListWidget.currentItem().text().strip()
         new_name = self.new_name_text.text().strip()
         # name不会发生修改
         cur_achievement = Achievement.get_by_name(name=selected_name)
@@ -1074,45 +1107,25 @@ class MyMainWindow(QMainWindow):
 
         introduce = self.setting_widget_dict['introduce'].text()
 
-        Achievement.update(achievement_id=cur_achievement.id,
-                           new_achievement_type=achievement_type,
-                           new_name=new_name,
+        Achievement.add_or_update_by_id(_id=cur_achievement.id,
+                                        achievement_type=achievement_type,
+                                        name=new_name,
 
-                           new_condition_type=condition_property_type,
-                           new_condition_value=condition_property_value,
+                                        condition_type=condition_property_type,
+                                        condition_value=condition_property_value,
 
-                           new_days_of_validity=days_of_validity,
-                           new_achievement_point=achievement_point,
+                                        days_of_validity=days_of_validity,
+                                        achievement_point=achievement_point,
 
-                           new_introduce=introduce
-                           )
+                                        introduce=introduce
+                                        )
 
-        # 删除
-        MiscProperties.del_achievement_properties(achievement_id=cur_achievement.id)
 
-        for index, properties_widget in enumerate(self.properties_widgets_list):
-            property_cn_name = properties_widget.name_label.text()
-            if property_cn_name == "":
-                continue
-            property_value_text = properties_widget.value_text.text()
-            if property_value_text == "":
-                continue
-            property_num = AdditionalPropertyType.item_list.name_index_dict[property_cn_name]
-            property_value = int(property_value_text)
-            MiscProperties.add_achievement_properties(
-                achievement_id=cur_achievement.id,
-                additional_source_property_index=index,
-                additional_property_type=property_num,
-                additional_property_value=property_value,
-            )
-            print(f"成就名称名称：{selected_name}，第{index + 1}条属性：{property_cn_name}=属性值{property_value} 更新成功。")
-        self.saveButton.setEnabled(False)  # 隐藏保存按钮
-        self.show_all_items()
 
     def save_box_event(self):
         print("save_box")
 
-        selected_name = self.itemsListWidget.currentItem().text().strip()
+        selected_name = self.recordsListWidget.currentItem().text().strip()
         new_name = self.new_name_text.text().strip()
         # name不会发生修改
         cur_achievement = Achievement.get_by_name(name=selected_name)
@@ -1164,10 +1177,8 @@ class MyMainWindow(QMainWindow):
             print(f"成就名称名称：{selected_name}，第{index + 1}条属性：{property_cn_name}=属性值{property_value} 更新成功。")
         self.saveButton.setEnabled(False)  # 隐藏保存按钮
         self.show_all_items()
-    def save_exp_book_event(self):
-        ...
-    def save_holiday_book(self):
-        ...
+
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = MyMainWindow()

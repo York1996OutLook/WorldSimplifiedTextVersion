@@ -3,21 +3,31 @@ from sqlalchemy.ext.declarative import declarative_base
 from typing import List, Optional
 
 from DBHelper.session import session
+from DBHelper.tables.base_table import Basic,Base
 
-Base = declarative_base()
 
-
-class SkillCostPoint(Base):
+class SkillCostPoint(Basic,Base):
     """
     升级技能需要的技能点；
     10个技能全部学满，10*450=4500技能点；
     每升一级给50个技能点，90级的时候，能够学完所有技能；
     """
-    __tablename__ = 'skill_point'
+    __tablename__ = 'skill_cost_point'
     level = Column(Integer, comment="等级")
     need_point = Column(Integer, comment="所需技能点")
 
+    @classmethod
+    def add_or_update_by_id(
+            cls,
+            *,
+            _id: int,
 
+            level: int = None,
+            need_point: int = None,
+    ):
+        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
+        record = cls._add_or_update_by_id(**fields)
+        return record
 # 增
 
 # 删

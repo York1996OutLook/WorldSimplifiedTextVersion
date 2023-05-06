@@ -12,7 +12,7 @@ from Utils import tools
 
 Base = declarative_base()
 
-class ExpBook(Entity):
+class ExpBook(Entity,Base):
     """
     经验的列表
     """

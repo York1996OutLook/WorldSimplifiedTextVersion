@@ -16,6 +16,7 @@ class AchievementTitleBook(Basic,Base):
     """
 
     """
+    __cn__ = "称号书"
     __tablename__ = "achievement_title_book"
 
     achievement_id = Column(Integer, comment="对应的成就ID")

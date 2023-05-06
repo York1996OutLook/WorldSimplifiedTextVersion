@@ -11,16 +11,16 @@ class PlayerAchievementRecord(Basic,Base):
     """
     __tablename__ = "player_achievement_record"
 
+    character_id = Column(Integer, comment="成就达成人物ID")
 
     achievement_id = Column(Integer, comment="成就ID")
-    character_id = Column(Integer, comment="成就达成人物ID")
     achieve_timestamp = Column(Integer, comment="成就达成时间")
 
     @classmethod
     def add_or_update_by_id(cls, *,
                             _id: int,
-                            achievement_id: int = None,
                             character_id: int = None,
+                            achievement_id: int = None,
                             achieve_timestamp: int = None
                             ):
         fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)

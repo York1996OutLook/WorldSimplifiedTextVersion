@@ -11,14 +11,11 @@ Base = declarative_base()
 
 
 # 药剂系统
-class Potion(Entity):
+class Potion(Entity,Base):
     """
     药剂
     """
     __tablename__ = "potion"
-
-    additional_property_type = Column(Integer, comment="附加属性的类型,参考AdditionalPropertyType")
-    additional_property_value = Column(Integer, comment="附加属性的值")
 
     duration_by_min = Column(Integer, comment="有效期,以分钟为单位")
 
@@ -28,8 +25,6 @@ class Potion(Entity):
     def add_or_update_by_name(cls,
                               *,
                               name: str,
-                              additional_property_type: int = None,
-                              additional_property_value: int = None,
                               duration_by_min: int = None,
                               is_bind: bool = None
                               ) -> "Potion":
@@ -44,8 +39,6 @@ class Potion(Entity):
             _id: int,
 
             name: str = None,
-            additional_property_type: int = None,
-            additional_property_value: int = None,
             duration_by_min: int = None,
             is_bind: bool = None
     ) -> "Potion":

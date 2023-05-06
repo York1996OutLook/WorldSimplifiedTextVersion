@@ -8,7 +8,7 @@ from DBHelper.tables.base_table import Entity
 
 
 # 怪物
-class Monster(Entity):
+class Monster(Entity,Base):
     """
     怪物
     """
@@ -16,13 +16,15 @@ class Monster(Entity):
 
     exp_value = Column(Integer, comment='被击败后掉落的经验值')
     introduction = Column(String, comment='怪物说明或者背景')
+    deposit = Column(Integer, comment='押金')
 
     @classmethod
     def add_or_update_by_name(cls,
                               *,
                               name: str,
                               exp_value: int = None,
-                              introduction: str = None
+                              introduction: str = None,
+                              deposit: int = None
                               ) -> "Monster":
 
         fields = cls.update_fields_from_signature(func=cls.add_or_update_by_name)
@@ -37,7 +39,8 @@ class Monster(Entity):
 
             name: str = None,
             exp_value: int = None,
-            introduction: str = None
+            introduction: str = None,
+            deposit: int = None
             ) -> "Monster":
 
         fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)

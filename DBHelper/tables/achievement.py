@@ -1,12 +1,13 @@
 import inspect
 from typing import List
 
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Integer, String, Text
 from sqlalchemy.ext.declarative import declarative_base
 
 from DBHelper.session import session
-from Enums import AchievementType, AdditionalPropertyType
+from Enums import AchievementType, AdditionalPropertyType, AchievementPropertyType, BindType
 from DBHelper.tables.base_table import Entity
+from DBHelper.tables.base_table import CustomColumn as Column
 
 Base = declarative_base()
 
@@ -35,21 +36,20 @@ Base = declarative_base()
 
 
 # 成就系统
-class Achievement(Entity):
-    """
-    有哪些成就可以达成
-    """
+class Achievement(Entity, Base):
+    __cn__ = "成就"
+
     __tablename__ = "achievement"
+    name = Column(String, cn='名称')  # 显式复制并设置 cn 属性
+    achievement_type = Column(Integer, cn="成就类型", bind_type=AchievementType, comment="成就类型")
 
-    achievement_type = Column(Integer, comment="成就类型")
+    condition_property_type = Column(Integer, cn="条件类型", bind_type=AchievementPropertyType, comment="达成条件对应的属性")
+    condition_property_value = Column(Integer, cn="条件值", comment="达成条件对应属性应该达到的值。")
 
-    condition_property_type = Column(Integer, comment="达成条件对应的属性")
-    condition_property_value = Column(Integer, comment="达成条件对应属性应该达到的值。")
+    achievement_point = Column(Integer, cn="成就点", comment="根据达成难度获得成就点数")
 
-    achievement_point = Column(Integer, comment="根据达成难度获得成就点数")
-
-    days_of_validity = Column(Integer, comment="有效期。以天为单位。如果是-1则代表是永久。")
-    introduce = Column(String, comment="对于成就的介绍")
+    days_of_validity = Column(Integer, cn="有效期/天", comment="有效期。以天为单位。如果是-1则代表是永久。")
+    introduce = Column(Text, cn="介绍", comment="对于成就的介绍")
 
     @classmethod
     def add_or_update_by_name(cls,
@@ -66,7 +66,6 @@ class Achievement(Entity):
                               days_of_validity: int = None,
                               introduce: str = None,
                               ) -> "Achievement":
-
         fields = cls.update_fields_from_signature(func=cls.add_or_update_by_name)
         record = cls._add_or_update_by_name(**fields)
         return record
@@ -86,7 +85,9 @@ class Achievement(Entity):
             achievement_point: int = None,
             introduce: str = None,
     ) -> "Achievement":
-
+        """
+        根据id进行查询，然后更新其他的参数
+        """
         fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
         record = cls._add_or_update_by_id(**fields)
         return record

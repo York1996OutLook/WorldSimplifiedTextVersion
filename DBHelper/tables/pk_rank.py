@@ -13,7 +13,7 @@ class PK_Rank(Basic,Base):
     __tablename__ = 'pk_rank'
 
     pk_rank = Column(Integer, comment="pk排名次")
-    player_id = Column(Integer, comment="QQ")
+    character_id = Column(Integer, comment="QQ")
 
     @classmethod
     def add_or_update_by_id(cls,

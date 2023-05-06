@@ -9,7 +9,7 @@ class PlayerBattleRecord(Basic,Base):
     """
     战斗中记录表
     """
-    __tablename__ = "battle_record"
+    __tablename__ = "player_battle_record"
     battle_type = Column(Integer, comment="战斗类型,参考BattleType")
 
     positive_character_id = Column(Integer, comment="主动攻击角色ID")
