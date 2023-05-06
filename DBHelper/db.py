@@ -6,6 +6,7 @@ from DBHelper.tables.dust import Dust
 from DBHelper.tables.equipment import Equipment
 from DBHelper.tables.equipment_gem_record import EquipmentGemRecord
 from DBHelper.tables.equipment_quality_dust_num import EquipmentQualityDustNum
+from DBHelper.tables.equipment_star_record import EquipmentStarRecord
 from DBHelper.tables.exp_book import ExpBook
 from DBHelper.tables.gem import Gem
 from DBHelper.tables.holiday import Holiday
@@ -27,6 +28,7 @@ from DBHelper.tables.player_potion_record import PlayerPotionRecord
 from DBHelper.tables.player_sell_store_record import PlayerSellStoreRecord
 from DBHelper.tables.player_skill_record import PlayerSkillRecord
 from DBHelper.tables.player_stuff_record import PlayerStuffRecord
+from DBHelper.tables.player_use_book_record import PlayerUseStuffRecord
 from DBHelper.tables.potion import Potion
 from DBHelper.tables.raise_star_book import RaiseStarBook
 from DBHelper.tables.raise_star_prob import RaiseStarProb

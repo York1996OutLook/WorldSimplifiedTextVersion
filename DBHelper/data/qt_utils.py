@@ -42,7 +42,8 @@ class TableItem:
                  table_class=None,
                  comment: str = '',
                  index: int = None,
-                 addition_source_type: AdditionSourceType = None
+                 addition_source_type: AdditionSourceType = None,
+                 editable: bool = True
                  ):
         if index:
             self.index = index
@@ -53,6 +54,7 @@ class TableItem:
         self.name = table_class.__cn__
         self.comment = comment
         self.addition_source_type = addition_source_type
+        self.editable = editable
 
         self.item_list.items.append(self)
         self.item_list.name_index_dict[self.name] = self
@@ -65,35 +67,45 @@ class TableItem:
 class TableItems:
     item_list = TableItemList()
     achievement = TableItem(table_class=Achievement, addition_source_type=AdditionSourceType.ACHIEVEMENT_TITLE)
-    setting = TableItem(table_class=Setting)
-
+    skill = TableItem(table_class=SkillBook, addition_source_type=AdditionSourceType.SKILL_BOOK)
+    battle_status = TableItem(table_class=BattleStatus, addition_source_type=AdditionSourceType.STATUS)
     achievement_title_book = TableItem(table_class=AchievementTitleBook)
+    monster = TableItem(table_class=Monster, addition_source_type=AdditionSourceType.MONSTER)
+    potion = TableItem(table_class=Potion, addition_source_type=AdditionSourceType.POTION)
+    player_or_monster_skill_setting=TableItem(table_class=PlayerOrMonsterSkillSetting)
 
-    achievement_title_book = "称号书"
-    setting = '设置'  # 计划做成可以滚动的浏览框
+    setting = TableItem(table_class=Setting)
+    dust = TableItem(table_class=Dust)
+    gem = TableItem(table_class=Gem)
+    box = TableItem(table_class=Box)
+    exp_book = TableItem(table_class=ExpBook)
+    holiday = TableItem(table_class=Holiday)
+    equipment = TableItem(table_class=Equipment)
 
-    skill = "技能"
-    battle_status = "状态"
-    base_property = '5大基础属性'
-    gem = '宝石'
-    box = '盒子'
-    exp_book = '经验书'
-    holiday = '节日'
-    equipment = '装备'  # 可能会做成两个选择框的形式。自动出现一个combo_box
-    identify_book = '鉴定卷轴'
-    monster = '怪物'  # 包含技能设置
-    monster_type_show_time = '选择怪物类型选择出现时间'
-    potion = '药水'
-    raise_star_book = '升星卷轴'
-    raise_star_prob = '升星成功概率'
-    skill_cost_point = '学习技能消耗技能点'
-    level_exp = '升级所需经验'
-    skill_slot = '技能槽'
-    tips = '提示'  # 建议不修改，仅仅查看而已
-    world_hero_medal = '世界英雄勋章'  # 建议不修改，仅仅查看而已
+    equipment_quality_dust_num = TableItem(table_class=EquipmentQualityDustNum)
+    identify_book = TableItem(table_class=IdentifyBook)
+    monster_type_show_time = TableItem(table_class=MonsterShowUpRecord, )
+    raise_star_book = TableItem(table_class=RaiseStarBook)
+    raise_star_prob = TableItem(table_class=RaiseStarProb)
+    skill_cost_point = TableItem(table_class=SkillCostPoint)
+    level_exp = TableItem(table_class=PlayerLevelExpSkillPoint)
+    skill_slot = TableItem(table_class=SkillSlot)
+    tips = TableItem(table_class=Tips)
+    world_hero_medal = TableItem(table_class=WorldHeroMedal)
 
-    player = '玩家'  # 建议不修改，仅仅查看而已
-    sell_store = '交易所'  # 建议不修改，仅仅查看而已
+    player_use_book_record=TableItem(table_class=PlayerUseStuffRecord,editable=False)
+    player_stuff_record=TableItem(table_class=PlayerStuffRecord,editable=False)
+    player_skill_record=TableItem(table_class=PlayerSkillRecord,editable=False)
+    player_potion_record=TableItem(table_class=PlayerPotionRecord,editable=False)
+    player_lottery_record = TableItem(table_class=PlayerLotteryRecord, editable=False)
+    player_mail_record = TableItem(table_class=PlayerMailRecord, editable=False)
+    equipment_gem_record = TableItem(table_class=EquipmentGemRecord, editable=False)
+    equipment_star_record = TableItem(table_class=EquipmentStarRecord, editable=False)
+    player = TableItem(table_class=Player, addition_source_type=Player, editable=False)
+    sell_store = TableItem(table_class=PlayerSellStoreRecord, editable=False)
+    pk_rank = TableItem(table_class=PK_Rank, editable=False)
+    player_battle_record = TableItem(table_class=PlayerBattleRecord, editable=False)
+    # base_property = '5大基础属性'  # 稍后再决定如何实现非单独定义表格数据的实现
 
     default = achievement
 
