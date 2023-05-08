@@ -527,16 +527,16 @@ class CalendarType:
     default = LUNAR
 
 
-class EquipmentPropertyAvailability:
+class PropertyAvailability:
     name = '属性可用类型'
     item_list = ItemList()
+    CURRENT = Item(name="当前属性", comment="")
 
-    MIN = Item(name="最小属性", comment="由玩家寄出给别人的，需要指明收费多少；")
-    MAX = Item(name="最大属性", comment="由玩家寄出给别人的，需要指明收费多少；")
-    CURRENT = Item(name="当前属性", comment="由玩家寄出给别人的，需要指明收费多少；")
-    IDENTIFY_TEMP = Item(name="鉴定得到的临时属性", comment="由玩家寄出给别人的，需要指明收费多少；")
+    MIN = Item(name="最小属性", comment="")
+    MAX = Item(name="最大属性", comment="")
+    IDENTIFY_TEMP = Item(name="鉴定得到的临时属性", comment="")
 
-    default = MIN
+    default = CURRENT
 
 
 class ExpBookType:

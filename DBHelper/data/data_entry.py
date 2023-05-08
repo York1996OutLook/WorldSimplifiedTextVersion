@@ -11,9 +11,9 @@ from sqlalchemy import Integer, String, Text, Boolean, Float
 from DBHelper.db import *
 from Enums import BasePropertyType, LearningApproach, SkillTarget, SkillType, SkillLevel, \
     AdditionalPropertyType, StatusType, AchievementPropertyType, AchievementType, \
-    ExpBookType, DataType
+    ExpBookType, DataType, PropertyAvailability
 from qt_utils import EditWidgetType, MyLineText, MyLabel, MyFrame, set_geo, StatuesWidgets, PropertyWidgets, MyButton, \
-    TableItems, DataEdit, MyListBox, MyComboBox
+    TableItems, DataEdit, MyListBox, MyComboBox, TableItem
 from DBHelper.tables.base_table import CustomColumn as Column
 from DBHelper.tables.base_table import Basic, Entity
 
@@ -161,13 +161,10 @@ class MyMainWindow(QMainWindow):
                 y1=0,
                 width=self.button_width,
                 height=self.item_height)
-        self.current_data_table_combo_box.addItem(TableItems.skill)
-        self.current_data_table_combo_box.addItem(TableItems.battle_status)
-        self.current_data_table_combo_box.addItem(TableItems.base_property)
-        self.current_data_table_combo_box.addItem(TableItems.achievement.name)
-        self.current_data_table_combo_box.addItem(TableItems.gem)
-        self.current_data_table_combo_box.setCurrentText(TableItems.achievement.name)
+        for table_item in TableItems.item_list.get_items():
+            self.current_data_table_combo_box.addItem(table_item.name)
 
+        self.current_data_table_combo_box.set_text(text=TableItems.achievement.name)
         self.current_data_table_combo_box.currentIndexChanged.connect(self.data_table_select_changed)
 
         self.data_table_select_changed(self.current_data_table_combo_box.currentIndex())
@@ -197,7 +194,6 @@ class MyMainWindow(QMainWindow):
         self.clear_temp_widgets()
 
         current_text = self.current_data_table_combo_box.currentText()
-
         table_item = TableItems.item_list.get_by_name(name=current_text)
 
         self.cur_table = table_item.table_class
@@ -564,7 +560,8 @@ class MyMainWindow(QMainWindow):
         widget_index = -1
         for key in self.edit_items:
             edit_item = self.edit_items[key]
-            if edit_item.edit_widget_type in {EditWidgetType.short_text, EditWidgetType.combo_box,
+            if edit_item.edit_widget_type in {EditWidgetType.short_text,
+                                              EditWidgetType.combo_box,
                                               EditWidgetType.bool_combo_box}:
                 widget_index += 1
             elif edit_item.edit_widget_type in {EditWidgetType.long_text}:
@@ -754,7 +751,7 @@ class MyMainWindow(QMainWindow):
                 self.properties_widgets_list[property_index].name_text.set_text(text=property_name)
                 self.properties_widgets_list[property_index].name_label.set_text(text=property_name)
                 self.properties_widgets_list[property_index].value_text.set_text(text=
-                    skill_property.additional_property_value)
+                                                                                 skill_property.additional_property_value)
 
                 property_target = skill_property.property_availability
                 self.properties_widgets_list[property_index].target_combo_box.setCurrentIndex(property_target - 1)
@@ -893,14 +890,14 @@ class MyMainWindow(QMainWindow):
         self.show_properties(properties=properties)
         self.saveButton.setEnabled(False)
 
-
     def show_properties(self, *, properties: List):
         for status_property in properties:
             property_name = AdditionalPropertyType.item_list.index_name_dict[status_property.additional_property_type]
             property_index = status_property.additional_source_property_index
             self.properties_widgets_list[property_index].name_text.set_text(text=property_name)
             self.properties_widgets_list[property_index].name_label.set_text(text=property_name)
-            self.properties_widgets_list[property_index].value_text.set_text(text=status_property.additional_property_value)
+            self.properties_widgets_list[property_index].value_text.set_text(
+                text=status_property.additional_property_value)
         # 显示保存按钮
 
     def enable_save_button(self):
@@ -1030,6 +1027,7 @@ class MyMainWindow(QMainWindow):
     def save_record_record(self):
         print("save_record_record")
 
+        record_name=self.recordsListWidget.currentItem().text()
         record: Entity = self.cur_table.get_by_name(name=self.recordsListWidget.currentItem().text())
 
         update_args = dict()
@@ -1061,27 +1059,49 @@ class MyMainWindow(QMainWindow):
 
         # 对表格对应的属性进行操作；
         ########################################################
-        # 删除对应属性
-        MiscProperties.del_all_by_kwargs()
-        MiscProperties.del_achievement_properties(achievement_id=cur_achievement.id)
+        current_table_name = self.current_data_table_combo_box.currentText()
+        table_item = TableItems.item_list.get_by_name(name=current_table_name)
 
-        for index, properties_widget in enumerate(self.properties_widgets_list):
-            property_cn_name = properties_widget.name_label.text()
-            if property_cn_name == "":
-                continue
-            property_value_text = properties_widget.value_text.text()
-            if property_value_text == "":
-                continue
-            property_num = AdditionalPropertyType.item_list.name_index_dict[property_cn_name]
-            property_value = int(property_value_text)
-            MiscProperties.add_achievement_properties(
-                achievement_id=cur_achievement.id,
-                additional_source_property_index=index,
-                additional_property_type=property_num,
-                additional_property_value=property_value,
+        if table_item.addition_source_type is not None:
+            # 删除对应属性
+            MiscProperties.del_by_additional_source_type_id(
+                additional_source_type=table_item.addition_source_type.index,
+                additional_source_id=record.id,
             )
-            print(f"成就名称名称：{selected_name}，第{index + 1}条属性：{property_cn_name}=属性值{property_value} 更新成功。")
-        ########################################################
+            for index, properties_widget in enumerate(self.properties_widgets_list):
+                # 属性类型
+                property_cn_name = properties_widget.name_label.text()
+                if property_cn_name == "":
+                    continue
+                property_type_index = AdditionalPropertyType.item_list.name_index_dict[property_cn_name]
+
+                # 属性的作用域
+                property_availability_cn = properties_widget.availability_combo_box.currentText()
+                if property_availability_cn == "":
+                    property_availability_index = None
+                else:
+                    property_availability_index = PropertyAvailability.item_list.get_index_by_name(
+                        name=property_availability_cn)
+
+                # 属性值
+                property_value_text = properties_widget.value_text.text()
+                if property_value_text == "":
+                    continue
+                property_value = int(property_value_text)
+
+                MiscProperties.add(
+                    additional_source_type=table_item.addition_source_type.index,
+                    additional_source_id=record.id,
+
+                    additional_property_type=property_type_index,
+                    additional_property_value=property_value,
+
+                    additional_source_property_index=index,
+
+                    property_availability=property_availability_index,
+                )
+                print(f"表格名称：{current_table_name}，记录名称{record_name}，第{index + 1}条属性：{property_cn_name}=属性值{property_value} 更新成功。")
+            ########################################################
 
         self.saveButton.setEnabled(False)  # 隐藏保存按钮
         self.show_all_items()
@@ -1119,8 +1139,6 @@ class MyMainWindow(QMainWindow):
 
                                         introduce=introduce
                                         )
-
-
 
     def save_box_event(self):
         print("save_box")

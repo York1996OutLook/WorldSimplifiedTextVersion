@@ -2,6 +2,7 @@
 
 from collections import defaultdict
 import inspect
+from typing import List, Dict
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QLineEdit, \
     QPushButton, QListWidget, QMessageBox, QFrame, QComboBox
@@ -10,22 +11,22 @@ import PyQt5.QtGui as QtGui
 
 from DBHelper.tables.base_table import Basic
 from DBHelper.db import *
-from Enums import DataType, AdditionSourceType
+from Enums import DataType, AdditionSourceType,Item
 
 
 class TableItemList:
     def __init__(self):
         TableItem.item_list = self
 
-        self.items = []
+        self.items: [TableItem] = []
         self.name_index_dict = defaultdict(None)
         self.index_name_dict = defaultdict(None)
-        self.counter = 0
+        self.counter:int = 0
 
     def clear(self):
-        self.items = []
+        self.items: [TableItem] = []
 
-    def get_items(self):
+    def get_items(self) -> ["TableItem"]:
         return self.items
 
     def get_by_index(self, *, index: int) -> "TableItem":
@@ -36,13 +37,13 @@ class TableItemList:
 
 
 class TableItem:
-    item_list = None
+    item_list:TableItemList = None
 
     def __init__(self, *,
                  table_class=None,
                  comment: str = '',
                  index: int = None,
-                 addition_source_type: AdditionSourceType = None,
+                 addition_source_type: Item= None,
                  editable: bool = True
                  ):
         if index:
@@ -61,7 +62,9 @@ class TableItem:
         self.item_list.index_name_dict[self.index] = self
 
     def __repr__(self):
-        return f'TableItem({self.index}: {self.name}, {self.comment})'
+        return f'TableItem( table_class:{self.table_class}  ' \
+               f'{self.index}: {self.name},addition_source_type:{self.addition_source_type}' \
+               f'editable:{self.editable}, {self.comment})'
 
 
 class TableItems:
@@ -72,7 +75,7 @@ class TableItems:
     achievement_title_book = TableItem(table_class=AchievementTitleBook)
     monster = TableItem(table_class=Monster, addition_source_type=AdditionSourceType.MONSTER)
     potion = TableItem(table_class=Potion, addition_source_type=AdditionSourceType.POTION)
-    player_or_monster_skill_setting=TableItem(table_class=PlayerOrMonsterSkillSetting)
+    player_or_monster_skill_setting = TableItem(table_class=PlayerOrMonsterSkillSetting)
 
     setting = TableItem(table_class=Setting)
     dust = TableItem(table_class=Dust)
@@ -93,15 +96,16 @@ class TableItems:
     tips = TableItem(table_class=Tips)
     world_hero_medal = TableItem(table_class=WorldHeroMedal)
 
-    player_use_book_record=TableItem(table_class=PlayerUseStuffRecord,editable=False)
-    player_stuff_record=TableItem(table_class=PlayerStuffRecord,editable=False)
-    player_skill_record=TableItem(table_class=PlayerSkillRecord,editable=False)
-    player_potion_record=TableItem(table_class=PlayerPotionRecord,editable=False)
+    player_use_book_record = TableItem(table_class=PlayerUseStuffRecord, editable=False)
+    player_stuff_record = TableItem(table_class=PlayerStuffRecord, editable=False)
+    player_skill_record = TableItem(table_class=PlayerSkillRecord, editable=False)
+    player_potion_record = TableItem(table_class=PlayerPotionRecord, editable=False)
     player_lottery_record = TableItem(table_class=PlayerLotteryRecord, editable=False)
     player_mail_record = TableItem(table_class=PlayerMailRecord, editable=False)
     equipment_gem_record = TableItem(table_class=EquipmentGemRecord, editable=False)
     equipment_star_record = TableItem(table_class=EquipmentStarRecord, editable=False)
-    player = TableItem(table_class=Player, addition_source_type=Player, editable=False)
+
+    player = TableItem(table_class=Player, addition_source_type=AdditionSourceType.PLAYER, editable=False)
     sell_store = TableItem(table_class=PlayerSellStoreRecord, editable=False)
     pk_rank = TableItem(table_class=PK_Rank, editable=False)
     player_battle_record = TableItem(table_class=PlayerBattleRecord, editable=False)
@@ -251,19 +255,21 @@ class PropertyWidgets:
                  index_label: MyLabel,
                  name_text: MyLineText,
 
-                 target_label: MyLabel,
-                 target_combo_box: QComboBox,
-
+                 # target_label: MyLabel,
+                 # target_combo_box: QComboBox,
+                 availability_combo_box:MyComboBox,
                  name_label: MyLabel,
                  value_text: MyLineText):
         self.index_label = index_label
         self.name_text = name_text
 
-        self.target_label = target_label
-        self.target_combo_box = target_combo_box
+        # self.target_label = target_label
+        # self.target_combo_box = target_combo_box
 
         self.name_label = name_label
         self.value_text = value_text
+
+        self.availability_combo_box=availability_combo_box
         print(1)
 
 

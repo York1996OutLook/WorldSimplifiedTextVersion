@@ -10,6 +10,11 @@ from DBHelper.session import session
 Base = declarative_base()
 
 
+def remove_none_kwargs(kwargs: Dict[str, Any]) -> Dict[str, Any]:
+    kwargs = {key: kwargs[key] for key in kwargs if kwargs[key] is not None}
+    return kwargs
+
+
 class CustomColumn(Column):
     def unique_params(self, *optionaldict, **kwargs):
         pass
@@ -30,6 +35,7 @@ class CustomColumn(Column):
 
 
 class Basic:
+    __cn__ = ""
     id = CustomColumn(Integer,
                       cn='ID',
                       editable=False,
@@ -72,7 +78,7 @@ class Basic:
         :param kwargs: 字段及值
         :return: List
         """
-        kwargs = {key: kwargs[key] for key in kwargs if kwargs[key] is not None}
+        kwargs = remove_none_kwargs(kwargs)
         records = session.query(cls).filter_by(**kwargs).all()
         return records
 
@@ -85,6 +91,7 @@ class Basic:
         """
         根据传来的键值对更改
         """
+
         record = cls(**kwargs)
         session.add(record)
         session.commit()
@@ -113,6 +120,8 @@ class Basic:
         """
         如果确实删除了数据，则返回true，否则返回false
         """
+        kwargs = remove_none_kwargs(kwargs)
+
         record = session.query(cls).filter_by(**kwargs).first()
         session.delete(record)
         session.commit()
@@ -125,6 +134,8 @@ class Basic:
         """
         如果确实删除了数据，则返回true，否则返回false
         """
+        kwargs = remove_none_kwargs(kwargs)
+
         records = session.query(cls).filter_by(**kwargs).all()
         session.delete(records)
         session.commit()
@@ -152,12 +163,13 @@ class Basic:
         """
         如果没有查询到对应的记录，则抛出异常
         """
+        kwargs = remove_none_kwargs(kwargs)
+
         record = cls.query_one_by_id(_id=_id)
         if record is None:
             raise ValueError(f'id: {_id} 对应的记录不存在！')
         for k, v in kwargs.items():
-            if v is not None:
-                setattr(record, k, v)
+            setattr(record, k, v)
         session.commit()
         return True
 
@@ -170,12 +182,13 @@ class Basic:
         """
         如果没有查询到对应的记录，则抛出异常
         """
+        update_dict = remove_none_kwargs(update_dict)
+
         record = cls.get_one_by_kwargs(**query_dict)
         if record is None:
             raise ValueError(f'对应的记录不存在！')
         for k, v in update_dict.items():
-            if v is not None:
-                setattr(record, k, v)
+            setattr(record, k, v)
         session.commit()
         return record
 
@@ -218,6 +231,7 @@ class Basic:
         返回查询到的第一个记录，
         如果没有查询到，则返回 None
         """
+        kwargs = remove_none_kwargs(kwargs)
         record = session.query(cls).filter_by(**kwargs).first()
         return record
 
@@ -238,6 +252,8 @@ class Basic:
         """
         存在则返回true，不存在则返回false
         """
+        kwargs = remove_none_kwargs(kwargs)
+
         record = cls.get_one_by_kwargs(kwargs=kwargs)
         return record is not None
 
@@ -354,12 +370,13 @@ class Entity(Basic):
         如果不存在，则抛出异常
         建议前置判断存在的函数
         """
+        kwargs = remove_none_kwargs(kwargs)
+
         record = cls.get_by_name(name=name)
         if record is None:
             raise ValueError(f'name: {name} 对应的记录不存在！')
         for k, v in kwargs.items():
-            if v is not None:
-                setattr(record, k, v)
+            setattr(record, k, v)
         session.commit()
         return record
 
