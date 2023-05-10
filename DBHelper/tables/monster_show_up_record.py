@@ -2,10 +2,11 @@ import datetime
 from typing import List, Set
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Float, Boolean
+from sqlalchemy import Integer, String, Float, Boolean
 
 from DBHelper.session import session
 from DBHelper.tables.base_table import Basic,Base
+from DBHelper.tables.base_table import CustomColumn
 
 from Enums import DateType
 
@@ -15,13 +16,14 @@ class MonsterShowUpRecord(Basic,Base):
     """
     怪物出现的日期,会将所有结果进行合并,然后出现;
     """
+    __cn__ = "怪物出现记录"
 
     __tablename__ = 'monster_show_up_record'
 
-    monster_id = Column(Integer, comment='怪物id')
+    monster_id = CustomColumn(Integer,cn="怪物ID", comment='怪物id')
 
-    date_type = Column(Integer, comment="出现的日期类型,DateType")
-    date_value = Column(Integer, comment="确定date_type后,再确定具体的时间")
+    date_type = CustomColumn(Integer,cn="日期类型", comment="出现的日期类型,DateType")
+    date_value = CustomColumn(Integer,cn='日期', comment="确定date_type后,再确定具体的时间")
 
     @classmethod
     def add_or_update_by_id(cls, *,

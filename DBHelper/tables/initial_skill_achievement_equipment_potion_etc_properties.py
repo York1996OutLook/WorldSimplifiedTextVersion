@@ -1,19 +1,21 @@
 from collections import defaultdict
 from typing import Optional, DefaultDict, List
 
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Integer, String, Boolean
 
 from DBHelper.session import session
+from DBHelper.tables.base_table import CustomColumn
+
 from DBHelper.tables.base_table import Basic, Base
-from Enums import AdditionSourceType, AdditionalPropertyType, EquipmentPropertyAvailability, StuffType
+from Enums import AdditionSourceType, AdditionalPropertyType, PropertyAvailability, StuffType
 
 
 class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
     """初始属性，基础属性加点、技能、装备(最大，最小，当前)、称号，临时药剂等常见的所有属性表，为永久表"""
     __tablename__ = 'initial_skill_achievement_equipment_etc_properties_record'
 
-    additional_source_type = Column(Integer, comment="带来属性提升的物品类型，比如成就初始属性，基础属性加点，称号，技能，装备.参考枚举类型 AdditionSourceType")
-    additional_source_id = Column(Integer, comment="""
+    additional_source_type = CustomColumn(Integer,cn="属性",bind_type=AdditionSourceType, comment="带来属性提升的物品类型，比如成就初始属性，基础属性加点，称号，技能，装备.参考枚举类型 AdditionSourceType")
+    additional_source_id = CustomColumn(Integer,cn="物品ID", comment="""
 带来属性提升的物品id。
 如果是初始属性，则此项为空。
 如果基础属性，则此项为character id。
@@ -24,7 +26,7 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
 如果是状态，则此项为status_id。
     """)
 
-    additional_source_property_index = Column(Integer, comment="""
+    additional_source_property_index = CustomColumn(Integer,cn='属性索引', comment="""
 带来属性提升的属性索引。
 
 如果是初始属性，则该项为0。
@@ -35,13 +37,15 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
 如果是药剂，则此项为1 2 3...。
 如果是状态，则此项为1 2 3...。
     """)
-    property_availability = Column(Integer,
-                                   comment="属性的类型，参考EquipmentPropertyAvailability。"
+    property_availability = CustomColumn(Integer,
+                                         cn="作用域",
+                                         bind_type=PropertyAvailability,
+                                   comment="属性的类型，参考PropertyAvailability。"
                                            "对于装备来说：表明是最低属性，最高属性还是当前属性"
                                            "对于技能来说，这个属性为作用的对象，自身或者是敌人")
 
-    additional_property_type = Column(Integer, comment="参考AdditionalPropertyType")
-    additional_property_value = Column(Integer, comment="对应参考AdditionalPropertyType的value")
+    additional_property_type = CustomColumn(Integer,cn="属性",bind_type=AdditionalPropertyType, comment="参考AdditionalPropertyType")
+    additional_property_value = CustomColumn(Integer,cn="属性值", comment="对应参考AdditionalPropertyType的value")
 
     @classmethod
     def add_or_update_by_id(cls,
@@ -424,7 +428,7 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
                           additional_source_id: int = None,
 
                           additional_source_property_index: int = None,
-                          property_availability: EquipmentPropertyAvailability = None,
+                          property_availability: PropertyAvailability = None,
 
                           additional_property_type: int = None,
                           ) -> List["InitialSkillAchievementEquipmentPotionEtcPropertiesRecord"]:
@@ -442,7 +446,7 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
                                additional_source_id: int = None,
 
                                additional_source_property_index: int = None,
-                               property_availability: EquipmentPropertyAvailability = None,
+                               property_availability: PropertyAvailability = None,
 
                                additional_property_type: int = None,
                                ) -> DefaultDict[int, int]:
@@ -611,7 +615,7 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
         properties_dict = cls.get_properties_dict_by(
             additional_source_type=AdditionSourceType.EQUIPMENT_RECORD.index,
             additional_source_id=equipment_record_id,
-            property_availability=EquipmentPropertyAvailability.CURRENT,
+            property_availability=PropertyAvailability.CURRENT,
         )
         return properties_dict
 

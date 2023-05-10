@@ -1,20 +1,22 @@
-from sqlalchemy import Column, Integer
+from sqlalchemy import Integer
 from sqlalchemy.ext.declarative import declarative_base
 from typing import List
 
-from DBHelper.tables.base_table import Basic,Base
+from DBHelper.tables.base_table import Basic, Base
+from DBHelper.tables.base_table import CustomColumn, Timestamp
 
 
-class PlayerAchievementRecord(Basic,Base):
+class PlayerAchievementRecord(Basic, Base):
     """
     将玩家获得的成就记录下来
     """
+    __cn__ = "玩家成就记录表"
     __tablename__ = "player_achievement_record"
 
-    character_id = Column(Integer, comment="成就达成人物ID")
+    character_id = CustomColumn(Integer, cn="玩家ID",comment="成就达成人物ID")
 
-    achievement_id = Column(Integer, comment="成就ID")
-    achieve_timestamp = Column(Integer, comment="成就达成时间")
+    achievement_id = CustomColumn(Integer, cn="成就ID",comment="成就ID")
+    achieve_timestamp = CustomColumn(Timestamp, cn="达成时间",comment="成就达成时间")
 
     @classmethod
     def add_or_update_by_id(cls, *,
@@ -28,7 +30,7 @@ class PlayerAchievementRecord(Basic,Base):
         return record
 
     @classmethod
-    def get_all_by_character_id(cls,*, character_id: int) -> List["PlayerAchievementRecord"]:
+    def get_all_by_character_id(cls, *, character_id: int) -> List["PlayerAchievementRecord"]:
         """
         通过玩家ID获取其所有成就记录
         :param character_id: 玩家ID

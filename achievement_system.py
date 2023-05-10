@@ -1,11 +1,12 @@
 from typing import List
 
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
 from DBHelper.db import *
 from DBHelper.session import session
-from Enums import AchievementType, AdditionalPropertyType, StuffType, AdditionSourceType, EquipmentPropertyAvailability
+from Enums import AchievementType, AdditionalPropertyType, StuffType, AdditionSourceType, PropertyAvailability
+from DBHelper.tables.base_table import CustomColumn
 
 Base = declarative_base()
 

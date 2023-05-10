@@ -1,9 +1,10 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from typing import List, Optional
 
 from DBHelper.session import session
 from DBHelper.tables.base_table import Basic,Base
+from DBHelper.tables.base_table import CustomColumn
 
 
 class SkillCostPoint(Basic,Base):
@@ -12,9 +13,11 @@ class SkillCostPoint(Basic,Base):
     10个技能全部学满，10*450=4500技能点；
     每升一级给50个技能点，90级的时候，能够学完所有技能；
     """
+    __cn__ = "技能消耗技能点"
     __tablename__ = 'skill_cost_point'
-    level = Column(Integer, comment="等级")
-    need_point = Column(Integer, comment="所需技能点")
+
+    level = CustomColumn(Integer, cn="等级",comment="等级")
+    need_point = CustomColumn(Integer, cn="技能点",comment="所需技能点")
 
     @classmethod
     def add_or_update_by_id(

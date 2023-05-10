@@ -1,24 +1,27 @@
 from typing import List, Optional
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Float, Boolean
+from sqlalchemy import Integer, String, Float, Boolean
 
 from DBHelper.session import session
 from DBHelper.tables.base_table import Basic, Base
+from DBHelper.tables.base_table import CustomColumn,Timestamp
 
 
 class PlayerSkillRecord(Basic, Base):
     """
     已学习技能表。只存储最大等级。可能会被更新;
     """
+
+    __cn__ = "玩家技能表"
     __tablename__ = 'player_skill_record'
 
-    character_id = Column(Integer, comment="character_id")
+    character_id = CustomColumn(Integer, comment="character_id")
 
-    skill_id = Column(Integer, comment="技能ID")
+    skill_id = CustomColumn(Integer, comment="技能ID")
 
-    skill_level = Column(Integer, comment="已经学习的技能等级")
-    learning_timestamp = Column(Integer, comment="最后更新的时间戳")
+    skill_level = CustomColumn(Integer, comment="已经学习的技能等级")
+    learning_timestamp = CustomColumn(Timestamp, comment="最后更新的时间戳")
 
     @classmethod
     def add_or_update_by_id(cls,

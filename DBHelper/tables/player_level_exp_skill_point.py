@@ -1,10 +1,11 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Float, Boolean, func, desc
+from sqlalchemy import Integer, String, Float, Boolean, func, desc
 
 from typing import Optional, List
 
 from DBHelper.session import session
 from DBHelper.tables.base_table import Basic,Base
+from DBHelper.tables.base_table import CustomColumn
 
 
 
@@ -12,11 +13,12 @@ class PlayerLevelExpSkillPoint(Basic,Base):
     """
     升级所需经验
     """
+    __cn__ = "升级经验、技能点"
     __tablename__ = "player_level_exp_skill_point"
 
-    level = Column(Integer, comment="等级")
-    required_exp = Column(Integer, comment="所需经验。非叠加;")
-    skill_point = Column(Integer, comment="升到该等级能够获得的技能点数量")
+    level = CustomColumn(Integer, cn="等级",comment="等级")
+    required_exp = CustomColumn(Integer, cn="所需经验",comment="所需经验。非叠加;")
+    skill_point = CustomColumn(Integer, cn="技能点",comment="升到该等级能够获得的技能点数量")
 
     @classmethod
     def add_or_update_by_id(cls, *,

@@ -13,15 +13,19 @@ class ItemList:
     def clear(self):
         self.items = []
 
-    def get_items(self):
+    def get_items(self)->List["Item"]:
         return self.items
 
-    def get_name_by_index(self, *, index: int):
+    def get_names(self) -> List[str]:
+        names = [item.name for item in self.items]
+        return names
+
+    def get_name_by_index(self, *, index: int)->str:
         if index not in self.index_name_dict:
             return None
         return self.index_name_dict[index]
 
-    def get_index_by_name(self, *, name: str):
+    def get_index_by_name(self, *, name: str)->int:
         if name not in self.name_index_dict:
             return None
         return self.name_index_dict[name]
@@ -40,10 +44,16 @@ class Item:
         self.comment = comment
 
         self.item_list.items.append(self)
+
+        if self.name in self.item_list.name_index_dict:
+            raise ValueError(f"name:{self.name} is already exists!")
+        if self.name in self.item_list.name_index_dict:
+            raise ValueError(f"index:{self.index} is already exists!")
+
         self.item_list.name_index_dict[self.name] = self.index
         self.item_list.index_name_dict[self.index] = self.name
 
-    def __repr__(self):
+    def __repr__(self)->str:
         return f'Item({self.index}: {self.name}, {self.comment})'
 
 
@@ -77,6 +87,7 @@ class DataType:
     name = "数据类型"
     item_list = ItemList()
 
+    TIMESTAMP = Item(name="时间戳类型", comment="本质还是整数类型，为了显示的时候可以显示陈哥时间格式")
     INTEGER = Item(name="整数类型", comment="整数类型")
     BOOL = Item(name="布尔类型", comment="整数类型")
     STRING = Item(name="字符串", comment="整数类型")
@@ -449,7 +460,7 @@ class AdditionalPropertyType:
 
     DEDUCT_DODGE = Item(name="扣除闪避", comment="")
     DEDUCT_DODGE_PERCENT = Item(name="扣除当前闪避百分比", comment="")
-    DEDUCT_DODGE_UPPER_LIMIT_PERCENT = Item(name="扣除命中上限百分比", comment="")
+    DEDUCT_DODGE_UPPER_LIMIT_PERCENT = Item(name="扣除闪避上限百分比", comment="")
 
     WEAPON_DAMAGE = Item(name="武器伤害", comment="武器伤害")
     WEAPON_DAMAGE_PERCENT = Item(name="武器伤害百分比", comment="武器伤害百分比")

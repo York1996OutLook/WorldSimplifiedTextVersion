@@ -1,8 +1,10 @@
 import os
 import os.path as osp
 
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Integer, String,Text
 from sqlalchemy.ext.declarative import declarative_base
+from DBHelper.tables.base_table import CustomColumn
+
 from typing import List
 
 import local_setting
@@ -33,10 +35,14 @@ class Setting(Entity,Base):
     结束可以打卡的时间,暂定10
 
     """
-    __tablename__ = 'setting'
+    __cn__ = "设置"
 
-    value = Column(String, comment="设置的值,如果是数字,则将字符串转换为数字;")
-    comment = Column(String, comment="注释,备忘录")
+    __tablename__ = 'setting'
+    name = CustomColumn(String, cn='名称')  # 显式复制并设置 cn 属性
+
+
+    value = CustomColumn(String, cn="值",comment="设置的值,如果是数字,则将字符串转换为数字;")
+    comment = CustomColumn(Text, cn="备注",comment="注释,备忘录")
 
     @classmethod
     def add_or_update_by_name(cls,

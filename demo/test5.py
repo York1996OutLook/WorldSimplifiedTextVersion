@@ -1,59 +1,45 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Integer, String, Text, Boolean, Float, Column
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
-
-engine = create_engine(f'sqlite:///F:\Python-code\WorldSimplifiedTextVersion\demo\demo1.db')
-
-Session = Session(engine)
 
 Base = declarative_base()
 
 
-class Person:
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
+class CustomColumn(Column):
+    def unique_params(self, *optionaldict, **kwargs):
+        pass
 
-    @classmethod
-    def get_by_name(cls, name: str) -> "Person":
-        return Session.query(cls).filter(cls.name==name).first()
+    def params(self, *optionaldict, **kwargs):
+        pass
 
-
-class Student(Person, Base):
-    __tablename__ = 'student'
-
-    ss = 1
-
-
-class Teacher(Person, Base):
-    __tablename__ = 'teacher'
-
-    tt = 2
+    def __init__(self,
+                 *args,
+                 bind_type=None,
+                 cn: str = None,
+                 editable: bool = True,
+                 **kwargs):
+        super(CustomColumn, self).__init__(*args, **kwargs)
+        self.bind_type = bind_type
+        self.cn = cn
+        self.editable = editable
 
 
-class Worker(Person, Base):
-    __tablename__ = 'worker'
+class Entity:
+    # name = CustomColumn(String, cn=1)
+    name =1
 
-    ww = 3
+    def __init__(self):
+        super(Entity, self).__init__()
+        Entity.name = CustomColumn(String, cn='名称')
 
 
-a = Student.get_by_name(name='weeqw')
+class BattleStatus(Entity, Base):
+    """
+    战斗中的属性,比如中毒,火烧等等;
+    """
 
-b = Teacher.get_by_name(name='1')
-c = Worker.get_by_name(name='1')
+    __cn__ = '战斗属性'
+    __tablename__ = "battle_status"
+    _id = CustomColumn(Integer, primary_key=True)
 
-print(a)  # <__main__.Student object at 0x10d1715c0>
-print(b)  # <__main__.Teacher object at 0x10d1716a0>
-print(c)  # <__main__.Worker object at 0x10d171780>
 
-Base.metadata.create_all(engine)
-
-# 全局设置
-engine = create_engine(f'sqlite:///F:\Python-code\WorldSimplifiedTextVersion\demo\demo1.db')
-Base.metadata.create_all(engine)
-
-table_classes = [Student, Teacher, Worker]
-for cls in table_classes:
-    Base.metadata.create_all(engine, [cls.__table__], checkfirst=True)
-
-print(1)
+print(BattleStatus.name)

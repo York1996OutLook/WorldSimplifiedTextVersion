@@ -28,7 +28,7 @@ from DBHelper.tables.player_potion_record import PlayerPotionRecord
 from DBHelper.tables.player_sell_store_record import PlayerSellStoreRecord
 from DBHelper.tables.player_skill_record import PlayerSkillRecord
 from DBHelper.tables.player_stuff_record import PlayerStuffRecord
-from DBHelper.tables.player_use_book_record import PlayerUseStuffRecord
+from DBHelper.tables.player_use_stuff_record import PlayerUseStuffRecord
 from DBHelper.tables.potion import Potion
 from DBHelper.tables.raise_star_book import RaiseStarBook
 from DBHelper.tables.raise_star_prob import RaiseStarProb

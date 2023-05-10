@@ -1,11 +1,13 @@
 import os.path as osp
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from typing import List
 
 from DBHelper.db import *
 from DBHelper.session import session
-from Enums import stuff_cn_type_dict, StuffType
+from DBHelper.tables.base_table import CustomColumn
+
+from Enums import StuffType
 import local_setting
 from Utils import tools
 

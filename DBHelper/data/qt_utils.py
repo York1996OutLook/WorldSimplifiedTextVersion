@@ -4,14 +4,15 @@ from collections import defaultdict
 import inspect
 from typing import List, Dict
 
+from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QLineEdit, \
-    QPushButton, QListWidget, QMessageBox, QFrame, QComboBox
+    QPushButton, QListWidget, QMessageBox, QFrame, QComboBox, QDateTimeEdit
 from PyQt5.QtCore import pyqtSignal, pyqtBoundSignal, QMetaObject
 import PyQt5.QtGui as QtGui
 
 from DBHelper.tables.base_table import Basic
 from DBHelper.db import *
-from Enums import DataType, AdditionSourceType,Item
+from Enums import DataType, AdditionSourceType, Item
 
 
 class TableItemList:
@@ -21,7 +22,7 @@ class TableItemList:
         self.items: [TableItem] = []
         self.name_index_dict = defaultdict(None)
         self.index_name_dict = defaultdict(None)
-        self.counter:int = 0
+        self.counter: int = 0
 
     def clear(self):
         self.items: [TableItem] = []
@@ -37,13 +38,13 @@ class TableItemList:
 
 
 class TableItem:
-    item_list:TableItemList = None
+    item_list: TableItemList = None
 
     def __init__(self, *,
                  table_class=None,
                  comment: str = '',
                  index: int = None,
-                 addition_source_type: Item= None,
+                 addition_source_type: Item = None,
                  editable: bool = True
                  ):
         if index:
@@ -58,6 +59,11 @@ class TableItem:
         self.editable = editable
 
         self.item_list.items.append(self)
+        if self.name in self.item_list.name_index_dict:
+            raise ValueError(f"name:{self.name} is already exists!")
+        if self.name in self.item_list.name_index_dict:
+            raise ValueError(f"index:{self.index} is already exists!")
+
         self.item_list.name_index_dict[self.name] = self
         self.item_list.index_name_dict[self.index] = self
 
@@ -96,6 +102,7 @@ class TableItems:
     tips = TableItem(table_class=Tips)
     world_hero_medal = TableItem(table_class=WorldHeroMedal)
 
+    player_achievement_record = TableItem(table_class=PlayerAchievementRecord, editable=False)
     player_use_book_record = TableItem(table_class=PlayerUseStuffRecord, editable=False)
     player_stuff_record = TableItem(table_class=PlayerStuffRecord, editable=False)
     player_skill_record = TableItem(table_class=PlayerSkillRecord, editable=False)
@@ -111,15 +118,44 @@ class TableItems:
     player_battle_record = TableItem(table_class=PlayerBattleRecord, editable=False)
     # base_property = '5大基础属性'  # 稍后再决定如何实现非单独定义表格数据的实现
 
-    default = achievement
+    default = achievement_title_book
 
 
-class MyLineText(QLineEdit):
+class BaseWidget(QWidget):
+    def __init__(self):
+        super(BaseWidget, self).__init__()
+        screen_resolution = QtWidgets.QDesktopWidget().screenGeometry()
+        width = screen_resolution.width()
+        height = screen_resolution.height()
+        if width > 1920 and height > 1080:
+            font_size = 10  # 4K及以上屏幕
+        elif width > 1920 or height > 1080:
+            font_size = 8  # 1080p及以上屏幕
+        else:
+            font_size = 6  # 普通屏幕
+        font = QtGui.QFont()
+        font.setPointSize(font_size)
+        self.setFont(font)
+
+    def disconnect_all(self) -> bool:
+        try:
+            self.disconnect()
+        except:
+            return
+
+    def right(self):
+        return self.geometry().right()
+
+    def left(self):
+        return self.geometry().left()
+
+
+class MyLineText(QLineEdit, BaseWidget):
     focus: pyqtBoundSignal = pyqtSignal(int, str)
     text_change: pyqtBoundSignal = pyqtSignal(int, str)
 
-    def __init__(self, index: int = -1, parent: QWidget = None):
-        super().__init__(parent)
+    def __init__(self, *, index: int = -1):
+        super().__init__()
         self.index = index
         self.textChanged.connect(self.text_change_event)
         self.style_sheet_focused = 'border: 2px solid blue;'
@@ -144,40 +180,36 @@ class MyLineText(QLineEdit):
             text = str(text)
         self.setText(text)
 
+    def text(self) -> str:
+        return super(MyLineText, self).text().strip()
 
-class MyButton(QPushButton):
+
+class MyButton(QPushButton, BaseWidget):
     def __init__(self, *, text: str):
         super().__init__()
         self.setText(text)
 
-    def disconnect_all(self) -> bool:
-        try:
-            self.disconnect()
-        except:
-            return
 
-
-class MyListBox(QListWidget):
+class MyListBox(QListWidget, BaseWidget):
     def __init__(self):
         super().__init__()
 
-    def disconnect_all(self) -> bool:
-        try:
-            self.disconnect()
-        except:
-            return
+    def text(self):
+        if not self.currentItem():
+            return ""
+        return self.currentItem().text().strip()
 
 
-class MyFrame(QFrame):
+class MyFrame(QFrame, BaseWidget):
     def __init__(self):
         super().__init__()
         self.style_sheet = 'border: 1px solid black;'
         self.setStyleSheet(self.style_sheet)
 
 
-class MyLabel(QLabel):
+class MyLabel(QLabel, BaseWidget):
     def __init__(self, label_text: str = ""):
-        super().__init__()
+        super(MyLabel, self).__init__()
         self.set_text(text=label_text)
         self.style_sheet = 'border: 1px solid black;'
         self.setStyleSheet(self.style_sheet)
@@ -191,11 +223,28 @@ class MyLabel(QLabel):
         self.setText(text)
 
 
+class MyComboBox(QComboBox, BaseWidget):
+    def __init__(self):
+        super(MyComboBox, self).__init__()
+
+    def set_text(self, *, text: str):
+        self.setCurrentText(text)
+
+    def text(self):
+        return self.currentText().strip()
+
+
+class MyDateTimeBox(QDateTimeEdit, BaseWidget):
+    def __init__(self):
+        super(MyDateTimeBox, self).__init__()
+
+
 class EditWidgetType:
     combo_box = 1
     short_text = 2
     long_text = 3
     bool_combo_box = 4
+    date_time_box = 5
 
 
 class DataEdit:
@@ -234,17 +283,6 @@ class StatuesWidgets:
         self.statues_name_label = statues_name_label
 
 
-class MyComboBox(QComboBox):
-    def __init__(self):
-        super(MyComboBox, self).__init__()
-
-    def set_text(self, *, text: str):
-        self.setCurrentText(text)
-
-    def text(self):
-        return self.currentText()
-
-
 class PropertyWidgets:
     """
     和属性相关的若干控件
@@ -257,7 +295,7 @@ class PropertyWidgets:
 
                  # target_label: MyLabel,
                  # target_combo_box: QComboBox,
-                 availability_combo_box:MyComboBox,
+                 availability_combo_box: MyComboBox,
                  name_label: MyLabel,
                  value_text: MyLineText):
         self.index_label = index_label
@@ -269,7 +307,7 @@ class PropertyWidgets:
         self.name_label = name_label
         self.value_text = value_text
 
-        self.availability_combo_box=availability_combo_box
+        self.availability_combo_box = availability_combo_box
         print(1)
 
 

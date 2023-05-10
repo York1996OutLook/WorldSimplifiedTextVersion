@@ -1,25 +1,27 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Float, Boolean, desc
+from sqlalchemy import Integer, String, Float, Boolean, desc
 
 from typing import Optional, List
 
 
 from DBHelper.session import session
 from DBHelper.tables.base_table import Basic,Base
+from DBHelper.tables.base_table import CustomColumn,Timestamp
 
 
 class PlayerLotteryRecord(Basic,Base):
     """
     玩家抽奖记录表
     """
+    __cn__ = "玩家抽奖记录"
     __tablename__ = 'player_lottery_record'
 
-    character_id = Column(Integer, comment="角色ID")
+    character_id = CustomColumn(Integer, comment="角色ID")
 
-    lottery_num = Column(Integer, comment="抽奖获得的数字;")
-    lottery_timestamp = Column(Integer, comment="最后一次抽奖的时间戳;")
+    lottery_num = CustomColumn(Integer, comment="抽奖获得的数字;")
+    lottery_timestamp = CustomColumn(Timestamp, comment="最后一次抽奖的时间戳;")
 
-    lucky_num = Column(Integer, comment="当天设置的幸运数字")
+    lucky_num = CustomColumn(Integer, comment="当天设置的幸运数字")
 
     @classmethod
     def add_or_update_by_id(cls, *,

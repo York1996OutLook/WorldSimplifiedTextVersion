@@ -1,31 +1,33 @@
 from typing import List
 
 from sqlalchemy import and_
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Integer
 from sqlalchemy.ext.declarative import declarative_base
 
 from DBHelper.session import session
-from DBHelper.tables.base_table import Basic,Base
+from DBHelper.tables.base_table import Basic, Base
+from DBHelper.tables.base_table import CustomColumn
 from Enums import StuffType, AdditionSourceType
 
 
-class OpenDecomposeOrDropStuffsRecord(Basic,Base):
+class OpenDecomposeOrDropStuffsRecord(Basic, Base):
     """
     打开 分解 掉落的物品记录
     """
     __tablename__ = 'open_decompose_or_drop_stuffs_record'
 
-    source_type = Column(Integer, comment="被分解、打开物品的类型,参考StuffType")
-    source_id = Column(Integer, comment="被分解、打开物品的id")
+    source_type = CustomColumn(Integer, cn="物品类型", bind_type=StuffType, comment="被分解、打开物品的类型,参考StuffType")
+    source_id = CustomColumn(Integer, cn='物品ID', comment="被分解、打开物品的id")
 
-    get_stuff_type = Column(Integer, comment="物品的类型,参考枚举类型StuffType。")
-    get_stuff_id = Column(Integer, comment="物品的ID")
-    get_stuff_prob = Column(Integer, comment="出现的概率,独立计算概率。比如50%A物品,50%B物品,最后的结果可能是空,A,B,A+B四种情况!")
+    get_stuff_type = CustomColumn(Integer, cn="获得物品类型", bind_type=StuffType, comment="物品的类型,参考枚举类型StuffType。")
+    get_stuff_id = CustomColumn(Integer, cn='获得物品ID', comment="物品的ID")
+    get_stuff_prob = CustomColumn(Integer, cn="获得概率",
+                                  comment="最小为1/1000。出现的概率,独立计算概率。比如50%A物品,50%B物品,最后的结果可能是空,A,B,A+B四种情况!")
 
     @classmethod
     def add_or_update_by_id(cls,
                             *,
-                            _id:int,
+                            _id: int,
                             source_type: int = None,
                             source_id: int = None,
                             get_stuff_type: int = None,

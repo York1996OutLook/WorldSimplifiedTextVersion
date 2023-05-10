@@ -5,7 +5,7 @@ from typing import List, DefaultDict
 
 import common
 from Enums import AdditionSourceType, PartType, EquipmentQuality, AdditionalPropertyType, BeingType, \
-    EquipmentPropertyAvailability, StuffType, part_cn_type_dict, equipment_cn_quality_dict, \
+    PropertyAvailability, StuffType, part_cn_type_dict, equipment_cn_quality_dict, \
     stuff_cn_type_dict
 from DBHelper.db import *
 from DBHelper.session import session

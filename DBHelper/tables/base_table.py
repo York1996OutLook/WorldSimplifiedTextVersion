@@ -10,6 +10,10 @@ from DBHelper.session import session
 Base = declarative_base()
 
 
+class Timestamp(Integer):
+    ...
+
+
 def remove_none_kwargs(kwargs: Dict[str, Any]) -> Dict[str, Any]:
     kwargs = {key: kwargs[key] for key in kwargs if kwargs[key] is not None}
     return kwargs
@@ -26,16 +30,17 @@ class CustomColumn(Column):
                  *args,
                  bind_type=None,
                  cn: str = None,
+                 bind_table: str = None,
                  editable: bool = True,
                  **kwargs):
         super(CustomColumn, self).__init__(*args, **kwargs)
         self.bind_type = bind_type
+        self.bind_table = bind_table
         self.cn = cn
         self.editable = editable
 
 
 class Basic:
-    __cn__ = ""
     id = CustomColumn(Integer,
                       cn='ID',
                       editable=False,
@@ -45,6 +50,8 @@ class Basic:
         """
         add的时候用到
         """
+        self.__cn__ = ""
+
         for k, v in kwargs.items():
             setattr(self, k, v)
 
@@ -313,6 +320,9 @@ class Basic:
 
 class Entity(Basic):
     name = CustomColumn(String, cn='名称')
+
+    def __init__(self):
+        super(Entity, self).__init__()
 
     # base
     @classmethod

@@ -1,8 +1,9 @@
 import time
 from typing import List
 
-from sqlalchemy import Column, Integer
+from sqlalchemy import Integer
 from sqlalchemy.ext.declarative import declarative_base
+from DBHelper.tables.base_table import CustomColumn,Timestamp
 
 from DBHelper.session import session
 from DBHelper.tables.base_table import Basic,Base
@@ -12,12 +13,13 @@ class PlayerPotionRecord(Basic,Base):
     """
     将玩家使用的药品记录下来。每个用户仅有一个使用药剂记录,使用新的药剂会替换原有药剂;
     """
+    __cn__ = "玩家药剂使用"
     __tablename__ = "player_potion_record"
 
-    character_id = Column(Integer, comment="药剂使用者的人物ID")
-    potion_id = Column(Integer, comment="药剂类ID")
+    character_id = CustomColumn(Integer, cn="人物ID",comment="药剂使用者的人物ID")
+    potion_id = CustomColumn(Integer, cn="药剂ID",comment="药剂类ID")
 
-    take_timestamp = Column(Integer, comment="药剂类最新的使用时间")
+    take_timestamp = CustomColumn(Timestamp, cn="使用时间",comment="药剂类最新的使用时间")
 
     @classmethod
     def add_or_update_by_id(cls,

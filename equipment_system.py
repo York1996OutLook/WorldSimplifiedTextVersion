@@ -5,7 +5,7 @@ from typing import List, DefaultDict
 
 import common
 from Enums import AdditionSourceType, PartType, EquipmentQuality, AdditionalPropertyType, BeingType, \
-    EquipmentPropertyAvailability, StuffType, part_cn_type_dict, equipment_cn_quality_dict, \
+    PropertyAvailability, StuffType, part_cn_type_dict, equipment_cn_quality_dict, \
     stuff_cn_type_dict
 from DBHelper.db import *
 from DBHelper.session import session
@@ -42,13 +42,13 @@ if __name__ == '__main__':
                     additional_property_type=property_type,
                     additional_property_value=prototype_property_dict['最小值'],
                     property_index=property_index,
-                    property_availability=EquipmentPropertyAvailability.MIN,
+                    property_availability=PropertyAvailability.MIN,
                 )
                 misc_properties.add_equipment_properties(
                     additional_property_type=property_type,
                     additional_property_value=prototype_property_dict['最大值'],
                     property_index=property_index,
-                    property_availability=EquipmentPropertyAvailability.MAX,
+                    property_availability=PropertyAvailability.MAX,
                 )
 
         # 增加装备对应的分解获得物品的列表，先进行删除；

@@ -1,26 +1,31 @@
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from typing import List, Optional
 
 from DBHelper.session import session
 from DBHelper.tables.base_table import Basic
+from DBHelper.tables.base_table import CustomColumn
+
 
 Base = declarative_base()
 
 
+
 class SkillBook(Basic, Base):
     """
-    技能书的列表
+    技能卷轴
     """
+    __cn__ = "技能卷轴"
+
     __tablename__ = 'skill_book'
 
-    skill_id = Column(Integer, comment="对应的技能ID")
-    level = Column(Integer, comment="技能书的等级,高等级技能书可以学习低等级技能,但是反过来不行")
-    days_of_validity = Column(Integer, comment="有效期。以天为单位。如果是-1则代表是永久。参考的技能的ID如果也有有效期,则看具体book的。")
+    skill_id = CustomColumn(Integer, cn="技能ID",comment="对应的技能ID")
+    level = CustomColumn(Integer, cn="等级",comment="技能书的等级,高等级技能书可以学习低等级技能,但是反过来不行")
+    days_of_validity = CustomColumn(Integer, cn="有效期",comment="有效期。以天为单位。如果是-1则代表是永久。参考的技能的ID如果也有有效期,则看具体book的。")
 
-    cost_health = Column(Integer, default=0, comment='技能消耗的生命值')
-    cost_mana = Column(Integer, default=0, comment="消耗的法力")
-    is_bind = Column(Boolean, comment="初始是否绑定")
+    cost_health = CustomColumn(Integer, default=0, cn="技能消耗生命值",comment='技能消耗的生命值')
+    cost_mana = CustomColumn(Integer, default=0, cn="消耗法力",comment="消耗的法力")
+    is_bind = CustomColumn(Boolean, cn="是否绑定",comment="初始是否绑定")
 
     @classmethod
     def add_or_update_by_id(

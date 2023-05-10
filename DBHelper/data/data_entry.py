@@ -13,8 +13,8 @@ from Enums import BasePropertyType, LearningApproach, SkillTarget, SkillType, Sk
     AdditionalPropertyType, StatusType, AchievementPropertyType, AchievementType, \
     ExpBookType, DataType, PropertyAvailability
 from qt_utils import EditWidgetType, MyLineText, MyLabel, MyFrame, set_geo, StatuesWidgets, PropertyWidgets, MyButton, \
-    TableItems, DataEdit, MyListBox, MyComboBox, TableItem
-from DBHelper.tables.base_table import CustomColumn as Column
+    TableItems, DataEdit, MyListBox, MyComboBox, TableItem, MyDateTimeBox
+from DBHelper.tables.base_table import CustomColumn, Timestamp
 from DBHelper.tables.base_table import Basic, Entity
 
 
@@ -22,28 +22,31 @@ class MyMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         print('__init__')
-        self.left_region_width = 160
+
+        self.right_region_width = 900
         self.bottom_region_height = 60
         self.item_height = 35
 
-        self.label_width = 60  # 属性1，属性2，
-        self.long_label_width = 100  # 具体属性名字展示
+        self.label_width = 120  # 属性1，属性2，
+        self.combo_box_width = 200  # 具体属性名字展示
+        self.long_label_width = 250  # 具体属性名字展示
 
         self.short_text_width = 100  # 具体属性名字输入
-        self.long_text_width = 300  # 具体属性名字输入
+        self.long_text_width = 400  # 具体属性名字输入
 
         self.right_top_region_height = 200
         self.right_middle_region_height = 210
         self.right_bottom_region_height = 200
 
         self.left_right_region_height = self.right_top_region_height + self.right_middle_region_height + self.right_bottom_region_height
+        self.left_region_width = self.label_width + self.combo_box_width
 
-        self.button_width = 100
+        self.button_width = 150
         self.button_top_margin = 10
 
-        self.property_list_width = 120
-        self.statues_list_width = 150
-        self.interval = 6
+        self.property_list_width = 150
+        self.statues_list_width = 160
+        self.interval = 5
 
         self.max_property_num = 6
         # 区域划分
@@ -87,9 +90,8 @@ class MyMainWindow(QMainWindow):
 
     def initUI(self):
         print('init UI')
-        right_region_width = 600
 
-        left_right_region_width = self.left_region_width + right_region_width
+        left_right_region_width = self.left_region_width + self.right_region_width
 
         self.setWindowTitle('属性表:')
         self.setGeometry(0,
@@ -109,26 +111,29 @@ class MyMainWindow(QMainWindow):
                 parent_widget=self,
                 x1=self.left_region_width,
                 y1=0,
-                width=right_region_width, height=self.left_right_region_height)
+                width=self.right_region_width,
+                height=self.left_right_region_height)
 
         # 右上
         set_geo(cur_widget=self.right_top_region,
                 parent_widget=self.right_region,
                 x1=0,
                 y1=0,
-                width=right_region_width, height=self.right_top_region_height)
+                width=self.right_region_width,
+                height=self.right_top_region_height)
         # 右中
         set_geo(cur_widget=self.right_middle_region,
                 parent_widget=self.right_region,
                 x1=0,
                 y1=self.right_top_region_height,
-                width=right_region_width, height=self.right_middle_region_height)
+                width=self.right_region_width,
+                height=self.right_middle_region_height)
         # 右下
         set_geo(cur_widget=self.right_bottom_region,
                 parent_widget=self.right_region,
                 x1=0,
                 y1=self.right_top_region_height + self.right_middle_region_height,
-                width=right_region_width, height=self.right_top_region_height)
+                width=self.right_region_width, height=self.right_top_region_height)
         # 下方
         set_geo(cur_widget=self.bottom_region,
                 parent_widget=self,
@@ -138,10 +143,9 @@ class MyMainWindow(QMainWindow):
                 height=self.bottom_region_height,
                 )
         # 所有项目都会加载的列表框
-        self.init_items_list()
+        self.init_records_list()
 
         self.init_select_current_table()
-        self.init_property_list()
         self.init_property_widgets()
         self.init_bottom_widgets()
 
@@ -157,19 +161,19 @@ class MyMainWindow(QMainWindow):
 
         set_geo(cur_widget=self.current_data_table_combo_box,
                 parent_widget=self.left_region,
-                x1=self.label_width,
+                x1=self.current_data_table_label.right(),
                 y1=0,
-                width=self.button_width,
+                width=self.combo_box_width,
                 height=self.item_height)
         for table_item in TableItems.item_list.get_items():
             self.current_data_table_combo_box.addItem(table_item.name)
 
-        self.current_data_table_combo_box.set_text(text=TableItems.achievement.name)
+        self.current_data_table_combo_box.set_text(text=TableItems.default.name)
         self.current_data_table_combo_box.currentIndexChanged.connect(self.data_table_select_changed)
 
         self.data_table_select_changed(self.current_data_table_combo_box.currentIndex())
 
-    def init_items_list(self):
+    def init_records_list(self):
         self.recordsListWidget = MyListBox()
         set_geo(cur_widget=self.recordsListWidget,
                 parent_widget=self.left_region,
@@ -197,7 +201,7 @@ class MyMainWindow(QMainWindow):
         table_item = TableItems.item_list.get_by_name(name=current_text)
 
         self.cur_table = table_item.table_class
-        columns = inspect.getmembers(Achievement)
+        columns = inspect.getmembers(self.cur_table)
 
         self.edit_items.clear()
 
@@ -205,14 +209,19 @@ class MyMainWindow(QMainWindow):
             key = column[0]
             if key == "id":
                 continue
-            one_column: Column = getattr(table_item.table_class, key)
+            if key.startswith('_'):
+                continue
+            one_column: CustomColumn = getattr(table_item.table_class, key)
+
             if not isinstance(one_column, InstrumentedAttribute):
                 continue
 
-            default = one_column.default
             if isinstance(one_column.type, Boolean):
                 data_type = DataType.BOOL
                 edit_type = EditWidgetType.bool_combo_box
+            elif isinstance(one_column.type, Timestamp):
+                data_type = DataType.TIMESTAMP
+                edit_type = EditWidgetType.date_time_box
             elif isinstance(one_column.type, Integer):
                 data_type = DataType.INTEGER
                 edit_type = EditWidgetType.short_text
@@ -224,15 +233,28 @@ class MyMainWindow(QMainWindow):
                 edit_type = EditWidgetType.short_text
             else:
                 raise ValueError("还没有实现")
+
+            if one_column.default is None:
+                names = None
+                default = None
+            else:
+                names = one_column.default.arg
+                default = one_column.default.arg
+
             if one_column.bind_type is not None:
                 edit_type = EditWidgetType.combo_box
+                names = one_column.bind_type.item_list.get_names()
+            elif one_column.bind_table is not None:
+                edit_type = EditWidgetType.combo_box
+                records = globals()[one_column.bind_table].get_all()
+                names = [record.name for record in records]
 
             new_edit_item = DataEdit(
                 data_type=data_type,
                 key=key,
                 cn=one_column.cn,
                 edit_widget_type=edit_type,
-                choices=one_column.bind_type,
+                choices=names,
                 editable=True,
                 default=default)
 
@@ -377,13 +399,16 @@ class MyMainWindow(QMainWindow):
         # 创建显示属性的文本框和按钮
         for index in range(self.max_property_num):
             index_label = MyLabel(f'属性：{index + 1}')
-            name_text = MyLineText(index)
+            name_text = MyLineText(index=index)
             # -------------------------------------
-            target_label = MyLabel()
-            target_combo_box = MyComboBox()
+            # target_label = MyLabel()
+            # target_combo_box = MyComboBox()
+            availability_label = MyLabel()
+            availability_combo_box = MyComboBox()
+
             # -------------------------------------
             name_label = MyLabel()
-            value_text = MyLineText(index)
+            value_text = MyLineText(index=index)
 
             # 定义位置大小
             set_geo(cur_widget=index_label,
@@ -394,41 +419,59 @@ class MyMainWindow(QMainWindow):
                     height=self.item_height)
             set_geo(cur_widget=name_text,
                     parent_widget=self.right_middle_region,
-                    x1=index_label.x() + index_label.width() + self.interval,
+                    x1=index_label.right() + self.interval,
                     y1=self.item_height * index,
                     width=self.short_text_width,
                     height=self.item_height)
 
-            set_geo(cur_widget=target_label,
+            set_geo(cur_widget=availability_label,
                     parent_widget=self.right_middle_region,
-                    x1=self.all_property_list_widget.x() + self.all_property_list_widget.width() + self.interval,
+                    x1=name_text.right() + self.interval,
                     y1=self.item_height * index,
                     width=self.label_width,
-                    height=self.item_height)
-            set_geo(cur_widget=target_combo_box,
+                    height=self.item_height,
+                    )
+
+            set_geo(cur_widget=availability_combo_box,
                     parent_widget=self.right_middle_region,
-                    x1=target_label.x() + target_label.width() + self.interval,
+                    x1=availability_label.right() + self.interval,
                     y1=self.item_height * index,
-                    width=self.label_width,
-                    height=self.item_height)
+                    width=self.combo_box_width,
+                    height=self.item_height,
+                    )
+
+            ##################################################################################
+            print("init_property_list")
+            set_geo(cur_widget=self.all_property_list_widget,
+                    parent_widget=self.right_middle_region,
+                    x1=availability_combo_box.right() + self.interval,
+                    y1=0,
+                    width=self.property_list_width,
+                    height=self.right_middle_region_height)
+            # 定义事件：
+            self.all_property_list_widget.currentItemChanged.connect(self.all_property_list_changed)
+            self.all_property_list_widget.currentItemChanged.connect(self.enable_save_button)
+            self.change_properties_list(index=0, text="")
+            ##################################################################################
 
             set_geo(cur_widget=name_label,
                     parent_widget=self.right_middle_region,
-                    x1=target_combo_box.x() + target_combo_box.width() + self.interval,
+                    x1=self.all_property_list_widget.right() + self.interval,
                     y1=self.item_height * index,
                     width=self.long_label_width,
                     height=self.item_height)
 
             set_geo(cur_widget=value_text,
                     parent_widget=self.right_middle_region,
-                    x1=name_label.x() + name_label.width() + self.interval,
+                    x1=name_label.right() + self.interval,
                     y1=self.item_height * index,
                     width=self.label_width,
                     height=self.item_height)
             # 设置内容
-            target_label.setText("作用对象：")
-            target_combo_box.addItems(SkillTarget.item_list.name_index_dict.keys())
-            target_combo_box.setCurrentIndex(SkillTarget.default.index)
+            availability_label.set_text(text="作用域")
+            # target_label.setText("作用对象：")
+            # target_combo_box.addItems(SkillTarget.item_list.name_index_dict.keys())
+            # target_combo_box.setCurrentIndex(SkillTarget.default.index)
 
             # 定义事件
             name_text.focus.connect(self.on_property_text_focus)
@@ -441,8 +484,7 @@ class MyMainWindow(QMainWindow):
             self.properties_widgets_list.append(
                 PropertyWidgets(index_label=index_label,
                                 name_text=name_text,
-                                target_label=target_label,
-                                target_combo_box=target_combo_box,
+                                availability_combo_box=availability_combo_box,
                                 name_label=name_label,
                                 value_text=value_text)
             )
@@ -501,7 +543,7 @@ class MyMainWindow(QMainWindow):
         # 创建显示附加属性的显示列表
         for index in range(4):
             statues_index_label = MyLabel(f'状态：{index + 1}')
-            statues_name_text = MyLineText(index)
+            statues_name_text = MyLineText(index=index)
             # -------------------------------------
             statues_name_label = MyLabel()
 
@@ -536,19 +578,6 @@ class MyMainWindow(QMainWindow):
                                )
             )
 
-    def init_property_list(self):
-        print("init_property_list")
-        set_geo(cur_widget=self.all_property_list_widget,
-                parent_widget=self.right_middle_region,
-                x1=self.label_width + self.short_text_width + self.interval * 2,
-                y1=0,
-                width=self.property_list_width,
-                height=self.right_middle_region_height)
-        # 定义事件：
-        self.all_property_list_widget.currentItemChanged.connect(self.all_property_list_changed)
-        self.all_property_list_widget.currentItemChanged.connect(self.enable_save_button)
-        self.change_properties_list(index=0, text="")
-
     def clear_temp_widgets(self):
         print("clear_temp_widgets")
         self.edit_items.clear()
@@ -564,7 +593,7 @@ class MyMainWindow(QMainWindow):
                                               EditWidgetType.combo_box,
                                               EditWidgetType.bool_combo_box}:
                 widget_index += 1
-            elif edit_item.edit_widget_type in {EditWidgetType.long_text}:
+            elif edit_item.edit_widget_type in {EditWidgetType.long_text, EditWidgetType.date_time_box}:
                 widget_index = (widget_index // 2 + 1) * 2  # 可视化的较长
             else:
                 raise ValueError()
@@ -573,11 +602,11 @@ class MyMainWindow(QMainWindow):
             col_index = widget_index % 2  # 0 or 1
             row_index = widget_index // 2  # 0,1,2,3...
             print(f'row_index {row_index},col_index:{col_index}')
-            label_x1 = col_index * (self.label_width + self.short_text_width) + self.interval * col_index
+            label_x1 = col_index * (self.label_width + self.combo_box_width) + self.interval * col_index
             label_y1 = row_index * self.item_height
 
             edit_x1 = col_index * (
-                    self.label_width + self.short_text_width) + self.label_width + self.interval * col_index
+                    self.label_width + self.combo_box_width) + self.label_width + self.interval * col_index
             edit_y1 = label_y1
 
             print(label_x1, label_y1, edit_y1, edit_y1)
@@ -614,15 +643,26 @@ class MyMainWindow(QMainWindow):
                 edit_widget.set_text(text=edit_item.choices)
                 widget_index += 1
 
-            elif edit_item.edit_widget_type in (EditWidgetType.combo_box,):
-                edit_widget = MyComboBox()
-                edit_widget.addItems(list(edit_item.choices.item_list.name_index_dict.keys()))
-                edit_widget.setCurrentIndex(edit_item.choices.default.index - 1)
+            elif edit_item.edit_widget_type in (EditWidgetType.date_time_box,):
+                edit_widget = MyDateTimeBox()
                 set_geo(cur_widget=edit_widget,
                         parent_widget=self.right_top_region,
                         x1=edit_x1,
                         y1=edit_y1,
-                        width=self.short_text_width,
+                        width=self.long_text_width,
+                        height=self.item_height)
+                # todo:?
+                widget_index += 1
+
+            elif edit_item.edit_widget_type in (EditWidgetType.combo_box,):
+                edit_widget = MyComboBox()
+                edit_widget.addItems(edit_item.choices)
+                edit_widget.set_text(text=edit_item.default)
+                set_geo(cur_widget=edit_widget,
+                        parent_widget=self.right_top_region,
+                        x1=edit_x1,
+                        y1=edit_y1,
+                        width=self.combo_box_width,
                         height=self.item_height)
             elif edit_item.edit_widget_type in {EditWidgetType.bool_combo_box}:
                 edit_widget = MyComboBox()
@@ -642,7 +682,6 @@ class MyMainWindow(QMainWindow):
                 edit_widget.currentIndexChanged.connect(self.enable_save_button)
             elif edit_item.edit_widget_type in (EditWidgetType.short_text, EditWidgetType.long_text):
                 edit_widget.textChanged.connect(self.enable_save_button)
-
             if not edit_item.editable:
                 edit_widget.setEnabled(False)
             edit_widget.show()
@@ -650,7 +689,7 @@ class MyMainWindow(QMainWindow):
 
     def add_record_event(self):
         print("add_record_event")
-        new_name = self.new_name_text.text().strip()
+        new_name = self.new_name_text.text()
         if new_name == "":
             QMessageBox.information(self, '出错了！', '成就不可为空')
             return
@@ -684,7 +723,7 @@ class MyMainWindow(QMainWindow):
         if self.all_property_list_widget.count() != 0 and len(self.properties_widgets_list) > 0:
             if self.properties_widgets_list[self.current_properties_index].name_label.text() == "":
                 first_item = self.all_property_list_widget.item(0)
-                self.properties_widgets_list[self.current_properties_index].name_label.set_text(first_item.text())
+                self.properties_widgets_list[self.current_properties_index].name_label.set_text(text=first_item.text())
         self.enable_save_button()
 
     def all_property_list_changed(self, ):
@@ -693,16 +732,14 @@ class MyMainWindow(QMainWindow):
         :return:
         """
         print("all_property_list_changed")
-        if not self.all_property_list_widget.currentItem():
-            return
-        if not self.all_property_list_widget.currentItem().text():
+        if not self.all_property_list_widget.text():
             return
         """
         self.index_label = index_label
         self.name_text = name_text
         self.name_label = name_label
         self.value_text = value_text"""
-        property_name = self.all_property_list_widget.currentItem().text()
+        property_name = self.all_property_list_widget.text()
         self.properties_widgets_list[self.current_properties_index].name_label.set_text(text=property_name)
 
     def clear_properties(self):
@@ -906,9 +943,9 @@ class MyMainWindow(QMainWindow):
 
     def save_skill_property(self):
         print("save_skill_property")
-        selected_name = self.recordsListWidget.currentItem().text().strip()
-        new_name = self.setting_widget_dict["name"].text().strip()
-        target_name = self.setting_widget_dict["target"].currentText().strip()
+        selected_name = self.recordsListWidget.currentItem().text()
+        new_name = self.setting_widget_dict["name"].text()
+        target_name = self.setting_widget_dict["target"].currentText()
         target = SkillTarget.item_list.name_index_dict[target_name]
         one_skill = Skill.get_by_name(name=selected_name)
 
@@ -948,9 +985,9 @@ class MyMainWindow(QMainWindow):
     def save_status_property(self):
         print("save_status_property")
 
-        selected_name = self.recordsListWidget.currentItem().text().strip()
-        new_name = self.setting_widget_dict["name"].text().strip()
-        effect_expression = self.setting_widget_dict["effect_expression"].text().strip()
+        selected_name = self.recordsListWidget.currentItem().text()
+        new_name = self.setting_widget_dict["name"].text()
+        effect_expression = self.setting_widget_dict["effect_expression"].text()
         status_type = self.setting_widget_dict["status_type"].currentIndex() + 1
 
         one_status = BattleStatus.get_by_name(name=selected_name)
@@ -986,7 +1023,7 @@ class MyMainWindow(QMainWindow):
     def save_base_property(self):
         print("save_base_property")
 
-        selected_name = self.recordsListWidget.currentItem().text().strip()
+        selected_name = self.recordsListWidget.text()
         # name不会发生修改
         # 基础属性的索引
         base_property_index = BasePropertyType.item_list.name_index_dict[selected_name]
@@ -1017,7 +1054,7 @@ class MyMainWindow(QMainWindow):
         """
         删除当前选中的记录
         """
-        current_name = self.recordsListWidget.currentItem().text()
+        current_name = self.recordsListWidget.text()
         confirm = input(f"确定要删除{current_name}吗?如果确认请输出yes，输入其它内容被视为不删除。")
         if confirm == "yes":
             self.cur_table.del_by_name(name=current_name)
@@ -1027,8 +1064,8 @@ class MyMainWindow(QMainWindow):
     def save_record_record(self):
         print("save_record_record")
 
-        record_name=self.recordsListWidget.currentItem().text()
-        record: Entity = self.cur_table.get_by_name(name=self.recordsListWidget.currentItem().text())
+        record_name = self.recordsListWidget.text()
+        record: Entity = self.cur_table.get_by_name(name=record_name)
 
         update_args = dict()
         for key in self.edit_items:
@@ -1100,7 +1137,8 @@ class MyMainWindow(QMainWindow):
 
                     property_availability=property_availability_index,
                 )
-                print(f"表格名称：{current_table_name}，记录名称{record_name}，第{index + 1}条属性：{property_cn_name}=属性值{property_value} 更新成功。")
+                print(
+                    f"表格名称：{current_table_name}，记录名称{record_name}，第{index + 1}条属性：{property_cn_name}=属性值{property_value} 更新成功。")
             ########################################################
 
         self.saveButton.setEnabled(False)  # 隐藏保存按钮
@@ -1109,8 +1147,8 @@ class MyMainWindow(QMainWindow):
     def save_gem_event(self):
         print("save_gem")
 
-        selected_name = self.recordsListWidget.currentItem().text().strip()
-        new_name = self.new_name_text.text().strip()
+        selected_name = self.recordsListWidget.currentItem().text()
+        new_name = self.new_name_text.text()
         # name不会发生修改
         cur_achievement = Achievement.get_by_name(name=selected_name)
 
@@ -1143,8 +1181,8 @@ class MyMainWindow(QMainWindow):
     def save_box_event(self):
         print("save_box")
 
-        selected_name = self.recordsListWidget.currentItem().text().strip()
-        new_name = self.new_name_text.text().strip()
+        selected_name = self.recordsListWidget.currentItem().text()
+        new_name = self.new_name_text.text()
         # name不会发生修改
         cur_achievement = Achievement.get_by_name(name=selected_name)
 

@@ -1,32 +1,34 @@
 from typing import List, Tuple
 
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 
 from DBHelper.session import session
-from DBHelper.tables.base_table import Basic,Base
+from DBHelper.tables.base_table import Basic, Base
+from DBHelper.tables.base_table import CustomColumn
 from Utils.tools import find_smallest_missing
-from Enums import StuffType
+from Enums import StuffType, GemInlayingStatus
 
 
-class PlayerStuffRecord(Basic,Base):
+class PlayerStuffRecord(Basic, Base):
     """
     装备、物品、称号等的属性
     """
+    __cn__ = "玩家物品记录表"
     __tablename__ = 'player_stuff_record'
 
-    character_id = Column(Integer, comment="人物id")
-    stuff_type = Column(Integer, comment="物品的类型,参考StuffType")
-    stuff_id = Column(Integer, comment="物品id")
+    character_id = CustomColumn(Integer, comment="人物id")
+    stuff_type = CustomColumn(Integer, bind_type=StuffType, comment="物品的类型,参考StuffType")
+    stuff_id = CustomColumn(Integer, comment="物品id")
 
-    stuff_num = Column(Integer, comment="数量")
-    is_bind = Column(Boolean, comment="是否已经绑定")
-    is_wearing = Column(Boolean, comment="是否穿戴中")
+    stuff_num = CustomColumn(Integer, comment="数量")
+    is_bind = CustomColumn(Boolean, comment="是否已经绑定")
+    is_wearing = CustomColumn(Boolean, comment="是否穿戴中")
 
-    position_in_bag = Column(Integer, comment="在背包中的位置,从1开始,目前没有设定背包大小.0代表没有在背包中。")
+    position_in_bag = CustomColumn(Integer, comment="在背包中的位置,从1开始,目前没有设定背包大小.0代表没有在背包中。")
 
-    current_stars_num = Column(Integer, comment="当前升星数量")
-    gem_inlaying_status = Column(Integer, comment="宝石镶嵌的状态。参考 GemInlayingStatus")
+    current_stars_num = CustomColumn(Integer, comment="当前升星数量")
+    gem_inlaying_status = CustomColumn(Integer, bind_type=GemInlayingStatus, comment="宝石镶嵌的状态。参考 GemInlayingStatus")
 
     @classmethod
     def add_or_update_by_id(cls,
@@ -46,6 +48,7 @@ class PlayerStuffRecord(Basic,Base):
         record = cls._add_or_update_by_id(**fields)
         return record
 
+
 # 增
 
 # 删
@@ -62,7 +65,6 @@ def update_bag_stuffs_position(*,
     for stuff, new_position in stuff_position_list:
         stuff.position_in_bag = new_position
     session.commit()
-
 
 
 def update_stuff_wearing_and_position(*,
@@ -97,7 +99,6 @@ def update_stuff_wearing_and_position(*,
 
 
 # 查
-
 
 
 def get_all_wearing_equipments_by_character_id(*,
@@ -135,7 +136,7 @@ def get_all_in_bag_stuffs_by_character_id(*,
 # 获取当面背包没有被占用的最小位置
 def get_min_unused_bag_position(*,
                                 character_id: int
-                                )->int:
+                                ) -> int:
     """
     获取某个角色最小的未用的背包位置。
     """
@@ -184,7 +185,7 @@ def insert_stuff_to_player_bag(*,
 def wearing_stuff_to_bag(*,
                          character_id: int,
                          player_stuff_record_id: int
-                         )->PlayerStuffRecord:
+                         ) -> PlayerStuffRecord:
     """
     玩家穿着的物品放到背包中；
     :param character_id:
@@ -194,23 +195,24 @@ def wearing_stuff_to_bag(*,
     available_position = get_min_unused_bag_position(
         character_id=character_id,
     )
-    record=update_stuff_wearing_and_position(stuff_record_id=player_stuff_record_id,
-                                      is_wearing=False,
-                                      new_position=available_position)
+    record = update_stuff_wearing_and_position(stuff_record_id=player_stuff_record_id,
+                                               is_wearing=False,
+                                               new_position=available_position)
     session.commit()
     session.refresh(record)
     return record
 
+
 def bag_stuff_to_wearing(*,
                          player_stuff_record_id: int
-                         )->PlayerStuffRecord:
+                         ) -> PlayerStuffRecord:
     """
 
     :param player_stuff_record_id:
     :return:
     """
     record = update_stuff_wearing_and_position(stuff_record_id=player_stuff_record_id,
-                                      is_wearing=False)
+                                               is_wearing=False)
     session.commit()
     session.refresh(record)
     return record

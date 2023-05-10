@@ -1,10 +1,11 @@
 from typing import List
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Float, Boolean
+from sqlalchemy import Integer, String, Float, Boolean
 
 from DBHelper.session import session
 from DBHelper.tables.base_table import Basic
+from DBHelper.tables.base_table import CustomColumn
 
 Base = declarative_base()
 
@@ -13,11 +14,12 @@ class EquipmentGemRecord(Basic, Base):
     """
     装备镶嵌宝石记录表；一个宝石一个记录表；
     """
+    __cn__ = "装备宝石记录表"
     __tablename__ = 'equipment_gem_record'
 
-    equipment_id = Column(Integer, comment="装备id")
-    gem_id = Column(Integer, comment="当前宝石的id")
-    inlay_time = Column(Integer, comment="镶嵌时间")
+    equipment_id = CustomColumn(Integer, cn="装备ID", comment="装备记录id") # todo:待定
+    gem_id = CustomColumn(Integer, cn="宝石ID",bind_table="Gem", comment="当前宝石的id")
+    inlay_time = CustomColumn(Integer, cn="镶嵌时间", comment="镶嵌时间")
 
     # 增改
     @classmethod

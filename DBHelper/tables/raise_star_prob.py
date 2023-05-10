@@ -1,9 +1,10 @@
 from typing import List
 
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
 from DBHelper.session import session
+from DBHelper.tables.base_table import CustomColumn
 from DBHelper.tables.base_table import Basic,Base
 
 
@@ -12,10 +13,12 @@ class RaiseStarProb(Basic,Base):
     升星概率表
 
     """
+    __cn__ = "装备升星概率"
+
     __tablename__ = 'raise_star_prob'
 
-    star_count = Column(Integer, comment="当前升星数量")
-    success_prob = Column(Integer, comment="从上一星星数量升级到当前数量的星星成功的概率,100为决定成功,0是无法成功")
+    star_count = CustomColumn(Integer, cn="升星数量",comment="当前升星数量")
+    success_prob = CustomColumn(Integer, cn="成功概率",comment="从上一星星数量升级到当前数量的星星成功的概率,100为决定成功,0是无法成功")
 
     @classmethod
     def add_or_update_by_id(cls,

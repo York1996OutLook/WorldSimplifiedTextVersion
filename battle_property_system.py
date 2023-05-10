@@ -3,7 +3,7 @@ from typing import List, DefaultDict
 
 import log_system
 from Enums import BattlePropertyType, AdditionSourceType, AdditionalPropertyType, BeingType, \
-    EquipmentPropertyAvailability, addition_source_type_cn_dict, property_type_cn_dict
+    PropertyAvailability, addition_source_type_cn_dict, property_type_cn_dict
 from DBHelper.db import *
 
 from DBHelper.session import session

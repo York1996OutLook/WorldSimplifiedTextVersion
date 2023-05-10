@@ -1,21 +1,21 @@
 from typing import List
 
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 
 from DBHelper.session import session
 from DBHelper.tables.base_table import Entity
+from DBHelper.tables.base_table import CustomColumn
 
 Base = declarative_base()
 
 class RaiseStarBook(Entity,Base):
-    """
-    打开 分解 掉落的物品记录
-    """
+    __cn__ = "装备强化卷轴"
     __tablename__ = 'raise_star_book'
-    introduce = Column(String, comment="介绍")
 
-    is_bind = Column(Boolean, comment="新出现的时候是否已经绑定")
+    introduce = CustomColumn(String, cn="介绍",comment="介绍")
+
+    is_bind = CustomColumn(Boolean, cn="是否绑定",comment="新出现的时候是否已经绑定")
 
     @classmethod
     def add_or_update_by_name(cls,

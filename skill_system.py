@@ -4,7 +4,7 @@ from typing import List, Optional
 
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Float, Boolean
+from DBHelper.tables.base_table import CustomColumn
 from DBHelper.tables.player_skill_record import PlayerSkillRecord, \
     get_player_skill_record_by_character_id_and_skill_id, add_player_skill_record, \
     delete_learned_skill_record_bt_skill_record_id

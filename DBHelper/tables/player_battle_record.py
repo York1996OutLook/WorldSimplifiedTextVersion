@@ -1,22 +1,25 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Float, Boolean
+from sqlalchemy import Integer, String, Float, Boolean,Text
 
 from DBHelper.session import session
 from DBHelper.tables.base_table import Basic,Base
+from DBHelper.tables.base_table import CustomColumn
+
 from Enums import BattleType
 
 class PlayerBattleRecord(Basic,Base):
     """
     战斗中记录表
     """
+    __cn__ = "战斗记录表"
     __tablename__ = "player_battle_record"
-    battle_type = Column(Integer, comment="战斗类型,参考BattleType")
+    battle_type = CustomColumn(Integer, cn="战斗类型",bind_type=BattleType,comment="战斗类型,参考BattleType")
 
-    positive_character_id = Column(Integer, comment="主动攻击角色ID")
-    passive_character_id = Column(Integer, comment="被动攻击角色ID")
+    positive_character_id = CustomColumn(Integer, cn="主动角色ID",comment="主动攻击角色ID")
+    passive_character_id = CustomColumn(Integer, cn="被动角色ID",comment="被动攻击角色ID")
 
-    positive_won = Column(Boolean, comment="主动攻击人是否胜利")
-    battle_text = Column(String, comment="战斗产生的文字说明")
+    positive_won = CustomColumn(Boolean, cn="挑战成功",comment="主动攻击人是否胜利")
+    battle_text = CustomColumn(Text, cn="战斗过程",comment="战斗产生的文字说明")
 
     @classmethod
     def add_or_update_by_id(cls,

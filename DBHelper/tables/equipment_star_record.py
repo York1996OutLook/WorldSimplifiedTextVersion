@@ -1,22 +1,25 @@
 from typing import List, Tuple
 
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 
 from DBHelper.session import session
-from DBHelper.tables.base_table import Basic,Base
+from DBHelper.tables.base_table import Basic, Base
+from DBHelper.tables.base_table import CustomColumn
+
 from Utils.tools import find_smallest_missing
 from Enums import StuffType
 
 
-class EquipmentStarRecord(Basic,Base):
+class EquipmentStarRecord(Basic, Base):
     """
     装备、物品、称号等的属性
     """
+    __cn__ = "装备升星记录表"
     __tablename__ = 'equipment_star_record'
 
-    equipment_record_id=Column(Integer, comment="装备记录id")
-    cur_star_num = Column(Integer, comment="当前升星数量，如果没有星星，则不在此表中存储")
+    equipment_record_id = CustomColumn(Integer, cn='装备记录ID', comment="装备记录id")
+    cur_star_num = CustomColumn(Integer, cn="当前升星数量", comment="当前升星数量，如果没有星星，则不在此表中存储")
 
     @classmethod
     def add_or_update_by_id(cls,
@@ -34,5 +37,3 @@ class EquipmentStarRecord(Basic,Base):
 # 删
 
 # 改
-
-

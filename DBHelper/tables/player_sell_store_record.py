@@ -1,28 +1,29 @@
 from typing import List
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Float, Boolean
+from sqlalchemy import Integer, String, Float, Boolean
 
 from DBHelper.session import session
-from DBHelper.tables.base_table import Basic,Base
+from DBHelper.tables.base_table import Basic, Base
+from DBHelper.tables.base_table import CustomColumn, Timestamp
 
 
-class PlayerSellStoreRecord(Basic,Base):
+class PlayerSellStoreRecord(Basic, Base):
+    __cn__ = "交易所"
     __tablename__ = 'player_sell_store_record'
 
-    owner_character_id = Column(Integer, comment="参考player表")
+    owner_character_id = CustomColumn(Integer, cn="玩家ID", comment="参考player表")
 
-    stuff_type = Column(Integer, comment="物品类型")
-    stuff_record_id = Column(Integer, comment="物品记录ID")
+    stuff_type = CustomColumn(Integer, cn="物品类型", comment="物品类型")
+    stuff_record_id = CustomColumn(Integer, cn="物品ID", comment="物品记录ID")
 
-    original_price = Column(Integer, comment='原始售价')
-    initial_sell_timestamp = Column(Integer, comment='初始挂售时间')
+    original_price = CustomColumn(Integer, cn="原始价格", comment='原始售价')
+    initial_sell_timestamp = CustomColumn(Timestamp, cn="挂售时间", comment='初始挂售时间')
 
-    is_sold = Column(Boolean, comment="是否被购买")
-    deal_timestamp = Column(Integer, comment='交易成交时间')
+    is_sold = CustomColumn(Boolean, cn="是否被购买", comment="是否被购买")
+    deal_timestamp = CustomColumn(Timestamp, cn="成交时间", comment='交易成交时间')
 
-    tax_rate = Column(Float, comment='税率')
-    taxed_price = Column(Float, comment='加税后价格;不足1则按照1进行计算')
+    taxed_price = CustomColumn(Integer, cn="税后价格", comment='加税后价格;不足1则按照1进行计算')
 
     @classmethod
     def add_or_update_by_id(cls,

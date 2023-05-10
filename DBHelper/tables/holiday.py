@@ -1,21 +1,25 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Float, Boolean
+from sqlalchemy import Integer, String, Float, Boolean,Text
 
 from Enums import CalendarType
 
 from DBHelper.session import session
 from DBHelper.tables.base_table import Entity
+from DBHelper.tables.base_table import CustomColumn
 
 Base = declarative_base()
 
 
 class Holiday(Entity,Base):
+    __cn__ = "节日"
     __tablename__ = 'holiday'
+    name = CustomColumn(String, cn='名称')  # 显式复制并设置 cn 属性
 
-    month = Column(Integer, comment="月份")
-    day = Column(Integer, comment="日期")
+    month = CustomColumn(Integer,cn="月份", comment="月份")
+    day = CustomColumn(Integer,cn="日期", comment="日期")
 
-    calendar_type = Column(Integer, comment="农历还是公历,参考CalendarType")
+    calendar_type = CustomColumn(Integer,cn="历法", comment="农历还是公历,参考CalendarType")
+    introduce = CustomColumn(Text, cn="介绍")
 
     @classmethod
     def add_or_update_by_name(cls,

@@ -1,39 +1,40 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Float, Boolean
+from sqlalchemy import Integer, String, Float, Boolean
 from typing import Optional, List
 
 Base = declarative_base()
 
 from DBHelper.session import session
-from DBHelper.tables.base_table import Basic
+from DBHelper.tables.base_table import CustomColumn,Timestamp
+from DBHelper.tables.base_table import Entity
 
 
-class Player(Basic, Base):
+class Player(Entity, Base):
     """
     人物属性表
     """
+    __cn__ = "玩家"
     __tablename__ = 'player'
 
-    nickname = Column(String, comment='昵称(QQ昵称),不唯一!')
+    name = CustomColumn(String, cn="昵称", comment='昵称(QQ昵称),不唯一!')
+    player_id = CustomColumn(Integer, cn="QQ", comment="QQ")
 
-    player_id = Column(Integer, comment="QQ")
+    first_login_timestamp = CustomColumn(Timestamp, cn="第一次登陆时间", comment="第一次登录的时间戳")
 
-    first_login_timestamp = Column(Integer, comment="第一次登录的时间戳")
+    current_level = CustomColumn(Integer,cn="当前等级", comment='当前等级')
+    current_experience = CustomColumn(Integer, cn="当前经验值",comment='当前经验值,为当前经验值')
 
-    current_level = Column(Integer, comment='当前等级')
-    current_experience = Column(Integer, comment='当前经验值,为当前经验值')
+    game_sign = CustomColumn(String, cn="游戏签名",comment="游戏中的签名,可以被其他角色查看到属性")
 
-    game_sign = Column(String, comment="游戏中的签名,可以被其他角色查看到属性")
+    gold_num = CustomColumn(Integer, cn="黄金数量",comment="黄金数量,游戏唯一游戏币")
 
-    gold_num = Column(Integer, comment="黄金数量,游戏唯一游戏币")
-
-    achievement_id = Column(Integer, comment="成就id")
+    achievement_id = CustomColumn(Integer,cn="佩戴称号ID", comment="成就id")
 
     @classmethod
     def add_or_update_by_id(cls,
                             *,
                             _id: int = None,
-                            nickname: str = None,
+                            name: str = None,
                             player_id: int = None,
                             first_login_timestamp: int = None,
                             current_level: int = None,
@@ -44,6 +45,22 @@ class Player(Basic, Base):
                             ):
         fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
         record = cls._add_or_update_by_id(**fields)
+        return record
+
+    @classmethod
+    def add_or_update_by_name(cls,
+                              *,
+                              name: str,
+                              player_id: int = None,
+                              first_login_timestamp: int = None,
+                              current_level: int = None,
+                              current_experience: int = None,
+                              game_sign: str = None,
+                              gold_num: int = None,
+                              achievement_id: int = None
+                              ) -> "Player":
+        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_name)
+        record = cls._add_or_update_by_name(**fields)
         return record
 
 
