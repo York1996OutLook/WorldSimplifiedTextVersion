@@ -1,6 +1,6 @@
 [
     {
-        "名称": "sell_expire_hours",
+            "名称": "sell_expire_hours",
         "值": 72,
         "备注": "交易所挂售物品过期时间。"
     }

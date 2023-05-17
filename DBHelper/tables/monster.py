@@ -16,7 +16,9 @@ class Monster(Entity, Base):
     __cn__ = "怪物"
 
     __tablename__ = 'monster'
-    name = CustomColumn(String,cn="名称",comment='')
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
+
+    name = CustomColumn(Text,cn="名称",comment='')
 
     exp_value = CustomColumn(Integer, cn='经验值', comment='被击败后掉落的经验值')
     introduce = CustomColumn(Text, cn="介绍")
@@ -30,8 +32,7 @@ class Monster(Entity, Base):
                               introduction: str = None,
                               deposit: int = None
                               ) -> "Monster":
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_name)
-        record = cls._add_or_update_by_name(**fields)
+        record = cls._add_or_update_by_name(kwargs=locals())
         return record
 
     @classmethod
@@ -45,8 +46,7 @@ class Monster(Entity, Base):
             introduction: str = None,
             deposit: int = None
     ) -> "Monster":
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record
 
 # 增

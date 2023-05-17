@@ -37,5 +37,6 @@ from DBHelper.tables.skill import Skill
 from DBHelper.tables.skill_book import SkillBook
 from DBHelper.tables.skill_cost_point import SkillCostPoint
 from DBHelper.tables.skill_slot import SkillSlot
+from DBHelper.tables.skill_identify_book import SkillIdentifyBook
 from DBHelper.tables.tips import Tips
 from DBHelper.tables.world_hero_medal import WorldHeroMedal

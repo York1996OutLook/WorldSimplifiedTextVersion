@@ -13,7 +13,9 @@ Base = declarative_base()
 class IdentifyBook(Entity, Base):
     __cn__ = "装备属性鉴定卷轴"
     __tablename__ = 'identify_book'
-    name = CustomColumn(String, cn='名称')  # 显式复制并设置 cn 属性
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
+
+    name = CustomColumn(Text, cn='名称')  # 显式复制并设置 cn 属性
 
     is_bind = CustomColumn(String, cn="是否绑定", comment="初始获取的时候是否是绑定的")
     introduce = CustomColumn(Text, cn="介绍", comment="介绍")
@@ -25,8 +27,7 @@ class IdentifyBook(Entity, Base):
                               is_bind: bool = None,
                               introduce: str = None
                               ) -> "IdentifyBook":
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_name)
-        record = cls._add_or_update_by_name(**fields)
+        record = cls._add_or_update_by_name(kwargs=locals())
         return record
 
     @classmethod
@@ -39,8 +40,7 @@ class IdentifyBook(Entity, Base):
             is_bind: bool = None,
             introduce: str = None
     ) -> "IdentifyBook":
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record
 
 #

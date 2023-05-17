@@ -1,8 +1,8 @@
 class ItemList:
     def __init__(self):
         self.items = []
-        self.name_index_dict = dict()
-        self.index_name_dict = dict()
+        self.name_dict = dict()
+        self.index_dict = dict()
         self.counter = 0
 
     def clear(self):
@@ -12,10 +12,10 @@ class ItemList:
         return self.items
 
     def get_name_by_index(self, *, index: int):
-        return self.index_name_dict[index]
+        return self.index_dict[index]
 
     def get_index_by_name(self, *, name: str):
-        return self.name_index_dict[name]
+        return self.name_dict[name]
 
 
 class Item:
@@ -24,8 +24,8 @@ class Item:
         self.name = name
         self.comment = comment
         item_list.items.append(self)
-        item_list.name_index_dict[self.name] = self.index
-        item_list.index_name_dict[self.index ] = self.name
+        item_list.name_dict[self.name] = self.index
+        item_list.index_dict[self.index ] = self.name
 
     def __repr__(self):
         return f'Item({self.index}: {self.name}, {self.comment})'

@@ -4,17 +4,18 @@ from typing import List, Dict
 
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QListWidget, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QListWidget, QMessageBox, QDialog, QHBoxLayout, QWidget
 import sip
 from sqlalchemy import Integer, String, Text, Boolean, Float
 
 from DBHelper.db import *
 from Enums import BasePropertyType, LearningApproach, SkillTarget, SkillType, SkillLevel, \
     AdditionalPropertyType, StatusType, AchievementPropertyType, AchievementType, \
-    ExpBookType, DataType, PropertyAvailability
-from qt_utils import EditWidgetType, MyLineText, MyLabel, MyFrame, set_geo, StatuesWidgets, PropertyWidgets, MyButton, \
-    TableItems, DataEdit, MyListBox, MyComboBox, TableItem, MyDateTimeBox
-from DBHelper.tables.base_table import CustomColumn, Timestamp
+    ExpBookType, DataType, PropertyAvailability, StuffType
+from qt_utils import EditWidgetType, set_geo, StatuesWidgets, PropertyWidgets, \
+    TableItems, ColumnEdit, TableItem, DropStuffWidgets
+from qt_utils import MyMultiLineText, MyLineText, MyLabel, MyFrame, MyComboBox, MyListBox, MyButton, MyDateTimeBox
+from DBHelper.tables.base_table import CustomColumn, Timestamp, MultiLineText
 from DBHelper.tables.base_table import Basic, Entity
 
 
@@ -23,22 +24,21 @@ class MyMainWindow(QMainWindow):
         super().__init__()
         print('__init__')
 
-        self.right_region_width = 900
-        self.bottom_region_height = 60
-        self.item_height = 35
+        self.right_region_width = 1200  # 右边区域的宽度
+        self.bottom_region_height = 60  # 底部区域的高度
+        self.item_height = 35  # 每个条目的宽度
 
-        self.label_width = 120  # 属性1，属性2，
+        self.label_width = 120  #
         self.combo_box_width = 200  # 具体属性名字展示
         self.long_label_width = 250  # 具体属性名字展示
 
         self.short_text_width = 100  # 具体属性名字输入
         self.long_text_width = 400  # 具体属性名字输入
 
-        self.right_top_region_height = 200
-        self.right_middle_region_height = 210
-        self.right_bottom_region_height = 200
+        self.right_top_region_height = 250
+        self.right_middle_region_height = 250
 
-        self.left_right_region_height = self.right_top_region_height + self.right_middle_region_height + self.right_bottom_region_height
+        self.left_right_region_height = self.right_top_region_height + self.right_middle_region_height + self.right_middle_region_height
         self.left_region_width = self.label_width + self.combo_box_width
 
         self.button_width = 150
@@ -49,6 +49,7 @@ class MyMainWindow(QMainWindow):
         self.interval = 5
 
         self.max_property_num = 6
+        self.max_decompose_num = 6
         # 区域划分
         self.left_region = MyFrame()
         self.right_region = MyFrame()
@@ -62,6 +63,7 @@ class MyMainWindow(QMainWindow):
         # 选择修改哪个表格
         self.current_data_table_label = MyLabel()
         self.current_data_table_combo_box = MyComboBox()
+        self.table_item: TableItem = None
 
         # 显示表中所有数据
         self.recordsListWidget = MyListBox()
@@ -70,10 +72,13 @@ class MyMainWindow(QMainWindow):
         self.properties_widgets_list: List[PropertyWidgets] = []  # 包含index_label,name_text,value_text,
         self.all_property_list_widget = MyListBox()
 
+        # 显示掉落物品
+        self.stuff_widgets_list: List[DropStuffWidgets] = []
+        self.all_stuff_list_widget = MyListBox()
+
         # 所有条目
         self.records: List[Entity] = []
-        self.cur_table: Entity = None
-        self.edit_items: Dict[str, DataEdit] = dict()
+        self.column_edit_dict: Dict[str, ColumnEdit] = dict()
 
         # 设置区域
         self.delButton = MyButton(text='删除选中')
@@ -83,8 +88,8 @@ class MyMainWindow(QMainWindow):
         self.new_name_text = MyLineText()
         self.add_entry_button = MyButton(text="新增")
 
-        self.current_properties_index = 0
-        self.current_status_index = 0
+        self.current_property_index = 0
+        self.current_stuff_widget_index = 0
 
         self.initUI()
 
@@ -143,10 +148,10 @@ class MyMainWindow(QMainWindow):
                 height=self.bottom_region_height,
                 )
         # 所有项目都会加载的列表框
-        self.init_records_list()
-
+        self.init_property_widgets(parent=self.right_middle_region)
+        self.init_open_decompose_widgets(parent=self.right_bottom_region)
+        self.init_records_list_box()
         self.init_select_current_table()
-        self.init_property_widgets()
         self.init_bottom_widgets()
 
     def init_select_current_table(self):
@@ -169,11 +174,11 @@ class MyMainWindow(QMainWindow):
             self.current_data_table_combo_box.addItem(table_item.name)
 
         self.current_data_table_combo_box.set_text(text=TableItems.default.name)
-        self.current_data_table_combo_box.currentIndexChanged.connect(self.data_table_select_changed)
+        self.current_data_table_combo_box.currentIndexChanged.connect(self.handle_data_table_select_changed)
 
-        self.data_table_select_changed(self.current_data_table_combo_box.currentIndex())
+        self.handle_data_table_select_changed(self.current_data_table_combo_box.currentIndex())
 
-    def init_records_list(self):
+    def init_records_list_box(self):
         self.recordsListWidget = MyListBox()
         set_geo(cur_widget=self.recordsListWidget,
                 parent_widget=self.left_region,
@@ -181,39 +186,54 @@ class MyMainWindow(QMainWindow):
                 y1=self.item_height,
                 width=self.left_region_width,
                 height=self.left_right_region_height - self.item_height)
+        self.recordsListWidget.currentItemChanged.connect(self.record_changed_event)
 
-    def show_all_items(self):
+    def show_all_records(self):
         current_text = self.current_data_table_combo_box.currentText()
         table_class = TableItems.item_list.get_by_name(name=current_text).table_class
 
-        item_names = [entity.name for entity in table_class.get_all()]
+        if self.table_item.is_entity:
+            item_names = [entity.name for entity in table_class.get_all()]
+        else:
+            item_names = [str(entity.id) for entity in table_class.get_all()]
 
-        self.records = item_names
         self.recordsListWidget.clear()
         self.recordsListWidget.addItems(item_names)
+        if len(item_names) > 0:
+            last_row = self.recordsListWidget.count() - 1
+            self.recordsListWidget.item(last_row).setSelected(True)
 
-    def data_table_select_changed(self, index: int):
-        print('data_table_select_changed', index)
-
-        self.clear_temp_widgets()
+    def handle_data_table_select_changed(self, index: int):
+        print('handle_data_table_select_changed', index)
+        self.clear_column_edit_widgets()
 
         current_text = self.current_data_table_combo_box.currentText()
-        table_item = TableItems.item_list.get_by_name(name=current_text)
+        self.table_item = TableItems.item_list.get_by_name(name=current_text)
 
-        self.cur_table = table_item.table_class
-        columns = inspect.getmembers(self.cur_table)
+        # 判断是否有name字段
+        if issubclass(self.table_item.table_class, Entity):
+            self.table_item.is_entity = True
+        elif issubclass(self.table_item.table_class, Basic):
+            self.table_item.is_entity = False
+        else:
+            raise ValueError(f"当前不应该有其他类型的表。当前表名: {self.table_item.table_class}")
 
-        self.edit_items.clear()
+        print(f"table_item {self.table_item.table_class} is_entity? {self.table_item.is_entity}")
 
+        # 编辑表属性
+        columns = inspect.getmembers(self.table_item.table_class)  # 为属性增加索引，这样编辑的顺序可以固定
+        self.column_edit_dict.clear()
         for column in columns:
             key = column[0]
-            if key == "id":
-                continue
-            if key.startswith('_'):
-                continue
-            one_column: CustomColumn = getattr(table_item.table_class, key)
-
+            one_column: CustomColumn = getattr(self.table_item.table_class, key)
             if not isinstance(one_column, InstrumentedAttribute):
+                continue
+
+            editable = True
+            if key == "id":
+                editable = False
+            if key.startswith('_'):
+                print(f"key starts with {key}")
                 continue
 
             if isinstance(one_column.type, Boolean):
@@ -225,6 +245,9 @@ class MyMainWindow(QMainWindow):
             elif isinstance(one_column.type, Integer):
                 data_type = DataType.INTEGER
                 edit_type = EditWidgetType.short_text
+            elif isinstance(one_column.type, MultiLineText):
+                data_type = DataType.MULTI_LINE_TEXT
+                edit_type = EditWidgetType.multiline_text_box
             elif isinstance(one_column.type, Text):
                 data_type = DataType.TEXT
                 edit_type = EditWidgetType.long_text
@@ -249,367 +272,379 @@ class MyMainWindow(QMainWindow):
                 records = globals()[one_column.bind_table].get_all()
                 names = [record.name for record in records]
 
-            new_edit_item = DataEdit(
+            new_column_edit = ColumnEdit(
                 data_type=data_type,
                 key=key,
                 cn=one_column.cn,
                 edit_widget_type=edit_type,
+                bind_type=one_column.bind_type,
+                bind_table=one_column.bind_table,
                 choices=names,
-                editable=True,
+                editable=editable,
                 default=default)
 
-            self.edit_items[key] = new_edit_item
+            self.column_edit_dict[key] = new_column_edit
 
-        # if current_text == TableItems.skill:
-        #     setting_list = [
-        #         DataEditType(key='name', label='技能名称:', edit_widget=EditWidgetType.short_text, ),
-        #         DataEditType(key='level', label='等级:', edit_widget=EditWidgetType.combo_box, choices=SkillLevel,
-        #                      default=SkillLevel.NINE),
-        #         DataEditType(key='learning_approach', label='学习途径:', edit_widget=EditWidgetType.combo_box,
-        #                      choices=LearningApproach),
-        #         DataEditType(key='skill_type', label='技能类型:', edit_widget=EditWidgetType.combo_box, choices=SkillType),
-        #         DataEditType(key='target', label='作用对象:', edit_widget=EditWidgetType.combo_box, choices=SkillTarget),
-        #         DataEditType(key='effect_expression', label='技能说明:', edit_widget=EditWidgetType.long_text),
-        #     ]
-        #     record_changed_event = self.handle_skill_changed
-        #     item_add_event = self.add_skill_event
-        #     item_save_event = self.save_skill_property
-        #
-        # elif current_text == TableItems.battle_status:  # 状态
-        #     setting_list = [
-        #         DataEditType(key='name', label='状态名称:', edit_widget=EditWidgetType.short_text, editable=True),
-        #         DataEditType(key='status_type', label='状态类型:', edit_widget=EditWidgetType.combo_box, choices=StatusType),
-        #         DataEditType(key='effect_expression', label='效果介绍:', edit_widget=EditWidgetType.long_text),
-        #     ]
-        #     record_changed_event = self.handle_status_changed
-        #     item_add_event = self.add_status_event
-        #     item_save_event = self.save_base_property
-        #
-        # elif current_text == TableItems.base_property:  # 状态
-        #     setting_list = [
-        #         DataEditType(key='name', label='基础属性', edit_widget=EditWidgetType.short_text, editable=False),
-        #     ]
-        #     record_changed_event = self.handle_base_property_changed
-        #     item_add_event = self.add_base_property_event
-        #     item_save_event = self.save_base_property
-        #
-        # elif current_text == TableItems.achievement:  # 成就
-        #
-        #
-        #     setting_list = [
-        #         DataEditType(key='name', label='成就名称', edit_widget=EditWidgetType.short_text),
-        #         DataEditType(key='achievement_type', label='成就类型', edit_widget=EditWidgetType.combo_box,
-        #                      choices=AchievementType, ),
-        #
-        #         DataEditType(key='condition_property_type', label='达成属性', edit_widget=EditWidgetType.combo_box,
-        #                      choices=AchievementPropertyType, ),
-        #         DataEditType(key='condition_property_value', label='属性值', edit_widget=EditWidgetType.short_text, ),
-        #
-        #         DataEditType(key='days_of_validity', label='有效期/天:', edit_widget=EditWidgetType.short_text, ),
-        #         DataEditType(key='achievement_point', label='成就点数:', edit_widget=EditWidgetType.short_text, ),
-        #         DataEditType(key='introduce', label='成就说明:', edit_widget=EditWidgetType.long_text, ),
-        #     ]
-        #     record_changed_event = self.handle_achievement_changed
-        #     item_add_event = self.add_record_event
-        #     item_save_event = self.save_record_record
-        #
-        # elif current_text == TableItems.gem:
-        #     setting_list = [
-        #         DataEditType(key='name', label='名称:', edit_widget=EditWidgetType.short_text, ),
-        #         DataEditType(key='additional_property_type', label='属性名称:', edit_widget=EditWidgetType.combo_box,
-        #                      choices=AdditionalPropertyType),
-        #         DataEditType(key='increase', label='增加值:', edit_widget=EditWidgetType.short_text, ),
-        #         DataEditType(key='is_bind', label='是否绑定:', edit_widget=EditWidgetType.bool_combo_box, default=False),
-        #     ]
-        #     record_changed_event = self.handle_gem_changed
-        #     item_add_event = self.add_gem_event
-        #     item_save_event = self.save_gem_event
-        # elif current_text == TableItems.box:
-        #     setting_list = [
-        #         DataEditType(key='name', label='名称:', edit_widget=EditWidgetType.short_text, ),
-        #         DataEditType(key='is_bind', label='是否绑定:', edit_widget=EditWidgetType.bool_combo_box, ),
-        #         DataEditType(key='introduction', label='介绍:', edit_widget=EditWidgetType.long_text),
-        #     ]
-        #     record_changed_event = self.handle_box_changed
-        #     item_add_event = self.add_box_event
-        #     item_save_event = self.save_box_event
-        # elif current_text == TableItems.exp_book:
-        #     setting_list = [
-        #         DataEditType(key='name', label='名称:', edit_widget=EditWidgetType.short_text, ),
-        #         DataEditType(key='book_type', label='类型:', edit_widget=EditWidgetType.bool_combo_box, choices=ExpBookType),
-        #         DataEditType(key='exp_value', label='经验:', edit_widget=EditWidgetType.short_text),
-        #     ]
-        #     record_changed_event = self.handle_exp_book_changed
-        #     item_add_event = self.add_exp_book_event
-        #     item_save_event = self.save_exp_book_event
-        # elif current_text == TableItems.holiday:
-        #     setting_list = [
-        #         DataEditType(key='name', label='名称:', edit_widget=EditWidgetType.short_text),
-        #         DataEditType(key='month', label='月份：', edit_widget=EditWidgetType.short_text),
-        #         DataEditType(key='day', label='日期:', edit_widget=EditWidgetType.short_text),
-        #     ]
-        #     record_changed_event = self.handle_holiday_changed
-        #     item_add_event = self.add_holiday_book
-        #     item_save_event = self.save_holiday_book
-        # elif current_text == TableItems.gem:
-        #     ...
-        # elif current_text == TableItems.identify_book:
-        #     ...
-        # elif current_text == TableItems.monster:
-        #     ...
-        # elif current_text == TableItems.monster_type_show_time:
-        #     ...
-        # elif current_text == TableItems.potion:
-        #     ...
-        # elif current_text == TableItems.raise_star_book:
-        #     ...
-        # elif current_text == TableItems.raise_star_prob:
-        #     ...
-        # elif current_text == TableItems.skill_cost_point:
-        #     ...
-        # elif current_text == TableItems.level_exp:
-        #     ...
-        # elif current_text == TableItems.player:
-        #     ...
-        # elif current_text == TableItems.sell_store:
-        #     ...
-        #
-        # else:
-        #     raise ValueError("还没实现其它表格的编辑")
-        self.delButton.disconnect_all()
-        self.delButton.clicked.connect(self.del_record)
-
-        self.recordsListWidget.disconnect_all()
-        self.recordsListWidget.currentItemChanged.connect(self.record_changed_event)
-
-        self.show_all_items()
-
-        self.add_entry_button.disconnect_all()
-        self.add_entry_button.clicked.connect(self.add_record_event)
-
-        self.saveButton.disconnect_all()
-        self.saveButton.clicked.connect(self.save_record_record)
-
+        self.show_all_records()
         self.init_item_setting_ui()
         self.update()
         self.repaint()
+        self.handle_show_widgets()
 
-    def init_property_widgets(self):
+    def handle_show_widgets(self):
+
+        # 新名称按钮等
+        visible = self.table_item.is_entity
+        self.new_name_label.setVisible(visible)
+        self.new_name_text.setVisible(visible)
+
+        # 编辑字段
+        visible = self.recordsListWidget.currentItem() is not None
+
+        for key in self.column_edit_dict:
+            self.column_edit_dict[key].edit_widget.setVisible(visible)
+            self.column_edit_dict[key].edit_label.setVisible(visible)
+
+        # 表对应的属性
+        visible = self.table_item.addition_source_type is not None and self.recordsListWidget.currentItem() is not None
+
+        for property_widgets in self.properties_widgets_list:
+            property_widgets.index_label.setVisible(visible)
+            property_widgets.name_label.setVisible(visible)
+            property_widgets.value_text.setVisible(visible)
+            property_widgets.name_input_text.setVisible(visible)
+            property_widgets.availability_label.setVisible(visible)
+            property_widgets.availability_combo_box.setVisible(visible)
+        self.all_property_list_widget.setVisible(visible)
+
+        # 表对应的掉落物品
+        visible = self.table_item.bind_stuff_type is not None and self.recordsListWidget.currentItem() is not None
+        for drop_widgets in self.stuff_widgets_list:
+            drop_widgets.index_label.setVisible(visible)
+            drop_widgets.name_input_text.setVisible(visible)
+            drop_widgets.name_label.setVisible(visible)
+
+            drop_widgets.stuff_type_label.setVisible(visible)
+            drop_widgets.stuff_type_combo_box.setVisible(visible)
+
+            drop_widgets.prob_label.setVisible(visible)
+            drop_widgets.prob_value_text.setVisible(visible)
+        self.all_stuff_list_widget.setVisible(visible)
+
+    def init_property_widgets(self, *, parent: QWidget):
         print("init_property_widgets")
         # 创建显示属性的文本框和按钮
-        for index in range(self.max_property_num):
-            index_label = MyLabel(f'属性：{index + 1}')
-            name_text = MyLineText(index=index)
-            # -------------------------------------
-            # target_label = MyLabel()
-            # target_combo_box = MyComboBox()
-            availability_label = MyLabel()
-            availability_combo_box = MyComboBox()
+        ##################################################################################
+        print("init_property_list")
+        set_geo(cur_widget=self.all_property_list_widget,
+                parent_widget=parent,
+                x1=self.label_width + self.short_text_width + self.interval,
+                y1=0,
+                width=self.property_list_width,
+                height=self.right_middle_region_height)
+        # 定义事件：
+        self.all_property_list_widget.currentItemChanged.connect(self.handle_property_list_select_changed)
+        self.handle_property_input_change(index=0, text="")
+        self.all_property_list_widget.hide()
+        ##################################################################################
 
+        for index in range(self.max_property_num):
+            index_label = MyLabel(f'属性：{index + 1}')  # 显示属性索引
+            name_input_text = MyLineText(index=index)  # 输入属性名称
             # -------------------------------------
-            name_label = MyLabel()
-            value_text = MyLineText(index=index)
+            availability_label = MyLabel()  # 作用域标签
+            availability_combo_box = MyComboBox()  # 作用域选择框
+            # -------------------------------------
+            name_label = MyLabel()  # 属性名称标签
+            value_text = MyLineText(index=index)  # 属性值
 
             # 定义位置大小
             set_geo(cur_widget=index_label,
-                    parent_widget=self.right_middle_region,
+                    parent_widget=parent,
                     x1=self.interval * 1,
                     y1=self.item_height * index,
                     width=self.label_width,
                     height=self.item_height)
-            set_geo(cur_widget=name_text,
-                    parent_widget=self.right_middle_region,
+            set_geo(cur_widget=name_input_text,
+                    parent_widget=parent,
                     x1=index_label.right() + self.interval,
                     y1=self.item_height * index,
                     width=self.short_text_width,
                     height=self.item_height)
 
             set_geo(cur_widget=availability_label,
-                    parent_widget=self.right_middle_region,
-                    x1=name_text.right() + self.interval,
+                    parent_widget=parent,
+                    x1=self.all_property_list_widget.right() + self.interval,
                     y1=self.item_height * index,
                     width=self.label_width,
                     height=self.item_height,
                     )
 
             set_geo(cur_widget=availability_combo_box,
-                    parent_widget=self.right_middle_region,
+                    parent_widget=parent,
                     x1=availability_label.right() + self.interval,
                     y1=self.item_height * index,
                     width=self.combo_box_width,
                     height=self.item_height,
                     )
 
-            ##################################################################################
-            print("init_property_list")
-            set_geo(cur_widget=self.all_property_list_widget,
-                    parent_widget=self.right_middle_region,
-                    x1=availability_combo_box.right() + self.interval,
-                    y1=0,
-                    width=self.property_list_width,
-                    height=self.right_middle_region_height)
-            # 定义事件：
-            self.all_property_list_widget.currentItemChanged.connect(self.all_property_list_changed)
-            self.all_property_list_widget.currentItemChanged.connect(self.enable_save_button)
-            self.change_properties_list(index=0, text="")
-            ##################################################################################
-
             set_geo(cur_widget=name_label,
-                    parent_widget=self.right_middle_region,
-                    x1=self.all_property_list_widget.right() + self.interval,
+                    parent_widget=parent,
+                    x1=availability_combo_box.right() + self.interval,
                     y1=self.item_height * index,
-                    width=self.long_label_width,
+                    width=self.label_width,
                     height=self.item_height)
 
             set_geo(cur_widget=value_text,
-                    parent_widget=self.right_middle_region,
+                    parent_widget=parent,
                     x1=name_label.right() + self.interval,
                     y1=self.item_height * index,
                     width=self.label_width,
                     height=self.item_height)
             # 设置内容
             availability_label.set_text(text="作用域")
-            # target_label.setText("作用对象：")
-            # target_combo_box.addItems(SkillTarget.item_list.name_index_dict.keys())
-            # target_combo_box.setCurrentIndex(SkillTarget.default.index)
-
+            availability_combo_box.addItems(PropertyAvailability.item_list.get_names())
+            availability_combo_box.setCurrentText(PropertyAvailability.default.name)
             # 定义事件
-            name_text.focus.connect(self.on_property_text_focus)
-            name_text.focus.connect(self.change_properties_list)
-            name_text.text_change.connect(self.change_properties_list)
+            name_input_text.focus.connect(self.handle_property_text_focus)
+            name_input_text.focus.connect(self.handle_property_input_change)
+            name_input_text.text_change.connect(self.handle_property_input_change)
 
-            value_text.text_change.connect(self.enable_save_button)
-            value_text.text_change.connect(self.on_property_text_focus)
+            value_text.text_change.connect(self.handle_property_text_focus)
 
             self.properties_widgets_list.append(
                 PropertyWidgets(index_label=index_label,
-                                name_text=name_text,
+                                property_input_text=name_input_text,
+                                availability_label=availability_label,
                                 availability_combo_box=availability_combo_box,
                                 name_label=name_label,
                                 value_text=value_text)
             )
+            index_label.hide()
+            name_input_text.hide()
+            availability_label.hide()
+            availability_combo_box.hide()
+            name_label.hide()
+            value_text.hide()
+
+    def init_open_decompose_widgets(self, *, parent: QWidget):
+        print("init_open_decompose_widgets")
+        # 创建显示属性的文本框和按钮
+        ##################################################################################
+        print("all_stuff_list_widget")
+        set_geo(cur_widget=self.all_stuff_list_widget,
+                parent_widget=parent,
+                x1=self.label_width * 2 + self.short_text_width + self.combo_box_width + self.interval * 5,
+                y1=0,
+                width=self.property_list_width,
+                height=self.right_middle_region_height)
+        # 定义事件：
+        self.all_stuff_list_widget.currentItemChanged.connect(self.handle_stuff_list_select_changed)
+        self.all_stuff_list_widget.hide()
+        ##################################################################################
+
+        for index in range(self.max_decompose_num):
+            index_label = MyLabel(f'掉落物品{index + 1}')  # 显示掉落物品的索引
+            name_input_text = MyLineText(index=index)  # 输入物品名称
+            # -------------------------------------
+            stuff_type_label = MyLabel()  # 物品类型标签
+            stuff_type_combo_box = MyComboBox()  # 物品类型选择框
+
+            name_label = MyLabel()  # 物品名称
+            # -------------------------------------
+            prob_label = MyLabel()  # 概率标签
+            prob_value_text = MyLineText(index=index)  # 概率值，1000表示100%
+
+            # 定义位置大小
+            set_geo(cur_widget=index_label,
+                    parent_widget=parent,
+                    x1=self.interval,
+                    y1=self.item_height * index,
+                    width=self.label_width,
+                    height=self.item_height)
+
+            set_geo(cur_widget=stuff_type_label,
+                    parent_widget=parent,
+                    x1=index_label.right() + self.interval,
+                    y1=self.item_height * index,
+                    width=self.label_width,
+                    height=self.item_height,
+                    )
+
+            set_geo(cur_widget=stuff_type_combo_box,
+                    parent_widget=parent,
+                    x1=stuff_type_label.right() + self.interval,
+                    y1=self.item_height * index,
+                    width=self.combo_box_width,
+                    height=self.item_height,
+                    )
+
+            set_geo(cur_widget=name_input_text,
+                    parent_widget=parent,
+                    x1=stuff_type_combo_box.right() + self.interval,
+                    y1=self.item_height * index,
+                    width=self.short_text_width,
+                    height=self.item_height)
+
+            set_geo(cur_widget=name_label,
+                    parent_widget=parent,
+                    x1=self.all_stuff_list_widget.right() + self.interval,
+                    y1=self.item_height * index,
+                    width=self.short_text_width,
+                    height=self.item_height)
+
+            set_geo(cur_widget=prob_label,
+                    parent_widget=parent,
+                    x1=name_label.right() + self.interval,
+                    y1=self.item_height * index,
+                    width=self.short_text_width,
+                    height=self.item_height)
+
+            set_geo(cur_widget=prob_value_text,
+                    parent_widget=parent,
+                    x1=prob_label.right() + self.interval,
+                    y1=self.item_height * index,
+                    width=self.label_width,
+                    height=self.item_height)
+
+            # 设置内容
+            stuff_type_label.set_text(text="物品类型")
+            stuff_type_combo_box.addItems(StuffType.item_list.get_names())
+            stuff_type_combo_box.setCurrentText(StuffType.default.name)
+            stuff_type_combo_box.currentTextChanged.connect(self.handle_change_stuff_type)
+
+            prob_label.set_text(text='概率')
+            # 定义事件
+            name_input_text.focus.connect(self.handle_stuff_input_text_focus)
+            name_input_text.focus.connect(self.handle_change_drop_stuffs_list)
+            name_input_text.text_change.connect(self.handle_change_drop_stuffs_list)
+
+
+            self.stuff_widgets_list.append(
+                DropStuffWidgets(index_label=index_label,
+                                 name_input_text=name_input_text,
+                                 stuff_type_label=stuff_type_label,
+                                 stuff_type_combo_box=stuff_type_combo_box,
+                                 name_label=name_label,
+                                 prob_label=prob_label,
+                                 prob_value_text=prob_value_text)
+            )
+            # self.handle_change_stuff_type(StuffType.default.name)  # 初始加载的时候算作选择了第一个物品类型选项
+            index_label.hide()
+            name_input_text.hide()
+            stuff_type_label.hide()
+            stuff_type_combo_box.hide()
+            name_label.hide()
+            prob_label.hide()
+            prob_value_text.hide()
 
     def init_bottom_widgets(self):
         print("init_bottom_widgets")
 
-        horizontal_index = 0
         # 删除按钮
         set_geo(cur_widget=self.delButton,
                 parent_widget=self.bottom_region,
-                x1=self.interval * horizontal_index + self.button_width * horizontal_index,
+                x1=self.interval,
                 y1=self.button_top_margin,
                 width=self.button_width,
                 height=self.item_height)
 
-        horizontal_index += 2
         # 新增 技能文本框，按钮
         set_geo(cur_widget=self.new_name_label,
                 parent_widget=self.bottom_region,
-                x1=self.interval * horizontal_index + self.button_width * horizontal_index,
+                x1=self.delButton.right() + self.interval * 10 + self.interval,
                 y1=self.button_top_margin,
                 width=self.button_width,
                 height=self.item_height
                 )
         self.new_name_label.setText('新名称')
 
-        horizontal_index += 1
         set_geo(cur_widget=self.new_name_text,
                 parent_widget=self.bottom_region,
-                x1=self.interval * horizontal_index + self.button_width * horizontal_index,
+                x1=self.new_name_label.right() + self.interval,
                 y1=self.button_top_margin,
-                width=self.button_width,
+                width=self.long_text_width,
                 height=self.item_height
                 )
-        horizontal_index += 1
         set_geo(cur_widget=self.add_entry_button,
                 parent_widget=self.bottom_region,
-                x1=self.interval * horizontal_index + self.button_width * horizontal_index,
+                x1=self.new_name_text.right() + self.interval,
                 y1=self.button_top_margin,
                 width=self.button_width,
                 height=self.item_height
                 )
 
         # 保存按钮
-        horizontal_index += 1
         set_geo(cur_widget=self.saveButton,
                 parent_widget=self.bottom_region,
-                x1=self.interval * horizontal_index + self.button_width * horizontal_index,
+                x1=self.add_entry_button.right() + self.interval,
                 y1=self.button_top_margin,
                 width=self.button_width,
                 height=self.item_height)
+        # 定义事件
+        self.delButton.clicked.connect(self.handle_del_record)
+        self.add_entry_button.clicked.connect(self.handle_add_record)
+        self.saveButton.clicked.connect(self.handle_save_record)
 
-    def init_status_list(self):
-        print("init_status_list")
-        # 创建显示附加属性的显示列表
-        for index in range(4):
-            statues_index_label = MyLabel(f'状态：{index + 1}')
-            statues_name_text = MyLineText(index=index)
-            # -------------------------------------
-            statues_name_label = MyLabel()
+    #
+    # def init_status_list(self):
+    #     print("init_status_list")
+    #     # 创建显示附加属性的显示列表
+    #     for index in range(4):
+    #         statues_index_label = MyLabel(f'状态：{index + 1}')
+    #         statues_name_text = MyLineText(index=index)
+    #         # -------------------------------------
+    #         statues_name_label = MyLabel()
+    #
+    #         # 定义位置大小
+    #         set_geo(cur_widget=statues_index_label,
+    #                 parent_widget=self.right_bottom_region,
+    #                 x1=self.interval * 1,
+    #                 y1=self.item_height * index,
+    #                 width=self.label_width,
+    #                 height=self.item_height)
+    #         set_geo(cur_widget=statues_name_text,
+    #                 parent_widget=self.right_bottom_region,
+    #                 x1=self.label_width + self.interval * 2,
+    #                 y1=self.item_height * index,
+    #                 width=self.short_text_width,
+    #                 height=self.item_height)
+    #         set_geo(cur_widget=statues_name_label,
+    #                 parent_widget=self.right_bottom_region,
+    #                 x1=self.label_width + self.short_text_width + self.statues_list_width + self.interval * 4,
+    #                 y1=self.item_height * index,
+    #                 width=self.long_label_width,
+    #                 height=self.item_height)
+    #
+    #         # 定义事件
+    #         statues_name_text.focus.connect(self.handle_property_text_focus)
+    #         statues_name_text.text_change.connect(self.handle_property_input_change)
+    #
+    #         self.properties_widgets_list.append(
+    #             StatuesWidgets(statues_index_label=statues_index_label,
+    #                            statues_name_text=statues_name_text,
+    #                            statues_name_label=statues_name_label,
+    #                            )
+    #         )
 
-            # 定义位置大小
-            set_geo(cur_widget=statues_index_label,
-                    parent_widget=self.right_bottom_region,
-                    x1=self.interval * 1,
-                    y1=self.item_height * index,
-                    width=self.label_width,
-                    height=self.item_height)
-            set_geo(cur_widget=statues_name_text,
-                    parent_widget=self.right_bottom_region,
-                    x1=self.label_width + self.interval * 2,
-                    y1=self.item_height * index,
-                    width=self.short_text_width,
-                    height=self.item_height)
-            set_geo(cur_widget=statues_name_label,
-                    parent_widget=self.right_bottom_region,
-                    x1=self.label_width + self.short_text_width + self.statues_list_width + self.interval * 4,
-                    y1=self.item_height * index,
-                    width=self.long_label_width,
-                    height=self.item_height)
-
-            # 定义事件
-            statues_name_text.focus.connect(self.on_property_text_focus)
-            statues_name_text.text_change.connect(self.change_properties_list)
-
-            self.properties_widgets_list.append(
-                StatuesWidgets(statues_index_label=statues_index_label,
-                               statues_name_text=statues_name_text,
-                               statues_name_label=statues_name_label,
-                               )
-            )
-
-    def clear_temp_widgets(self):
-        print("clear_temp_widgets")
-        self.edit_items.clear()
+    def clear_column_edit_widgets(self):
+        print("clear_column_edit_widgets")
+        self.column_edit_dict.clear()
         for item in self.right_top_region.children():
             sip.delete(item)
 
     def init_item_setting_ui(self):
         print("init_item_setting_ui")
         widget_index = -1
-        for key in self.edit_items:
-            edit_item = self.edit_items[key]
-            if edit_item.edit_widget_type in {EditWidgetType.short_text,
-                                              EditWidgetType.combo_box,
-                                              EditWidgetType.bool_combo_box}:
-                widget_index += 1
-            elif edit_item.edit_widget_type in {EditWidgetType.long_text, EditWidgetType.date_time_box}:
-                widget_index = (widget_index // 2 + 1) * 2  # 可视化的较长
-            else:
-                raise ValueError()
+        for key in self.column_edit_dict:
+            widget_index += 1
+            edit_item = self.column_edit_dict[key]
 
-            # 在数据库中的字段，标签的名字，编辑类型（文本框还是组合框）,可选项，是否可以编辑
-            col_index = widget_index % 2  # 0 or 1
-            row_index = widget_index // 2  # 0,1,2,3...
-            print(f'row_index {row_index},col_index:{col_index}')
-            label_x1 = col_index * (self.label_width + self.combo_box_width) + self.interval * col_index
-            label_y1 = row_index * self.item_height
+            label_x1 = self.interval
+            label_y1 = widget_index * self.item_height
 
-            edit_x1 = col_index * (
-                    self.label_width + self.combo_box_width) + self.label_width + self.interval * col_index
+            edit_x1 = self.label_width + self.interval
             edit_y1 = label_y1
-
-            print(label_x1, label_y1, edit_y1, edit_y1)
 
             # label
             label = MyLabel(label_text=edit_item.cn)
@@ -619,8 +654,6 @@ class MyMainWindow(QMainWindow):
                     y1=label_y1,
                     width=self.label_width,
                     height=self.item_height)
-            label.show()
-
             # edit
             if edit_item.edit_widget_type == EditWidgetType.short_text:
                 edit_widget = MyLineText()
@@ -631,6 +664,16 @@ class MyMainWindow(QMainWindow):
                         width=self.short_text_width,
                         height=self.item_height)
                 edit_widget.set_text(text=edit_item.choices)
+            elif edit_item.edit_widget_type in (EditWidgetType.multiline_text_box,):
+                edit_widget = MyMultiLineText()
+                set_geo(cur_widget=edit_widget,
+                        parent_widget=self.right_top_region,
+                        x1=edit_x1,
+                        y1=edit_y1,
+                        width=self.long_text_width,
+                        height=self.item_height * 3)
+                edit_widget.set_text(text=edit_item.choices)
+                widget_index += 2
 
             elif edit_item.edit_widget_type in (EditWidgetType.long_text,):
                 edit_widget = MyLineText()
@@ -641,7 +684,6 @@ class MyMainWindow(QMainWindow):
                         width=self.long_text_width,
                         height=self.item_height)
                 edit_widget.set_text(text=edit_item.choices)
-                widget_index += 1
 
             elif edit_item.edit_widget_type in (EditWidgetType.date_time_box,):
                 edit_widget = MyDateTimeBox()
@@ -652,7 +694,6 @@ class MyMainWindow(QMainWindow):
                         width=self.long_text_width,
                         height=self.item_height)
                 # todo:?
-                widget_index += 1
 
             elif edit_item.edit_widget_type in (EditWidgetType.combo_box,):
                 edit_widget = MyComboBox()
@@ -678,431 +719,257 @@ class MyMainWindow(QMainWindow):
             else:
                 raise ValueError("暂时没有实现其他类型的edit")
 
-            if edit_item.edit_widget_type in (EditWidgetType.combo_box,):
-                edit_widget.currentIndexChanged.connect(self.enable_save_button)
-            elif edit_item.edit_widget_type in (EditWidgetType.short_text, EditWidgetType.long_text):
-                edit_widget.textChanged.connect(self.enable_save_button)
             if not edit_item.editable:
                 edit_widget.setEnabled(False)
-            edit_widget.show()
-            self.edit_items[edit_item.key].edit_widget = edit_widget
+            self.column_edit_dict[edit_item.key].edit_widget = edit_widget
+            self.column_edit_dict[edit_item.key].edit_label = label
 
-    def add_record_event(self):
-        print("add_record_event")
-        new_name = self.new_name_text.text()
-        if new_name == "":
-            QMessageBox.information(self, '出错了！', '成就不可为空')
-            return
-        if Achievement.is_exists_by_name(name=new_name):
-            QMessageBox.information(self, '出错了！', '成就已经存在了')
-            return
-        self.cur_table.add_or_update_by_name(name=new_name)
-        self.new_name_text.clear()
-        self.show_all_items()
+    def handle_add_record(self):
+        print("handle_add_record")
 
-    def on_property_text_focus(self, index: int, text: str):
-        print("on_property_text_focus")
-        self.current_properties_index = index
-        print(f'cur properties index is {self.current_properties_index}')
+        if self.table_item.is_entity:
+            new_name = self.new_name_text.text()
+            if new_name == "":
+                QMessageBox.information(self, '出错了！', '名称不可为空')
+                return
+            if Achievement.is_exists_by_name(name=new_name):
+                QMessageBox.information(self, '出错了！', '成就已经存在了')
+                return
+            self.table_item.table_class.add_or_update_by_name(name=new_name)
+            self.new_name_text.clear()
+        else:
+            self.table_item.table_class.add_with_kwargs(kwargs=dict())
+        self.show_all_records()
 
-    def on_status_text_focus(self, index: int, text: str):
-        print("on_status_text_focus")
-        self.current_status_index = index
-        print(f'cur status index is {self.current_status_index}')
+    def handle_property_text_focus(self, index: int, text: str):
+        print("handle_property_text_focus")
+        self.current_property_index = index
+        print(f'cur properties index is {self.current_property_index}')
 
-    def change_properties_list(self, index: int, text: str):
-        print('change_properties_list')
+    def handle_stuff_input_text_focus(self, index: int, text: str):
+        print("handle_stuff_input_text_focus")
+        self.current_stuff_widget_index = index
+        print(f'cur current_stuff_widget_index index is {self.current_stuff_widget_index}')
+
+    def handle_property_input_change(self, index: int, text: str):
+        print('handle_property_input_change')
         self.all_property_list_widget.clear()
 
-        for property_name in AdditionalPropertyType.item_list.name_index_dict:
+        for property_name in AdditionalPropertyType.item_list.name_dict:
             if text not in property_name:
                 continue
             self.all_property_list_widget.addItem(property_name)
 
         # 如果属性列表的属性个数大于0并且已经加载完毕属性列表；
         if self.all_property_list_widget.count() != 0 and len(self.properties_widgets_list) > 0:
-            if self.properties_widgets_list[self.current_properties_index].name_label.text() == "":
+            if self.properties_widgets_list[self.current_property_index].name_label.text() == "":
                 first_item = self.all_property_list_widget.item(0)
-                self.properties_widgets_list[self.current_properties_index].name_label.set_text(text=first_item.text())
-        self.enable_save_button()
+                self.properties_widgets_list[self.current_property_index].name_label.set_text(text=first_item.text())
 
-    def all_property_list_changed(self, ):
+    def handle_change_drop_stuffs_list(self, index: int, text: str):
+        print('handle_change_drop_stuffs_list')
+        self.all_stuff_list_widget.clear()
+
+        current_stuff_type_name = self.stuff_widgets_list[self.current_stuff_widget_index].stuff_type_combo_box.text()
+        bind_table = StuffType.item_list.get_by_name(name=current_stuff_type_name).bind_table
+        all_records = globals()[bind_table].get_all()
+        for record in all_records:
+            if text in record.name:
+                self.all_stuff_list_widget.addItem(record.name)
+
+        # 如果属性列表的属性个数大于0并且已经加载完毕属性列表；
+        # if self.all_stuff_list_widget.count() != 0 and len(self.stuff_widgets_list) > 0:
+        #     if self.stuff_widgets_list[self.current_stuff_widget_index].name_input_text.text() == "":
+        #         first_item = self.all_stuff_list_widget.item(0)
+        #         self.stuff_widgets_list[self.current_stuff_widget_index].name_input_text.set_text(
+        #             text=first_item.text())
+
+    def handle_change_stuff_type(self, text: str):
+        self.all_stuff_list_widget.clear()
+
+        bind_table = StuffType.item_list.get_by_name(name=text).bind_table
+        all_stuffs = globals()[bind_table].get_all()
+        self.stuff_widgets_list[self.current_stuff_widget_index].name_input_text.set_text(text='')
+        self.all_stuff_list_widget.addItems([stuff.name for stuff in all_stuffs])
+
+    def handle_property_list_select_changed(self, ):
         """
         用户点击了属性列表
         :return:
         """
-        print("all_property_list_changed")
+        print("handle_property_list_select_changed")
         if not self.all_property_list_widget.text():
             return
-        """
-        self.index_label = index_label
-        self.name_text = name_text
-        self.name_label = name_label
-        self.value_text = value_text"""
         property_name = self.all_property_list_widget.text()
-        self.properties_widgets_list[self.current_properties_index].name_label.set_text(text=property_name)
+        self.properties_widgets_list[self.current_property_index].name_label.set_text(text=property_name)
 
     def clear_properties(self):
         for properties_widget in self.properties_widgets_list:
-            properties_widget.name_text.set_text(text="")
+            properties_widget.name_input_text.set_text(text="")
             properties_widget.name_label.set_text(text="")
             properties_widget.value_text.set_text(text="")
+            properties_widget.availability_combo_box.set_text(text=PropertyAvailability.default.name)
 
-    def handle_skill_changed(self, item):
+    def clear_stuffs(self):
+        for stuff_widgets in self.stuff_widgets_list:
+            stuff_widgets.name_input_text.set_text(text="")
+            stuff_widgets.stuff_type_label.set_text(text="")
+            stuff_widgets.prob_value_text.set_text(text="")
+            stuff_widgets.stuff_type_combo_box.set_text(text=StuffType.default.name)
+
+    def handle_stuff_list_select_changed(self, ):
         """
-        点击技能列表
+        用户点击了属性列表
+        :return:
         """
-        if item is None:
+        print("handle_stuff_list_select_changed")
+        if not self.all_stuff_list_widget.text():
             return
-        print('skill changed')
-        selected_name = item.text()
-        one_skill = Skill.get_by_name(name=selected_name)
-        self.setting_widget_dict["name"].set_text(text=selected_name)
-        self.setting_widget_dict['level'].setCurrentIndex(SkillLevel.default.index - 1)
-
-        skill_type = one_skill.skill_type
-        if not skill_type:
-            skill_type = SkillType.default.index
-        skill_type_cn = SkillType.item_list.index_name_dict[skill_type]
-        self.setting_widget_dict['skill_type'].setCurrentText(skill_type_cn)
-
-        learning_approach = one_skill.learning_approach
-        if not one_skill.learning_approach:
-            learning_approach = LearningApproach.default.index
-        learning_approach_str = LearningApproach.item_list.index_name_dict[learning_approach]
-        self.setting_widget_dict['learning_approach'].setCurrentText(learning_approach_str)
-
-        effect_expression = one_skill.effect_expression
-        self.setting_widget_dict['effect_expression'].set_text(text=effect_expression)
-
-        one_skill_book = SkillBook.get_by_skill_id_skill_level(skill_id=one_skill.id, level=9)
-        # 显示属性：
-        self.clear_properties()
-
-        if one_skill_book is not None:
-            skill_properties = MiscProperties.get_properties_by_skill_book_id(skill_book_id=one_skill_book.id)
-            for skill_property in skill_properties:
-                property_name = AdditionalPropertyType.item_list.index_name_dict[
-                    skill_property.additional_property_type]
-                property_index = skill_property.additional_source_property_index
-                self.properties_widgets_list[property_index].name_text.set_text(text=property_name)
-                self.properties_widgets_list[property_index].name_label.set_text(text=property_name)
-                self.properties_widgets_list[property_index].value_text.set_text(text=
-                                                                                 skill_property.additional_property_value)
-
-                property_target = skill_property.property_availability
-                self.properties_widgets_list[property_index].target_combo_box.setCurrentIndex(property_target - 1)
-
-        # 显示保存按钮
-        self.saveButton.setEnabled(False)
-
-    def handle_status_changed(self, item):
-        if item is None:
-            return
-        print('status changed')
-        selected_name = item.text()
-
-        self.setting_widget_dict["name"].set_text(text=selected_name)
-        one_status = BattleStatus.get_by_name(name=selected_name)
-
-        self.setting_widget_dict['status_type'].setCurrentIndex(one_status.status_type - 1)
-        self.setting_widget_dict['effect_expression'].set_text(text=one_status.effect_expression)
-
-        status_properties = MiscProperties.get_properties_by_status_id(status_id=one_status.id)
-        self.show_properties(properties=status_properties)
-
-        # 显示保存按钮
-        self.saveButton.setEnabled(False)
-
-    def handle_base_property_changed(self, item):
-        if item is None:  # clear的时候会触发
-            return
-        print('base_property changed')
-        selected_name = item.text()
-
-        self.setting_widget_dict["name"].set_text(selected_name)
-
-        base_property_id = BasePropertyType.item_list.name_index_dict[selected_name]
-
-        properties = MiscProperties.get_properties_by_base_property(base_property_id=base_property_id)
-        self.show_properties(properties=properties)
-
-        # 显示保存按钮
-        self.saveButton.setEnabled(False)
+        stuff_name = self.all_stuff_list_widget.text()
+        self.stuff_widgets_list[self.current_stuff_widget_index].name_label.set_text(text=stuff_name)
 
     def record_changed_event(self, item):
         if not item:
-            print("item is None")
+            print(f"item is {item}")
             return
+        if self.table_item.table_class is None:
+            print("self.cur_table is None")
+            return
+        record_name_or_id = item.text()
 
-        record_name = item.text()
+        if self.table_item.is_entity:
+            record = self.table_item.table_class.get_by_name(name=record_name_or_id)
+        else:
+            record = self.table_item.table_class.get_by_id(_id=int(record_name_or_id))
 
-        record = self.cur_table.get_by_name(name=record_name)
-
-        for key in self.edit_items:
+        for key in self.column_edit_dict:
             value = getattr(record, key)
-            edit_item = self.edit_items[key]
-            if edit_item.choices is not None:
-                value = edit_item.choices.item_list.get_name_by_index(index=value)
-            self.edit_items[key].edit_widget.set_text(text=value)
+            edit_item = self.column_edit_dict[key]
+            if value is None:
+                ...
+            elif edit_item.bind_type is not None:
+                value = edit_item.bind_type.item_list.get_by_index(index=value).name
+            elif edit_item.bind_table is not None:
+                value = globals()[edit_item.bind_table].get_by_id(_id=value).name
+            else:
+                ...
+            self.column_edit_dict[key].edit_widget.set_text(text=value)
 
-        # self.show_properties(properties=properties)
-        self.saveButton.setEnabled(False)
+        if self.table_item.addition_source_type is not None:
+            properties = MiscProperties.get_properties_by(
+                additional_source_type=self.table_item.addition_source_type.index,
+                additional_source_id=record.id
+            )
+            self.show_properties(properties=properties)
+        if self.table_item.bind_stuff_type is not None:
+            stuffs = OpenDecomposeOrDropStuffsRecord.get_all_by(source_type=self.table_item.bind_stuff_type.index,
+                                                                source_id=record.id,
+                                                                )
+            self.show_drop_stuffs(stuffs=stuffs)
+        self.handle_show_widgets()
 
-    def handle_gem_changed(self, item):
-        if not item:
-            print("item is None")
-            return
-
-        print('gem changed')
-        achievement_name = item.text()
-
-        self.setting_widget_dict["name"].set_text(achievement_name)
-
-        one_achievement = Gem.get_by_name(name=achievement_name)
-        achievement_type_cn = AchievementType.item_list.index_name_dict[one_achievement.achievement_type]
-        self.setting_widget_dict['achievement_type'].setCurrentText(achievement_type_cn)
-
-        condition_property_type = one_achievement.condition_property_type
-        if condition_property_type:
-            condition_property_type_cn = AchievementPropertyType.item_list.index_name_dict[
-                one_achievement.condition_property_type]
-        else:
-            condition_property_type_cn = ""
-        self.setting_widget_dict['condition_property_type'].setCurrentText(condition_property_type_cn)
-
-        condition_property_value = one_achievement.condition_property_value
-        self.setting_widget_dict['condition_property_value'].set_text(text=condition_property_value)
-
-        days_of_validity = one_achievement.days_of_validity
-        self.setting_widget_dict['days_of_validity'].set_text(text=days_of_validity)
-
-        achievement_point = one_achievement.achievement_point
-        self.setting_widget_dict['achievement_point'].set_text(text=achievement_point)
-
-        introduce = one_achievement.introduce
-        self.setting_widget_dict['introduce'].set_text(text=introduce)
-
-        properties = MiscProperties.get_properties_by_achievement_id(achievement_id=one_achievement.id)
-
-        self.show_properties(properties=properties)
-        self.saveButton.setEnabled(False)
-
-    def handle_box_changed(self, item):
-        if not item:
-            print("item is None")
-            return
-
-        print('gem changed')
-        achievement_name = item.text()
-
-        self.setting_widget_dict["name"].set_text(text=achievement_name)
-
-        one_achievement = Gem.get_by_name(name=achievement_name)
-        achievement_type_cn = AchievementType.item_list.index_name_dict[one_achievement.achievement_type]
-        self.setting_widget_dict['achievement_type'].setCurrentText(achievement_type_cn)
-
-        condition_property_type = one_achievement.condition_property_type
-        if condition_property_type:
-            condition_property_type_cn = AchievementPropertyType.item_list.index_name_dict[
-                one_achievement.condition_property_type]
-        else:
-            condition_property_type_cn = ""
-        self.setting_widget_dict['condition_property_type'].setCurrentText(condition_property_type_cn)
-
-        condition_property_value = one_achievement.condition_property_value
-        self.setting_widget_dict['condition_property_value'].set_text(text=condition_property_value)
-
-        days_of_validity = one_achievement.days_of_validity
-        self.setting_widget_dict['days_of_validity'].set_text(text=days_of_validity)
-
-        achievement_point = one_achievement.achievement_point
-        self.setting_widget_dict['achievement_point'].set_text(text=achievement_point)
-
-        introduce = one_achievement.introduce
-        self.setting_widget_dict['introduce'].set_text(text=introduce)
-
-        properties = MiscProperties.get_properties_by_achievement_id(achievement_id=one_achievement.id)
-
-        self.show_properties(properties=properties)
-        self.saveButton.setEnabled(False)
-
-    def show_properties(self, *, properties: List):
+    def show_properties(self, *, properties: List[MiscProperties]):
+        self.clear_properties()
         for status_property in properties:
-            property_name = AdditionalPropertyType.item_list.index_name_dict[status_property.additional_property_type]
+            property_name = AdditionalPropertyType.item_list.get_by_index(
+                index=status_property.additional_property_type
+            ).name
             property_index = status_property.additional_source_property_index
-            self.properties_widgets_list[property_index].name_text.set_text(text=property_name)
+            self.properties_widgets_list[property_index].name_input_text.set_text(text=property_name)
             self.properties_widgets_list[property_index].name_label.set_text(text=property_name)
             self.properties_widgets_list[property_index].value_text.set_text(
                 text=status_property.additional_property_value)
-        # 显示保存按钮
 
-    def enable_save_button(self):
-        print("enable_save_button")
-        self.saveButton.setEnabled(True)
+    def show_drop_stuffs(self, *, stuffs: List[OpenDecomposeOrDropStuffsRecord]):
+        self.clear_stuffs()
+        for drop_stuff in stuffs:
+            stuff_type_name = StuffType.item_list.get_by_index(
+                index=drop_stuff.acquire_stuff_type
+            ).name
 
-    def save_skill_property(self):
-        print("save_skill_property")
-        selected_name = self.recordsListWidget.currentItem().text()
-        new_name = self.setting_widget_dict["name"].text()
-        target_name = self.setting_widget_dict["target"].currentText()
-        target = SkillTarget.item_list.name_index_dict[target_name]
-        one_skill = Skill.get_by_name(name=selected_name)
+            bind_table = StuffType.item_list.get_by_name(name=stuff_type_name).bind_table
+            explicit_stuff = globals()[bind_table].get_by_id(_id=drop_stuff.acquire_stuff_id)  # 具体的，比如某个装备
 
-        if selected_name != new_name:
-            # 如果名字发生了修改。修改后技能的id不会发生变化
-            Skill.update_name_by_id(_id=one_skill.id, new_name=new_name)
-            print(f'技能名称从{selected_name}->{new_name}')
+            self.stuff_widgets_list[drop_stuff.acquire_stuff_index].name_input_text.set_text(text=explicit_stuff.name)
+            self.stuff_widgets_list[drop_stuff.acquire_stuff_index].name_label.set_text(text=explicit_stuff.name)
+            self.stuff_widgets_list[drop_stuff.acquire_stuff_index].stuff_type_combo_box.set_text(text=stuff_type_name)
+            self.stuff_widgets_list[drop_stuff.acquire_stuff_index].prob_value_text.set_text(
+                text=drop_stuff.acquire_stuff_prob)
 
-        skill_level = int(self.setting_widget_dict['level'].currentText())
-        one_skill_book = SkillBook.get_by_skill_id_skill_level(skill_id=one_skill.id, level=skill_level)
 
-        # 如果数据库里面有对应的技能书，则进行删除，如果没有直接插入；
-        if one_skill_book is not None:
-            MiscProperties.del_skill_book_properties(skill_book_id=one_skill_book.id)
-        else:
-            one_skill_book = SkillBook.add_or_update_by_id(_id=one_skill.id, level=skill_level)
-
-        for index, properties_widget in enumerate(self.properties_widgets_list):
-            property_cn_name = properties_widget.name_label.text()
-            property_value = properties_widget.value_text.text()
-            if property_cn_name == "":
-                continue
-            if property_value == "":
-                continue
-            property_value = int(property_value)
-            MiscProperties.add_skill_book_properties(skill_book_id=one_skill_book.id,
-                                                     property_index=index,
-                                                     property_target=target,
-                                                     property_type=AdditionalPropertyType.item_list.name_index_dict[
-                                                         property_cn_name],
-                                                     property_value=property_value)
-
-            print(f"技能名称：{selected_name}，第{index + 1}条属性：{property_cn_name}，属性值{property_value} 更新成功。")
-        self.saveButton.setEnabled(False)  # 隐藏保存按钮
-        self.show_all_items()
-
-    def save_status_property(self):
-        print("save_status_property")
-
-        selected_name = self.recordsListWidget.currentItem().text()
-        new_name = self.setting_widget_dict["name"].text()
-        effect_expression = self.setting_widget_dict["effect_expression"].text()
-        status_type = self.setting_widget_dict["status_type"].currentIndex() + 1
-
-        one_status = BattleStatus.get_by_name(name=selected_name)
-
-        # 如果名字发生了修改。修改后技能的id不会发生变化
-        if status_type != one_status.status_type or new_name != selected_name or effect_expression != one_status.effect_expression:
-            BattleStatus.add_or_update_by_id(_id=one_status.id,
-                                             name=new_name,
-                                             status_type=status_type,
-                                             effect_expression=effect_expression)
-            print(f'状态名称从{selected_name}->{new_name}')
-            print(f'状态介绍从{one_status.effect_expression}->{effect_expression}')
-
-        MiscProperties.del_status_properties(status_id=one_status.id)
-        for index, properties_widget in enumerate(self.properties_widgets_list):
-            property_cn_name = properties_widget.name_label.text()
-            property_value = properties_widget.value_text.text()
-            if property_cn_name == "":
-                continue
-            if property_value == "":
-                continue
-            property_value = int(property_value)
-            MiscProperties.add_status_properties(status_id=one_status.id,
-                                                 property_index=index,
-                                                 property_type=AdditionalPropertyType.item_list.name_index_dict[
-                                                     property_cn_name],
-                                                 property_value=property_value)
-
-            print(f"状态名称：{selected_name}，第{index + 1}条属性：{property_cn_name}，属性值{property_value} 更新成功。")
-        self.saveButton.setEnabled(False)  # 隐藏保存按钮
-        self.show_all_items()
-
-    def save_base_property(self):
-        print("save_base_property")
-
-        selected_name = self.recordsListWidget.text()
-        # name不会发生修改
-        # 基础属性的索引
-        base_property_index = BasePropertyType.item_list.name_index_dict[selected_name]
-
-        # 删除
-        MiscProperties.del_base_additional_properties(base_property_type=base_property_index)
-
-        for index, properties_widget in enumerate(self.properties_widgets_list):
-            property_cn_name = properties_widget.name_label.text()
-            if property_cn_name == "":
-                continue
-            property_value_text = properties_widget.value_text.text()
-            if property_value_text == "":
-                continue
-            property_num = AdditionalPropertyType.item_list.name_index_dict[property_cn_name]
-            property_value = int(property_value_text)
-            MiscProperties.add_base_additional_properties(
-                base_property_type=base_property_index,
-                additional_source_property_index=index,
-                additional_property_type=property_num,
-                additional_property_value=property_value,
-            )
-            print(f"基础属性名称：{selected_name}，第{index + 1}条属性：{property_cn_name}=属性值{property_value} 更新成功。")
-        self.saveButton.setEnabled(False)  # 隐藏保存按钮
-        self.show_all_items()
-
-    def del_record(self):
+    def handle_del_record(self):
         """
         删除当前选中的记录
         """
-        current_name = self.recordsListWidget.text()
-        confirm = input(f"确定要删除{current_name}吗?如果确认请输出yes，输入其它内容被视为不删除。")
-        if confirm == "yes":
-            self.cur_table.del_by_name(name=current_name)
-            print(f"删除name为 {current_name} 的记录成功！")
-        self.show_all_items()
+        current_record_name_or_id = self.recordsListWidget.text()
+        if self.recordsListWidget.currentItem() is None:
+            QMessageBox.information(self, "错误", "没有选中任何记录")
+            return
+        reply = QMessageBox.question(self, '退出', f'确定删除{current_record_name_or_id}？',
+                                     QMessageBox.Yes | QMessageBox.No,
+                                     QMessageBox.No)
+        if reply == QMessageBox.No:
+            return
 
-    def save_record_record(self):
-        print("save_record_record")
+        if self.table_item.is_entity:
+            self.table_item.table_class.del_by_name(name=current_record_name_or_id)
+        else:
+            current_record_name_or_id = int(current_record_name_or_id)
+            self.table_item.table_class.del_by_id(_id=current_record_name_or_id)
+        print(f"删除name 或者 id 为 {current_record_name_or_id} 的记录成功！")
+        self.show_all_records()
 
-        record_name = self.recordsListWidget.text()
-        record: Entity = self.cur_table.get_by_name(name=record_name)
+    def handle_save_record(self):
+        print("handle_save_record")
+
+        record_name_or_id = self.recordsListWidget.text()
+        if self.recordsListWidget.currentItem() is None:
+            QMessageBox.information(self, "错误", "没有选中任何记录")
+            return
+        if self.table_item.is_entity:
+            record: Entity = self.table_item.table_class.get_by_name(name=record_name_or_id)
+        else:
+            record: Basic = self.table_item.table_class.get_by_id(_id=record_name_or_id)
 
         update_args = dict()
-        for key in self.edit_items:
-            data_edit = self.edit_items[key]
-            value = data_edit.edit_widget.text()
+        for key in self.column_edit_dict:
+            column_edit: ColumnEdit = self.column_edit_dict[key]
+            value = column_edit.edit_widget.text()
 
-            if data_edit.choices is not None:
-                value = data_edit.choices.item_list.get_index_by_name(name=value)
+            if column_edit.bind_type is not None:
+                value = column_edit.bind_type.item_list.get_by_name(name=value).index
+            elif column_edit.bind_table is not None:
+                value = globals()[column_edit.bind_table].get_by_name(name=value).id
 
-            if data_edit.data_type == DataType.INTEGER:
+            if column_edit.data_type == DataType.INTEGER:
                 if value == "":
-                    value = -1
+                    value = None
                 else:
                     value = int(value)
-            elif data_edit.data_type in (DataType.STRING, DataType.TEXT):
+            elif column_edit.data_type in (DataType.STRING, DataType.MULTI_LINE_TEXT, DataType.TEXT):
                 ...
-            elif data_edit.data_type == DataType.BOOL:
+            elif column_edit.data_type == DataType.BOOL:
                 if value == "True":
                     value = True
                 elif value == "False":
                     value = False
                 else:
                     raise ValueError("不支持的类型")
-
+            else:
+                raise ValueError("不支持的类型")
             update_args[key] = value
 
-        record.update_kwargs_by_id(_id=record.id, **update_args)
+        record.update_kwargs_by_id(_id=record.id, kwargs=update_args)
+        self.show_all_records()
 
         # 对表格对应的属性进行操作；
         ########################################################
         current_table_name = self.current_data_table_combo_box.currentText()
-        table_item = TableItems.item_list.get_by_name(name=current_table_name)
-
-        if table_item.addition_source_type is not None:
+        self.table_item = TableItems.item_list.get_by_name(name=current_table_name)
+        if self.table_item.addition_source_type is not None:
             # 删除对应属性
             MiscProperties.del_by_additional_source_type_id(
-                additional_source_type=table_item.addition_source_type.index,
+                additional_source_type=self.table_item.addition_source_type.index,
                 additional_source_id=record.id,
             )
             for index, properties_widget in enumerate(self.properties_widgets_list):
@@ -1110,15 +977,15 @@ class MyMainWindow(QMainWindow):
                 property_cn_name = properties_widget.name_label.text()
                 if property_cn_name == "":
                     continue
-                property_type_index = AdditionalPropertyType.item_list.name_index_dict[property_cn_name]
+                property_type_index = AdditionalPropertyType.item_list.name_dict[property_cn_name].index
 
                 # 属性的作用域
                 property_availability_cn = properties_widget.availability_combo_box.currentText()
                 if property_availability_cn == "":
                     property_availability_index = None
                 else:
-                    property_availability_index = PropertyAvailability.item_list.get_index_by_name(
-                        name=property_availability_cn)
+                    property_availability_index = PropertyAvailability.item_list.get_by_name(
+                        name=property_availability_cn).index
 
                 # 属性值
                 property_value_text = properties_widget.value_text.text()
@@ -1127,7 +994,7 @@ class MyMainWindow(QMainWindow):
                 property_value = int(property_value_text)
 
                 MiscProperties.add(
-                    additional_source_type=table_item.addition_source_type.index,
+                    additional_source_type=self.table_item.addition_source_type.index,
                     additional_source_id=record.id,
 
                     additional_property_type=property_type_index,
@@ -1138,101 +1005,45 @@ class MyMainWindow(QMainWindow):
                     property_availability=property_availability_index,
                 )
                 print(
-                    f"表格名称：{current_table_name}，记录名称{record_name}，第{index + 1}条属性：{property_cn_name}=属性值{property_value} 更新成功。")
+                    f"表格名称：{current_table_name}，记录名称{record.name}，第{index + 1}条属性：{property_cn_name}=属性值{property_value} 更新成功。")
             ########################################################
 
-        self.saveButton.setEnabled(False)  # 隐藏保存按钮
-        self.show_all_items()
-
-    def save_gem_event(self):
-        print("save_gem")
-
-        selected_name = self.recordsListWidget.currentItem().text()
-        new_name = self.new_name_text.text()
-        # name不会发生修改
-        cur_achievement = Achievement.get_by_name(name=selected_name)
-
-        achievement_type_cn = self.setting_widget_dict['achievement_type'].currentText()
-        achievement_type = AchievementType.item_list.name_index_dict[achievement_type_cn]
-
-        condition_property_type_cn = self.setting_widget_dict['condition_property_type'].currentText()
-        condition_property_type = AchievementPropertyType.item_list.name_index_dict[condition_property_type_cn]
-
-        condition_property_value = self.setting_widget_dict['condition_property_value'].text()
-
-        days_of_validity = int(self.setting_widget_dict['days_of_validity'].text())
-        achievement_point = int(self.setting_widget_dict['achievement_point'].text())
-
-        introduce = self.setting_widget_dict['introduce'].text()
-
-        Achievement.add_or_update_by_id(_id=cur_achievement.id,
-                                        achievement_type=achievement_type,
-                                        name=new_name,
-
-                                        condition_type=condition_property_type,
-                                        condition_value=condition_property_value,
-
-                                        days_of_validity=days_of_validity,
-                                        achievement_point=achievement_point,
-
-                                        introduce=introduce
-                                        )
-
-    def save_box_event(self):
-        print("save_box")
-
-        selected_name = self.recordsListWidget.currentItem().text()
-        new_name = self.new_name_text.text()
-        # name不会发生修改
-        cur_achievement = Achievement.get_by_name(name=selected_name)
-
-        achievement_type_cn = self.setting_widget_dict['achievement_type'].currentText()
-        achievement_type = AchievementType.item_list.name_index_dict[achievement_type_cn]
-
-        condition_property_type_cn = self.setting_widget_dict['condition_property_type'].currentText()
-        condition_property_type = AchievementPropertyType.item_list.name_index_dict[condition_property_type_cn]
-
-        condition_property_value = self.setting_widget_dict['condition_property_value'].text()
-
-        days_of_validity = int(self.setting_widget_dict['days_of_validity'].text())
-        achievement_point = int(self.setting_widget_dict['achievement_point'].text())
-
-        introduce = self.setting_widget_dict['introduce'].text()
-
-        Achievement.update(achievement_id=cur_achievement.id,
-                           new_achievement_type=achievement_type,
-                           new_name=new_name,
-
-                           new_condition_type=condition_property_type,
-                           new_condition_value=condition_property_value,
-
-                           new_days_of_validity=days_of_validity,
-                           new_achievement_point=achievement_point,
-
-                           new_introduce=introduce
-                           )
-
-        # 删除
-        MiscProperties.del_achievement_properties(achievement_id=cur_achievement.id)
-
-        for index, properties_widget in enumerate(self.properties_widgets_list):
-            property_cn_name = properties_widget.name_label.text()
-            if property_cn_name == "":
-                continue
-            property_value_text = properties_widget.value_text.text()
-            if property_value_text == "":
-                continue
-            property_num = AdditionalPropertyType.item_list.name_index_dict[property_cn_name]
-            property_value = int(property_value_text)
-            MiscProperties.add_achievement_properties(
-                achievement_id=cur_achievement.id,
-                additional_source_property_index=index,
-                additional_property_type=property_num,
-                additional_property_value=property_value,
+        # 对应物品的掉落情况保存
+        if self.table_item.bind_stuff_type is not None:
+            # 删除对应物品掉落情况
+            OpenDecomposeOrDropStuffsRecord.del_all_by_source_type_source_id(
+                source_type=self.table_item.bind_stuff_type.index,
+                source_id=record.id,
             )
-            print(f"成就名称名称：{selected_name}，第{index + 1}条属性：{property_cn_name}=属性值{property_value} 更新成功。")
-        self.saveButton.setEnabled(False)  # 隐藏保存按钮
-        self.show_all_items()
+            for index, stuff_widget in enumerate(self.stuff_widgets_list):
+                # 属性类型
+                stuff_cn_name = stuff_widget.name_label.text()
+                if stuff_cn_name == "":
+                    continue
+
+                stuff_type_cn_name = self.stuff_widgets_list[index].stuff_type_combo_box.text()
+                source_item = StuffType.item_list.get_by_name(name=stuff_type_cn_name)
+                stuff_type_index = source_item.index
+                bind_table = source_item.bind_table
+
+                stuff = globals()[bind_table].get_by_name(name=stuff_cn_name)
+
+                # 属性值
+                stuff_prob = stuff_widget.prob_value_text.text()
+                stuff_prob = int(stuff_prob)
+
+                OpenDecomposeOrDropStuffsRecord.add(
+                    source_type=StuffType.item_list.get_by_name(name=current_table_name).index,
+                    source_id=record.id,
+                    acquire_stuff_index=index,
+                    acquire_stuff_type=stuff_type_index,
+                    acquire_stuff_id=stuff.id,
+                    acquire_stuff_prob=stuff_prob
+                )
+
+                print(
+                    f"表格名称：{current_table_name}，记录名称{record.name}，第{index + 1}个掉落物品：{stuff_cn_name},概率值 {stuff_prob} 更新成功。")
+            ########################################################
 
 
 if __name__ == '__main__':

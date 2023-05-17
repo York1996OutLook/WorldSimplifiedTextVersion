@@ -1,10 +1,10 @@
 from typing import List
 
-from sqlalchemy import Integer, String, Boolean
+from sqlalchemy import Integer, String, Boolean,Text
 from sqlalchemy.ext.declarative import declarative_base
 
 from DBHelper.session import session
-from Enums import AdditionalPropertyType
+from Enums import AdditionalPropertyType,DurationByHours
 from DBHelper.tables.base_table import Entity
 from DBHelper.tables.base_table import CustomColumn
 
@@ -19,9 +19,11 @@ class Potion(Entity,Base):
     __cn__ = "药剂"
 
     __tablename__ = "potion"
-    name = CustomColumn(String, cn='名称')  # 显式复制并设置 cn 属性
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
 
-    duration_by_min = CustomColumn(Integer,cn='有效期/分钟', comment="有效期,以分钟为单位")
+    name = CustomColumn(Text, cn='名称')  # 显式复制并设置 cn 属性
+
+    duration_by_hour = CustomColumn(Integer,cn='有效期/小时',bind_type=DurationByHours, comment="有效期,以小时为单位")
     is_bind = CustomColumn(Boolean,cn='是否绑定', comment="刚出来的时候是否已经绑定")
 
     @classmethod
@@ -31,8 +33,7 @@ class Potion(Entity,Base):
                               duration_by_min: int = None,
                               is_bind: bool = None
                               ) -> "Potion":
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_name)
-        record = cls._add_or_update_by_name(**fields)
+        record = cls._add_or_update_by_name(kwargs=locals())
         return record
 
     @classmethod
@@ -45,8 +46,7 @@ class Potion(Entity,Base):
             duration_by_min: int = None,
             is_bind: bool = None
     ) -> "Potion":
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record
 
 

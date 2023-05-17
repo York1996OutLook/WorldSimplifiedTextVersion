@@ -12,10 +12,11 @@ class PlayerAchievementRecord(Basic, Base):
     """
     __cn__ = "玩家成就记录表"
     __tablename__ = "player_achievement_record"
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
 
-    character_id = CustomColumn(Integer, cn="玩家ID",comment="成就达成人物ID")
+    character_id = CustomColumn(Integer, cn="玩家",bind_table="Player",comment="成就达成人物ID")
 
-    achievement_id = CustomColumn(Integer, cn="成就ID",comment="成就ID")
+    achievement_id = CustomColumn(Integer, cn="成就",bind_table="Achievement",comment="成就ID")
     achieve_timestamp = CustomColumn(Timestamp, cn="达成时间",comment="成就达成时间")
 
     @classmethod
@@ -25,8 +26,7 @@ class PlayerAchievementRecord(Basic, Base):
                             achievement_id: int = None,
                             achieve_timestamp: int = None
                             ):
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record
 
     @classmethod

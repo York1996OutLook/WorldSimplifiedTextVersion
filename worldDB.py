@@ -43,6 +43,7 @@ from DBHelper.tables.skill import Skill
 from DBHelper.tables.skill_book import SkillBook
 from DBHelper.tables.skill_cost_point import SkillCostPoint
 from DBHelper.tables.skill_slot import SkillSlot
+from DBHelper.tables.skill_identify_book import SkillIdentifyBook
 from DBHelper.tables.tips import Tips
 from DBHelper.tables.world_hero_medal import WorldHeroMedal
 
@@ -67,7 +68,7 @@ table_classes = [Achievement, AchievementTitleBook,
                  PlayerSellStoreRecord, PlayerSkillRecord,
                  PlayerStuffRecord, Potion,
                  RaiseStarBook, RaiseStarProb,
-                 Setting, Skill, SkillBook, SkillCostPoint, SkillSlot,
+                 Setting, Skill, SkillBook, SkillCostPoint, SkillSlot,SkillIdentifyBook,
                  Tips,
                  WorldHeroMedal,
                  ]
@@ -78,4 +79,4 @@ Base.metadata.create_all(engine)
 
 # 创建所有表格
 for cls in table_classes:
-    Base.metadata.create_all(engine, [cls.__table__], checkfirst=True)
+    Base.metadata.create_all(engine, [cls.__table__], checkfirst=True,)

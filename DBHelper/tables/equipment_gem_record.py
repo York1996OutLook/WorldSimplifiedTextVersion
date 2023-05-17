@@ -5,7 +5,7 @@ from sqlalchemy import Integer, String, Float, Boolean
 
 from DBHelper.session import session
 from DBHelper.tables.base_table import Basic
-from DBHelper.tables.base_table import CustomColumn
+from DBHelper.tables.base_table import CustomColumn,Timestamp
 
 Base = declarative_base()
 
@@ -16,10 +16,11 @@ class EquipmentGemRecord(Basic, Base):
     """
     __cn__ = "装备宝石记录表"
     __tablename__ = 'equipment_gem_record'
-
-    equipment_id = CustomColumn(Integer, cn="装备ID", comment="装备记录id") # todo:待定
-    gem_id = CustomColumn(Integer, cn="宝石ID",bind_table="Gem", comment="当前宝石的id")
-    inlay_time = CustomColumn(Integer, cn="镶嵌时间", comment="镶嵌时间")
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
+    equipment_id = CustomColumn(Integer, cn="装备", comment="装备记录id")  # todo:待定
+    gem_id = CustomColumn(Integer, cn="宝石ID", bind_table="Gem", comment="当前宝石的id")
+    success = CustomColumn(Boolean, cn="镶嵌成功", comment="是否镶嵌",default=True)
+    inlay_timestamp = CustomColumn(Timestamp, cn="镶嵌时间", comment="镶嵌时间")
 
     # 增改
     @classmethod
@@ -35,8 +36,7 @@ class EquipmentGemRecord(Basic, Base):
         实际上equipment_id，gem_id不可为空
         """
 
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record
 
     # 查询
@@ -53,5 +53,5 @@ class EquipmentGemRecord(Basic, Base):
         Returns:
         List[EquipmentGemRecord]: 宝石记录列表
         """
-        records = cls.get_all_by(equipment_id=equipment_id)
+        records = cls.get_all_by_kwargs(equipment_id=equipment_id)
         return records

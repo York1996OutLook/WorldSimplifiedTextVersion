@@ -15,6 +15,7 @@ class PlayerLevelExpSkillPoint(Basic,Base):
     """
     __cn__ = "升级经验、技能点"
     __tablename__ = "player_level_exp_skill_point"
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
 
     level = CustomColumn(Integer, cn="等级",comment="等级")
     required_exp = CustomColumn(Integer, cn="所需经验",comment="所需经验。非叠加;")
@@ -35,8 +36,7 @@ class PlayerLevelExpSkillPoint(Basic,Base):
         :param skill_point: 能够获得的技能点数量
         :return:
         """
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record
 
     @classmethod

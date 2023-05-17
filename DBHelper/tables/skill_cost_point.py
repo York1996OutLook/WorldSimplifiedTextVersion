@@ -15,6 +15,7 @@ class SkillCostPoint(Basic,Base):
     """
     __cn__ = "技能消耗技能点"
     __tablename__ = 'skill_cost_point'
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
 
     level = CustomColumn(Integer, cn="等级",comment="等级")
     need_point = CustomColumn(Integer, cn="技能点",comment="所需技能点")
@@ -28,8 +29,7 @@ class SkillCostPoint(Basic,Base):
             level: int = None,
             need_point: int = None,
     ):
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record
 # 增
 

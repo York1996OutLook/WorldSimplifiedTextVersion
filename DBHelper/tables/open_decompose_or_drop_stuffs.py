@@ -15,28 +15,64 @@ class OpenDecomposeOrDropStuffsRecord(Basic, Base):
     打开 分解 掉落的物品记录
     """
     __tablename__ = 'open_decompose_or_drop_stuffs_record'
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
 
     source_type = CustomColumn(Integer, cn="物品类型", bind_type=StuffType, comment="被分解、打开物品的类型,参考StuffType")
-    source_id = CustomColumn(Integer, cn='物品ID', comment="被分解、打开物品的id")
+    source_id = CustomColumn(Integer, cn='物品ID', comment="被分解、打开物品的id")  # todo;
 
-    get_stuff_type = CustomColumn(Integer, cn="获得物品类型", bind_type=StuffType, comment="物品的类型,参考枚举类型StuffType。")
-    get_stuff_id = CustomColumn(Integer, cn='获得物品ID', comment="物品的ID")
-    get_stuff_prob = CustomColumn(Integer, cn="获得概率",
-                                  comment="最小为1/1000。出现的概率,独立计算概率。比如50%A物品,50%B物品,最后的结果可能是空,A,B,A+B四种情况!")
+    acquire_stuff_index = CustomColumn(Integer, cn="获得物品的索引", comment="加入索引是为了固定顺序")
 
+    acquire_stuff_type = CustomColumn(Integer, cn="获得物品类型", bind_type=StuffType, comment="物品的类型,参考枚举类型StuffType。")
+    acquire_stuff_id = CustomColumn(Integer, cn='获得物品ID', comment="物品的ID")
+    acquire_stuff_prob = CustomColumn(Integer, cn="获得概率",
+                                      comment="最小为1/1000。出现的概率,独立计算概率。比如50%A物品,50%B物品,最后的结果可能是空,A,B,A+B四种情况!")
+
+    # 增
     @classmethod
     def add_or_update_by_id(cls,
                             *,
                             _id: int,
                             source_type: int = None,
                             source_id: int = None,
-                            get_stuff_type: int = None,
-                            get_stuff_id: int = None,
-                            get_stuff_prob: int = None
+
+                            acquire_stuff_index: int = None,
+
+                            acquire_stuff_type: int = None,
+                            acquire_stuff_id: int = None,
+                            acquire_stuff_prob: int = None
                             ):
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record
+    @classmethod
+    def add(cls,
+            *,
+            source_type: int = None,
+            source_id: int = None,
+
+            acquire_stuff_index: int = None,
+
+            acquire_stuff_type: int = None,
+            acquire_stuff_id: int = None,
+            acquire_stuff_prob: int = None
+            )->'OpenDecomposeOrDropStuffsRecord':
+        return cls.add_with_kwargs(kwargs=locals())
+    # 删
+    @classmethod
+    def del_all_by_source_type_source_id(cls,
+                                         *,
+                                         source_type: int = None,
+                                         source_id: int = None,
+                                         ):
+        return cls.del_all_by_kwargs(kwargs=locals())
+
+
+    # 改
+
+    # 查
+    @classmethod
+    def get_all_by(cls, *, source_type: int = None, source_id: int = None, get_stuff_type: int = None):
+        records = cls.get_all_by_kwargs(kwargs=locals())
+        return records
 
 
 # 增

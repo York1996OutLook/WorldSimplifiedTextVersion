@@ -18,7 +18,9 @@ class Skill(Entity, Base):
     """
     __cn__ = "技能"
     __tablename__ = 'skill'
-    name = CustomColumn(String, cn='名称')  # 显式复制并设置 cn 属性
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
+
+    name = CustomColumn(Text, cn='名称')  # 显式复制并设置 cn 属性
 
     learning_approach = CustomColumn(Integer, bind_type=LearningApproach,
                                      cn="学习途径", comment="是否可以直接进行学习,如果能的话代表能够在技能所学习,否则可能是装备附带的技能。")
@@ -35,8 +37,7 @@ class Skill(Entity, Base):
                               target: int = None,
                               effect_expression: str = None
                               ) -> "Skill":
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_name)
-        record = cls._add_or_update_by_name(**fields)
+        record = cls._add_or_update_by_name(kwargs=locals())
         return record
 
     @classmethod
@@ -51,8 +52,7 @@ class Skill(Entity, Base):
             target: int = None,
             effect_expression: str = None
     ) -> "Skill":
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record
 
 # 增

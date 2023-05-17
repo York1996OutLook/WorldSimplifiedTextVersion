@@ -1,21 +1,30 @@
 from abc import ABC, abstractmethod
 import inspect
-from typing import List, Callable, Dict, Any
+from typing import List, Callable, Dict, Any, Set
 
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String,Text
 from sqlalchemy.ext.declarative import declarative_base
 
 from DBHelper.session import session
 
 Base = declarative_base()
 
+class MultiLineText(Text):
+    ...
 
 class Timestamp(Integer):
     ...
 
 
-def remove_none_kwargs(kwargs: Dict[str, Any]) -> Dict[str, Any]:
+def remove_none_and_cls_kwargs(*,
+                               kwargs: Dict[str, Any]
+                               ) -> Dict[str, Any]:
+    """
+    去掉值为空的键值对，并且去除key在other集合中的键值对
+    """
     kwargs = {key: kwargs[key] for key in kwargs if kwargs[key] is not None}
+    kwargs = {key: kwargs[key] for key in kwargs if key != "cls"}
+
     return kwargs
 
 
@@ -46,14 +55,14 @@ class Basic:
                       editable=False,
                       primary_key=True)
 
-    def __init__(self, **kwargs):
-        """
-        add的时候用到
-        """
-        self.__cn__ = ""
-
-        for k, v in kwargs.items():
-            setattr(self, k, v)
+    # def __init__(self, *, kwargs: Dict[str, Any]):
+    #     """
+    #     add的时候用到
+    #     """
+    #     self.__cn__ = ""
+    #
+    #     for k, v in kwargs.items():
+    #         setattr(self, k, v)
 
     # base
     @classmethod
@@ -77,15 +86,15 @@ class Basic:
         return records
 
     @classmethod
-    def get_all_by(cls,
-                   **kwargs
+    def get_all_by_kwargs(cls,
+                   kwargs: Dict[str, Any]
                    ) -> List['cls']:
         """
         通过传入字段及值获取所有记录。如果为None则代表对这个字段不筛选
         :param kwargs: 字段及值
         :return: List
         """
-        kwargs = remove_none_kwargs(kwargs)
+        kwargs = remove_none_and_cls_kwargs(kwargs=kwargs)
         records = session.query(cls).filter_by(**kwargs).all()
         return records
 
@@ -93,13 +102,16 @@ class Basic:
 
     @classmethod
     def add_with_kwargs(cls,
-                        **kwargs
+                        *,
+                        kwargs: Dict[str, Any]
                         ) -> 'cls':
         """
         根据传来的键值对更改
         """
-
-        record = cls(**kwargs)
+        kwargs = remove_none_and_cls_kwargs(kwargs=kwargs)
+        record = cls()
+        for k, v in kwargs.items():
+            setattr(record, k, v)
         session.add(record)
         session.commit()
 
@@ -122,12 +134,12 @@ class Basic:
 
     @classmethod
     def del_one_by_kwargs(cls,
-                          **kwargs
+                          kwargs: Dict[str, Any]
                           ) -> bool:
         """
         如果确实删除了数据，则返回true，否则返回false
         """
-        kwargs = remove_none_kwargs(kwargs)
+        kwargs = remove_none_and_cls_kwargs(kwargs=kwargs)
 
         record = session.query(cls).filter_by(**kwargs).first()
         session.delete(record)
@@ -136,16 +148,18 @@ class Basic:
 
     @classmethod
     def del_all_by_kwargs(cls,
-                          **kwargs
+                          kwargs: Dict[str, Any]
                           ) -> bool:
         """
         如果确实删除了数据，则返回true，否则返回false
         """
-        kwargs = remove_none_kwargs(kwargs)
+        kwargs = remove_none_and_cls_kwargs(kwargs=kwargs)
 
         records = session.query(cls).filter_by(**kwargs).all()
-        session.delete(records)
-        session.commit()
+        if len(records)>0:
+            for record in records:
+                session.delete(record)
+            session.commit()
         return len(records) > 0
 
     @classmethod
@@ -165,12 +179,12 @@ class Basic:
     def update_kwargs_by_id(cls,
                             *,
                             _id: int,
-                            **kwargs
+                            kwargs: Dict[str, Any]
                             ) -> bool:
         """
         如果没有查询到对应的记录，则抛出异常
         """
-        kwargs = remove_none_kwargs(kwargs)
+        kwargs = remove_none_and_cls_kwargs(kwargs=kwargs)
 
         record = cls.query_one_by_id(_id=_id)
         if record is None:
@@ -189,7 +203,7 @@ class Basic:
         """
         如果没有查询到对应的记录，则抛出异常
         """
-        update_dict = remove_none_kwargs(update_dict)
+        update_dict = remove_none_and_cls_kwargs(kwargs=update_dict)
 
         record = cls.get_one_by_kwargs(**query_dict)
         if record is None:
@@ -232,13 +246,13 @@ class Basic:
 
     @classmethod
     def get_one_by_kwargs(cls,
-                          **kwargs
+                          kwargs: Dict[str, Any]
                           ) -> 'cls':
         """
         返回查询到的第一个记录，
         如果没有查询到，则返回 None
         """
-        kwargs = remove_none_kwargs(kwargs)
+        kwargs = remove_none_and_cls_kwargs(kwargs=kwargs)
         record = session.query(cls).filter_by(**kwargs).first()
         return record
 
@@ -254,12 +268,12 @@ class Basic:
     # exists
     @classmethod
     def is_exists_by_kwargs(cls,
-                            **kwargs
+                            kwargs: Dict[str, Any]
                             ) -> bool:
         """
         存在则返回true，不存在则返回false
         """
-        kwargs = remove_none_kwargs(kwargs)
+        kwargs = remove_none_and_cls_kwargs(kwargs=kwargs)
 
         record = cls.get_one_by_kwargs(kwargs=kwargs)
         return record is not None
@@ -277,39 +291,24 @@ class Basic:
     @classmethod
     def _add_or_update_by_id(cls,
                              *,
-                             _id: int,
-                             **kwargs,
+                             kwargs: Dict[str, Any],
                              ) -> 'cls':
         """
         返回修改或者新增后的记录
         """
+        _id=kwargs['_id']
+        kwargs.pop("_id")
         if cls.is_exists_by_id(_id=_id):
             return cls.update_kwargs_by_id(_id=_id, kwargs=kwargs)
         else:
             return cls.add_with_kwargs(**kwargs)
 
     @classmethod
-    def update_fields_from_signature(cls,
-                                     *,
-                                     func: Callable
-                                     ) -> Dict[str, Any]:
-        """
-        从函数的签名中，自动获取参数的 键值对；
-        """
-        signature = inspect.signature(func)
-        fields = dict()
-        for param_name, param in signature.parameters.items():
-            if param_name in {'_id'}:
-                continue
-            fields[param_name] = param.default if param.default is not inspect.Parameter.empty else None
-        return fields
-
-    @classmethod
     @abstractmethod
     def add_or_update_by_id(cls,
                             *,
                             _id: int,
-                            **kwargs
+                            kwargs: Dict[str, Any]
                             ) -> "cls":
         """
         根据id来新增或者更新
@@ -319,7 +318,7 @@ class Basic:
 
 
 class Entity(Basic):
-    name = CustomColumn(String, cn='名称')
+    name = CustomColumn(Text, cn='名称')
 
     def __init__(self):
         super(Entity, self).__init__()
@@ -373,14 +372,14 @@ class Entity(Basic):
     def update_kwargs_by_name(cls,
                               *,
                               name: str,
-                              **kwargs
+                              kwargs: Dict[str, Any]
                               ) -> 'cls':
         """
         根据name来查询记录，并且更新一些字段
         如果不存在，则抛出异常
         建议前置判断存在的函数
         """
-        kwargs = remove_none_kwargs(kwargs)
+        kwargs = remove_none_and_cls_kwargs(kwargs=kwargs)
 
         record = cls.get_by_name(name=name)
         if record is None:
@@ -454,17 +453,19 @@ class Entity(Basic):
     @classmethod
     def _add_or_update_by_name(cls,
                                *,
-                               name: str,
-                               **kwargs,
+                               kwargs: Dict[str, Any],
                                ) -> 'cls':
         """
         返回新增或者更新后的记录。
         如果update的时候，name不存在，则抛出异常
         """
+        name = kwargs['name']
+        remove_none_and_cls_kwargs(kwargs=kwargs)
         if cls.is_exists_by_name(name=name):
+            kwargs.pop("name")
             return cls.update_kwargs_by_name(name=name, kwargs=kwargs)
         else:
-            return cls.add_with_kwargs(name=name, **kwargs)
+            return cls.add_with_kwargs(kwargs=kwargs)
 
     # 虚类
     @classmethod
@@ -472,7 +473,7 @@ class Entity(Basic):
     def add_or_update_by_id(cls,
                             *,
                             name: str,
-                            **kwargs
+                            kwargs: Dict[str, Any]
                             ) -> 'cls':
         """
         返回新增或者更新后的记录。
@@ -485,7 +486,7 @@ class Entity(Basic):
     def add_or_update_by_name(cls,
                               *,
                               name: str,
-                              **kwargs
+                              kwargs: Dict[str, Any]
                               ) -> 'cls':
         """
         强制继承自他的类，必须实现这个方法，如果不实现，也要声明为抽象方法；

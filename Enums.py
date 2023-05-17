@@ -6,35 +6,35 @@ class ItemList:
         Item.item_list = self
 
         self.items = []
-        self.name_index_dict = dict()
-        self.index_name_dict = dict()
+        self.name_dict = dict()
+        self.index_dict = dict()
         self.counter = 0
 
     def clear(self):
         self.items = []
 
-    def get_items(self)->List["Item"]:
+    def get_items(self) -> List["Item"]:
         return self.items
 
     def get_names(self) -> List[str]:
         names = [item.name for item in self.items]
         return names
 
-    def get_name_by_index(self, *, index: int)->str:
-        if index not in self.index_name_dict:
+    def get_by_index(self, *, index: int) ->"Item":
+        if index not in self.index_dict:
             return None
-        return self.index_name_dict[index]
+        return self.index_dict[index]
 
-    def get_index_by_name(self, *, name: str)->int:
-        if name not in self.name_index_dict:
+    def get_by_name(self, *, name: str) -> "Item":
+        if name not in self.name_dict:
             return None
-        return self.name_index_dict[name]
+        return self.name_dict[name]
 
 
 class Item:
     item_list = None
 
-    def __init__(self, *, name: str, comment: str = '', index=None):
+    def __init__(self, *, name: str, index=None, bind_table: str = None, comment: str = ''):
         if index:
             self.index = index
         else:
@@ -42,28 +42,21 @@ class Item:
 
         self.name = name
         self.comment = comment
+        self.bind_table = bind_table
 
         self.item_list.items.append(self)
 
-        if self.name in self.item_list.name_index_dict:
+        if self.name in self.item_list.name_dict:
             raise ValueError(f"name:{self.name} is already exists!")
-        if self.name in self.item_list.name_index_dict:
+        if self.name in self.item_list.index_dict:
             raise ValueError(f"index:{self.index} is already exists!")
 
-        self.item_list.name_index_dict[self.name] = self.index
-        self.item_list.index_name_dict[self.index] = self.name
+        self.item_list.name_dict[self.name] = self
+        self.item_list.index_dict[self.index] = self
 
-    def __repr__(self)->str:
+    def __repr__(self) -> str:
         return f'Item({self.index}: {self.name}, {self.comment})'
 
-
-def get_dict(*, items: List[Item]):
-    name_index_dict = dict()
-    index_name_dict = dict()
-    for item in items:
-        name_index_dict[item.name] = item.index
-        index_name_dict[item.index] = item.name
-    return name_index_dict, index_name_dict
 
 
 class SkillLevel:
@@ -92,6 +85,7 @@ class DataType:
     BOOL = Item(name="布尔类型", comment="整数类型")
     STRING = Item(name="字符串", comment="整数类型")
     TEXT = Item(name="文本", comment="整数类型")
+    MULTI_LINE_TEXT = Item(name="多行文本", comment="整数类型")
     default = INTEGER
 
 
@@ -278,20 +272,21 @@ class StuffType:
     name = "物品类型"
 
     item_list = ItemList()
-    EQUIPMENT = Item(name='装备', comment="装备，包含武器、装备、坐骑")
-    BOX = Item(name='箱子', comment="允许一次性使用多个")
-    GEM = Item(name='宝石', comment="加不同属性的宝石。不能一次镶嵌多个")
-    RAISE_STAR_BOOK = Item(name='升星卷轴', comment="可以一次性使用多个")
-    IDENTIFY_BOOK = Item(name='装备属性鉴定卷轴', comment="1个属性，不可以一次性使用多个")
-    SKILL_IDENTIFY_BOOK = Item(name='装备技能鉴定卷轴', comment="1个属性")
-    EXP_BOOK = Item(name='经验卷轴', comment="为人物增加经验")
-    SKILL_BOOK = Item(name='人物技能卷轴', comment="技能书")
-    SKILL_SLOT = Item(name='人物技能槽', comment="技能书")
-    POTION = Item(name='药水', comment="药剂，一般是临时的")
-    DUST = Item(name='装备粉尘', comment="装备分解获得，计划用来鉴定装备的时候用")
-    ACHIEVEMENT_TITLE_BOOK = Item(name='成就称号', comment="称号，使用后可以获得某个称号。部分称号为自动获得，不一定要通过使用成就称号来获得。")
-    MONSTER = Item(name='怪物', comment="暂时不清楚后续是否会用到")
-    WorldHeroMedal = Item(name='世界英雄勋章', comment="暂时不清楚后续是否会用到")
+    EQUIPMENT = Item(name='装备', bind_table="Equipment", comment="装备,包含武器、装备、坐骑")
+    BOX = Item(name='箱子', bind_table="Box", comment="允许一次性使用多个")
+    GEM = Item(name='宝石', bind_table="Gem", comment="加不同属性的宝石。不能一次镶嵌多个")
+    RAISE_STAR_BOOK = Item(name='升星卷轴', bind_table="RaiseStarBook", comment="可以一次性使用多个")
+    IDENTIFY_BOOK = Item(name='装备属性鉴定卷轴', bind_table="IdentifyBook", comment="1个属性,不可以一次性使用多个")
+    SKILL_IDENTIFY_BOOK = Item(name='装备技能鉴定卷轴', bind_table="SkillIdentifyBook", comment="1个属性")
+    EXP_BOOK = Item(name='经验卷轴', bind_table="ExpBook", comment="为人物增加经验")
+    SKILL_BOOK = Item(name='人物技能卷轴', bind_table="SkillBook", comment="技能书")
+    SKILL_SLOT = Item(name='人物技能槽', bind_table="SkillSlot", comment="技能书")
+    POTION = Item(name='药水', bind_table="Potion", comment="药剂,一般是临时的")
+    DUST = Item(name='装备粉尘', bind_table="Dust", comment="装备分解获得,计划用来鉴定装备的时候用")
+    ACHIEVEMENT_TITLE_BOOK = Item(name='成就称号', bind_table="AchievementTitleBook",
+                                  comment="称号,使用后可以获得某个称号。部分称号为自动获得,不一定要通过使用成就称号来获得。")
+    MONSTER = Item(name='怪物', bind_table="Monster", comment="暂时不清楚后续是否会用到")
+    WorldHeroMedal = Item(name='世界英雄勋章', bind_table="WorldHeroMedal", comment="暂时不清楚后续是否会用到")
 
     default = EQUIPMENT
 
@@ -310,6 +305,7 @@ class BeingType:
 
     PLAYER = Item(name='玩家', comment="")
     MONSTER = Item(name='怪物', comment="")
+    PLAYER_RECORD = Item(name='玩家记录', comment="通常是固定的。当pk获得胜利的时候，会将当时的属性保存下来")
 
     default = PLAYER
 
@@ -331,6 +327,7 @@ class AdditionSourceType:
     PLAYER = Item(name='人物', comment='某个人物的属性')
     MONSTER = Item(name='怪物', comment='某个怪物的属性')
     STATUS = Item(name='状态', comment='状态增加属性')
+    PK_RANK = Item(name='战斗', comment='查询对应的RANK')
 
     default = INITIAL
 
@@ -606,8 +603,36 @@ class BattleType:
 
     WITH_OTHER_PLAYER = Item(name="与其它玩家")
     WITH_MONSTER = Item(name='与怪物')
+    WITH_OTHER_RANK = Item(name="与其它排行榜中的玩家")
 
     default = WITH_OTHER_PLAYER
+
+
+class GemIncreaseCount:
+    name = "属性增加值"
+    item_list = ItemList()
+
+    ONE = Item(name="1")
+    TWO = Item(name="2")
+    THREE = Item(name="3")
+    FOUR = Item(name="4")
+    FIVE = Item(name="5")
+
+    default = ONE
+
+
+class DurationByHours:
+    name = "有效期(小时)"
+    item_list = ItemList()
+
+    HOUR1 = Item(name="1")
+    HOUR2 = Item(name="2")
+    HOUR5 = Item(name="5")
+    HOUR12 = Item(name="12")
+    HOUR24 = Item(name="24")
+    HOUR48 = Item(name="48")
+    HOUR72 = Item(name="72")
+    default = HOUR1
 
 
 if __name__ == '__main__':

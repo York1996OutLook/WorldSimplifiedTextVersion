@@ -16,19 +16,20 @@ class PlayerStuffRecord(Basic, Base):
     """
     __cn__ = "玩家物品记录表"
     __tablename__ = 'player_stuff_record'
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
 
-    character_id = CustomColumn(Integer, comment="人物id")
-    stuff_type = CustomColumn(Integer, bind_type=StuffType, comment="物品的类型,参考StuffType")
-    stuff_id = CustomColumn(Integer, comment="物品id")
+    character_id = CustomColumn(Integer,cn="玩家", comment="人物id")
+    stuff_type = CustomColumn(Integer,cn="物品类型", bind_type=StuffType, comment="物品的类型,参考StuffType")
+    stuff_id = CustomColumn(Integer, cn="物品",comment="物品id")    # todo
 
-    stuff_num = CustomColumn(Integer, comment="数量")
-    is_bind = CustomColumn(Boolean, comment="是否已经绑定")
-    is_wearing = CustomColumn(Boolean, comment="是否穿戴中")
+    stuff_num = CustomColumn(Integer,cn="数量", comment="数量")
+    is_bind = CustomColumn(Boolean,cn="是否绑定", comment="是否已经绑定")
+    is_wearing = CustomColumn(Boolean,cn="是否穿戴中", comment="是否穿戴中")
 
-    position_in_bag = CustomColumn(Integer, comment="在背包中的位置,从1开始,目前没有设定背包大小.0代表没有在背包中。")
+    position_in_bag = CustomColumn(Integer,cn="在背包中的位置", comment="在背包中的位置,从1开始,目前没有设定背包大小.0代表没有在背包中。")
 
-    current_stars_num = CustomColumn(Integer, comment="当前升星数量")
-    gem_inlaying_status = CustomColumn(Integer, bind_type=GemInlayingStatus, comment="宝石镶嵌的状态。参考 GemInlayingStatus")
+    # current_stars_num = CustomColumn(Integer,cn="当前升星数量", comment="当前升星数量")   # 可以通过装备升星表获得
+    # gem_inlaying_status = CustomColumn(Integer,cn="玩家", bind_type=GemInlayingStatus, comment="宝石镶嵌的状态。参考 GemInlayingStatus")  # 可以通过装备宝石表获得
 
     @classmethod
     def add_or_update_by_id(cls,
@@ -44,8 +45,7 @@ class PlayerStuffRecord(Basic, Base):
                             current_stars_num: int = None,
                             gem_inlaying_status: int = None
                             ):
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record
 
 

@@ -7,7 +7,7 @@ from DBHelper.session import session
 from DBHelper.tables.base_table import CustomColumn
 from DBHelper.tables.base_table import Entity
 
-from Enums import AdditionalPropertyType
+from Enums import AdditionalPropertyType, GemIncreaseCount
 import local_setting
 from Utils import tools
 
@@ -18,13 +18,15 @@ class Gem(Entity, Base):
     __cn__ = "宝石"
 
     __tablename__ = 'gem'
-    name = CustomColumn(String, cn='名称')  # 显式复制并设置 cn 属性
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
+
+    name = CustomColumn(Text, cn='名称')  # 显式复制并设置 cn 属性
 
     additional_property_type = CustomColumn(Integer,
                                             cn="属性",
                                             bind_type=AdditionalPropertyType,
                                             comment="参考AdditionalPropertyType")
-    increase = CustomColumn(Integer, cn="增加值", comment="+1还是+2,3,4,5等") # todo:做成枚举类型
+    increase = CustomColumn(Integer, cn="增加值", bind_type=GemIncreaseCount, comment="+1还是+2,3,4,5等")  # todo:做成枚举类型
     is_bind = CustomColumn(Boolean, cn="是否绑定", comment="刚出来的时候是否已经绑定")
     introduce = CustomColumn(Text, cn="介绍")
 
@@ -36,8 +38,7 @@ class Gem(Entity, Base):
                               increase: int = None,
                               is_bind: bool = None
                               ) -> "Gem":
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_name)
-        record = cls._add_or_update_by_name(**fields)
+        record = cls._add_or_update_by_name(kwargs=locals())
         return record
 
     @classmethod
@@ -51,6 +52,5 @@ class Gem(Entity, Base):
             increase: int = None,
             is_bind: bool = None
     ) -> "Gem":
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record

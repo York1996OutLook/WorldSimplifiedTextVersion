@@ -13,9 +13,11 @@ from Enums import AdditionSourceType, AdditionalPropertyType, PropertyAvailabili
 class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
     """初始属性，基础属性加点、技能、装备(最大，最小，当前)、称号，临时药剂等常见的所有属性表，为永久表"""
     __tablename__ = 'initial_skill_achievement_equipment_etc_properties_record'
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
 
-    additional_source_type = CustomColumn(Integer,cn="属性",bind_type=AdditionSourceType, comment="带来属性提升的物品类型，比如成就初始属性，基础属性加点，称号，技能，装备.参考枚举类型 AdditionSourceType")
-    additional_source_id = CustomColumn(Integer,cn="物品ID", comment="""
+    additional_source_type = CustomColumn(Integer, cn="属性", bind_type=AdditionSourceType,
+                                          comment="带来属性提升的物品类型，比如成就初始属性，基础属性加点，称号，技能，装备.参考枚举类型 AdditionSourceType")
+    additional_source_id = CustomColumn(Integer, cn="物品ID", comment="""
 带来属性提升的物品id。
 如果是初始属性，则此项为空。
 如果基础属性，则此项为character id。
@@ -24,9 +26,9 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
 如果是装备，则此项为stuff_record_id。
 如果是药剂，则此项为potion_id。
 如果是状态，则此项为status_id。
-    """)
+    """)  # todo
 
-    additional_source_property_index = CustomColumn(Integer,cn='属性索引', comment="""
+    additional_source_property_index = CustomColumn(Integer, cn='属性索引', comment="""
 带来属性提升的属性索引。
 
 如果是初始属性，则该项为0。
@@ -40,12 +42,13 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
     property_availability = CustomColumn(Integer,
                                          cn="作用域",
                                          bind_type=PropertyAvailability,
-                                   comment="属性的类型，参考PropertyAvailability。"
-                                           "对于装备来说：表明是最低属性，最高属性还是当前属性"
-                                           "对于技能来说，这个属性为作用的对象，自身或者是敌人")
+                                         comment="属性的类型，参考PropertyAvailability。"
+                                                 "对于装备来说：表明是最低属性，最高属性还是当前属性"
+                                                 "对于技能来说，这个属性为作用的对象，自身或者是敌人")
 
-    additional_property_type = CustomColumn(Integer,cn="属性",bind_type=AdditionalPropertyType, comment="参考AdditionalPropertyType")
-    additional_property_value = CustomColumn(Integer,cn="属性值", comment="对应参考AdditionalPropertyType的value")
+    additional_property_type = CustomColumn(Integer, cn="属性", bind_type=AdditionalPropertyType,
+                                            comment="参考AdditionalPropertyType")
+    additional_property_value = CustomColumn(Integer, cn="属性值", comment="对应参考AdditionalPropertyType的value")
 
     @classmethod
     def add_or_update_by_id(cls,
@@ -61,8 +64,7 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
 
                             property_availability: int = None,
                             ) -> "InitialSkillAchievementEquipmentPotionEtcPropertiesRecord":
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        property_record = cls._add_or_update_by_id(**fields)
+        property_record = cls._add_or_update_by_id(kwargs=locals())
         return property_record
 
     @classmethod
@@ -87,8 +89,7 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
 
             property_availability: int = None,
             ) -> 'InitialSkillAchievementEquipmentPotionEtcPropertiesRecord':
-        fields = cls.update_fields_from_signature(func=cls.add)
-        property_record = cls.add_with_kwargs(**fields)
+        property_record = cls.add_with_kwargs(kwargs=locals())
         return property_record
 
     @classmethod
@@ -197,8 +198,8 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
                                          additional_source_type: int,
                                          additional_source_id: int = None,
                                          ):
-        is_del_data = cls.del_all_by_kwargs(additional_source_type=additional_source_type,
-                                            additional_source_id=additional_source_id)
+
+        is_del_data = cls.del_all_by_kwargs(kwargs=locals())
         return is_del_data
 
     @classmethod
@@ -417,8 +418,7 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
                   property_availability: int = None,
                   additional_property_type: int = None,
                   ) -> bool:
-        fields = cls.update_fields_from_signature(func=cls.is_exists)
-        is_exists = cls.is_exists_by_kwargs(**fields)
+        is_exists = cls.is_exists_by_kwargs(kwargs=locals())
         return is_exists
 
     @classmethod
@@ -432,10 +432,7 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
 
                           additional_property_type: int = None,
                           ) -> List["InitialSkillAchievementEquipmentPotionEtcPropertiesRecord"]:
-
-        fields = cls.update_fields_from_signature(func=cls.is_exists)
-        property_records = cls.get_all_by(**fields)
-
+        property_records = cls.get_all_by_kwargs(kwargs=locals())
         return property_records
 
     # other
@@ -554,8 +551,9 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
                                                       *,
                                                       base_property_type: int,
                                                       ) -> DefaultDict[int, int]:
-        property_records = cls.get_all_by(additional_source_type=AdditionSourceType.BASE_ADDITIONAL.index,
-                                          base_property_type=base_property_type)
+        kwargs = locals()
+        kwargs['additional_source_type'] = AdditionSourceType.BASE_ADDITIONAL.index,
+        property_records = cls.get_all_by_kwargs(kwargs=kwargs)
         property_dict = defaultdict(int)
         for property_record in property_records:
             property_dict[property_record.additional_property_type] = property_record.additional_property_value

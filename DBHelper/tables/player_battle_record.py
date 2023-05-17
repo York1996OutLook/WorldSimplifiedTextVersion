@@ -13,10 +13,12 @@ class PlayerBattleRecord(Basic,Base):
     """
     __cn__ = "战斗记录表"
     __tablename__ = "player_battle_record"
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
+
     battle_type = CustomColumn(Integer, cn="战斗类型",bind_type=BattleType,comment="战斗类型,参考BattleType")
 
-    positive_character_id = CustomColumn(Integer, cn="主动角色ID",comment="主动攻击角色ID")
-    passive_character_id = CustomColumn(Integer, cn="被动角色ID",comment="被动攻击角色ID")
+    positive_character_id = CustomColumn(Integer, cn="主动角色ID",bind_table="Player",comment="主动攻击角色ID")
+    passive_character_id = CustomColumn(Integer, cn="被动角色ID",bind_table="Player",comment="被动攻击角色ID")
 
     positive_won = CustomColumn(Boolean, cn="挑战成功",comment="主动攻击人是否胜利")
     battle_text = CustomColumn(Text, cn="战斗过程",comment="战斗产生的文字说明")
@@ -41,8 +43,7 @@ class PlayerBattleRecord(Basic,Base):
         :param battle_text: 战斗产生的文字说明
         :return:
         """
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record
 
     # 改
@@ -70,7 +71,7 @@ class PlayerBattleRecord(Basic,Base):
         """
         查询主动攻击者是positive_id的所有战斗记录
         """
-        records=cls.get_all_by(positive_id=positive_id)
+        records=cls.get_all_by_kwargs(kwargs=locals())
         return records
 
     @classmethod
@@ -78,7 +79,7 @@ class PlayerBattleRecord(Basic,Base):
         """
         查询被动攻击者是passive_id的所有战斗记录
         """
-        records=cls.get_all_by(passive_id=passive_id)
+        records=cls.get_all_by_kwargs(kwargs=locals())
         return records
 
 def get_battles_by_battle_type(*, battle_type: BattleType):

@@ -6,16 +6,18 @@ from sqlalchemy import Integer, String, Float, Boolean
 from DBHelper.session import session
 from DBHelper.tables.base_table import Basic, Base
 from DBHelper.tables.base_table import CustomColumn, Timestamp
+from Enums import StuffType
 
 
 class PlayerSellStoreRecord(Basic, Base):
     __cn__ = "交易所"
     __tablename__ = 'player_sell_store_record'
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
 
-    owner_character_id = CustomColumn(Integer, cn="玩家ID", comment="参考player表")
+    owner_character_id = CustomColumn(Integer, cn="玩家ID", bind_table="Player", comment="参考player表")
 
-    stuff_type = CustomColumn(Integer, cn="物品类型", comment="物品类型")
-    stuff_record_id = CustomColumn(Integer, cn="物品ID", comment="物品记录ID")
+    stuff_type = CustomColumn(Integer, cn="物品类型", bind_type=StuffType, comment="物品类型")
+    stuff_record_id = CustomColumn(Integer, cn="物品ID", comment="物品记录ID")  # todo
 
     original_price = CustomColumn(Integer, cn="原始价格", comment='原始售价')
     initial_sell_timestamp = CustomColumn(Timestamp, cn="挂售时间", comment='初始挂售时间')
@@ -53,8 +55,7 @@ class PlayerSellStoreRecord(Basic, Base):
         :param taxed_price: 加税后价格;不足1则按照1进行计算
         :return:
         """
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record
 
 

@@ -37,10 +37,14 @@ Base = declarative_base()
 
 # 成就系统
 class Achievement(Entity, Base):
+
     __cn__ = "成就"
 
     __tablename__ = "achievement"
-    name = CustomColumn(String, cn='名称')  # 显式复制并设置 cn 属性
+
+    id = CustomColumn(Integer, cn="ID", primary_key=True)
+    name = CustomColumn(Text, cn='名称')  # 显式复制并设置 cn 属性
+
     achievement_type = CustomColumn(Integer, cn="成就类型", bind_type=AchievementType,comment="成就类型")
 
     condition_property_type = CustomColumn(Integer, cn="条件类型", bind_type=AchievementPropertyType,comment="达成条件对应的属性")
@@ -66,8 +70,7 @@ class Achievement(Entity, Base):
                               days_of_validity: int = None,
                               introduce: str = None,
                               ) -> "Achievement":
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_name)
-        record = cls._add_or_update_by_name(**fields)
+        record = cls._add_or_update_by_name(kwargs=locals())
         return record
 
     # 改
@@ -88,6 +91,5 @@ class Achievement(Entity, Base):
         """
         根据id进行查询，然后更新其他的参数
         """
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record

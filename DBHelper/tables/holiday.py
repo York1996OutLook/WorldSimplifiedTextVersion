@@ -13,7 +13,9 @@ Base = declarative_base()
 class Holiday(Entity,Base):
     __cn__ = "节日"
     __tablename__ = 'holiday'
-    name = CustomColumn(String, cn='名称')  # 显式复制并设置 cn 属性
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
+
+    name = CustomColumn(Text, cn='名称')  # 显式复制并设置 cn 属性
 
     month = CustomColumn(Integer,cn="月份", comment="月份")
     day = CustomColumn(Integer,cn="日期", comment="日期")
@@ -29,8 +31,7 @@ class Holiday(Entity,Base):
                               day: int = None,
                               calendar_type: int = None,
                               ) -> "Holiday":
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_name)
-        record = cls._add_or_update_by_name(**fields)
+        record = cls._add_or_update_by_name(kwargs=locals())
         return record
 
     @classmethod
@@ -44,8 +45,7 @@ class Holiday(Entity,Base):
             day: int = None,
             calendar_type: int = None,
     ) -> "Holiday":
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record
 
 

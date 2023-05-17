@@ -15,13 +15,14 @@ class PlayerSkillRecord(Basic, Base):
 
     __cn__ = "玩家技能表"
     __tablename__ = 'player_skill_record'
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
 
-    character_id = CustomColumn(Integer, comment="character_id")
+    character_id = CustomColumn(Integer,cn="玩家",bind_table="Player", comment="character_id")
 
-    skill_id = CustomColumn(Integer, comment="技能ID")
+    skill_id = CustomColumn(Integer,bind_table="Skill",cn="技能", comment="技能ID")
 
-    skill_level = CustomColumn(Integer, comment="已经学习的技能等级")
-    learning_timestamp = CustomColumn(Timestamp, comment="最后更新的时间戳")
+    skill_level = CustomColumn(Integer, cn="技能等级",comment="已经学习的技能等级")
+    learning_timestamp = CustomColumn(Timestamp,cn="更新时间", comment="最后更新的时间戳")
 
     @classmethod
     def add_or_update_by_id(cls,
@@ -41,8 +42,7 @@ class PlayerSkillRecord(Basic, Base):
         :param learning_timestamp: 学习时间
         :return:
         """
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record
 
 

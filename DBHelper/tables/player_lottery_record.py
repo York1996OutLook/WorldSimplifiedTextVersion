@@ -3,34 +3,34 @@ from sqlalchemy import Integer, String, Float, Boolean, desc
 
 from typing import Optional, List
 
-
 from DBHelper.session import session
-from DBHelper.tables.base_table import Basic,Base
-from DBHelper.tables.base_table import CustomColumn,Timestamp
+from DBHelper.tables.base_table import Basic, Base
+from DBHelper.tables.base_table import CustomColumn, Timestamp
 
 
-class PlayerLotteryRecord(Basic,Base):
+class PlayerLotteryRecord(Basic, Base):
     """
     玩家抽奖记录表
     """
     __cn__ = "玩家抽奖记录"
     __tablename__ = 'player_lottery_record'
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
 
-    character_id = CustomColumn(Integer, comment="角色ID")
+    character_id = CustomColumn(Integer, cn="玩家", bind_table="Player", comment="角色ID")
 
-    lottery_num = CustomColumn(Integer, comment="抽奖获得的数字;")
+    lottery_num = CustomColumn(Integer, cn="抽奖数字", comment="抽奖获得的数字;")
     lottery_timestamp = CustomColumn(Timestamp, comment="最后一次抽奖的时间戳;")
 
-    lucky_num = CustomColumn(Integer, comment="当天设置的幸运数字")
+    lucky_num = CustomColumn(Integer, cn="当天设置的辛运数字", comment="当天设置的幸运数字")
 
     @classmethod
     def add_or_update_by_id(cls, *,
-                       _id: int,
-                       character_id: int = None,
-                       lottery_num: int = None,
-                       lottery_timestamp: int = None,
-                       lucky_num: int = None
-                       ):
+                            _id: int,
+                            character_id: int = None,
+                            lottery_num: int = None,
+                            lottery_timestamp: int = None,
+                            lucky_num: int = None
+                            ):
         """
         更新或创建抽奖记录
         :param _id: 记录ID
@@ -40,8 +40,7 @@ class PlayerLotteryRecord(Basic,Base):
         :param lucky_num: 当天设置的幸运数字
         :return:
         """
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record
 
 

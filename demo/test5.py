@@ -1,45 +1,30 @@
-from sqlalchemy import Integer, String, Text, Boolean, Float, Column
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
+from PyQt5.QtWidgets import QWidget, QLabel, QGridLayout, QMessageBox,QPushButton
 
 
-class CustomColumn(Column):
-    def unique_params(self, *optionaldict, **kwargs):
-        pass
-
-    def params(self, *optionaldict, **kwargs):
-        pass
-
-    def __init__(self,
-                 *args,
-                 bind_type=None,
-                 cn: str = None,
-                 editable: bool = True,
-                 **kwargs):
-        super(CustomColumn, self).__init__(*args, **kwargs)
-        self.bind_type = bind_type
-        self.cn = cn
-        self.editable = editable
-
-
-class Entity:
-    # name = CustomColumn(String, cn=1)
-    name =1
-
+class YesNoDialog(QWidget):
     def __init__(self):
-        super(Entity, self).__init__()
-        Entity.name = CustomColumn(String, cn='名称')
+        super().__init__()
+
+        layout = QGridLayout()
+        self.yes_button = QPushButton('Yes')
+        self.yes_button.clicked.connect(self.on_yes_clicked)
+        layout.addWidget(self.yes_button, 0, 0)
+
+        self.no_button = QPushButton('No')
+        self.no_button.clicked.connect(self.on_no_clicked)
+        layout.addWidget(self.no_button, 0, 1)
+
+        self.setLayout(layout)
+        self.reply=None
+    def on_yes_clicked(self):
+        self.reply = QMessageBox.Yes
+        self.close()
+
+    def on_no_clicked(self):
+        self.reply = QMessageBox.No
+        self.close()
 
 
-class BattleStatus(Entity, Base):
-    """
-    战斗中的属性,比如中毒,火烧等等;
-    """
-
-    __cn__ = '战斗属性'
-    __tablename__ = "battle_status"
-    _id = CustomColumn(Integer, primary_key=True)
-
-
-print(BattleStatus.name)
+dialog = YesNoDialog()
+dialog.exec_()
+print(dialog.reply)

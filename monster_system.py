@@ -52,7 +52,7 @@ def main(*, verbose: bool = False):
             misc_properties.del_monster_prototype_properties(monster_id=one_monster.id)
             property_dict = monster_dict['属性']
             for property_name in property_dict:
-                property_type =  AdditionalPropertyType.name_index_dict[property_name]
+                property_type =  AdditionalPropertyType.name_dict[property_name]
                 value = property_dict[property_name]
                 misc_properties.add_monster_properties(
                     monster_id=one_monster.id,

@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Integer, String, Float, Boolean
+from sqlalchemy import Integer, String, Float, Boolean,Text
 from typing import Optional, List
 
 Base = declarative_base()
@@ -15,8 +15,9 @@ class Player(Entity, Base):
     """
     __cn__ = "玩家"
     __tablename__ = 'player'
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
 
-    name = CustomColumn(String, cn="昵称", comment='昵称(QQ昵称),不唯一!')
+    name = CustomColumn(Text, cn="昵称", comment='昵称(QQ昵称),不唯一!')
     player_id = CustomColumn(Integer, cn="QQ", comment="QQ")
 
     first_login_timestamp = CustomColumn(Timestamp, cn="第一次登陆时间", comment="第一次登录的时间戳")
@@ -43,8 +44,7 @@ class Player(Entity, Base):
                             gold_num: int = None,
                             achievement_id: int = None
                             ):
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record
 
     @classmethod
@@ -59,8 +59,7 @@ class Player(Entity, Base):
                               gold_num: int = None,
                               achievement_id: int = None
                               ) -> "Player":
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_name)
-        record = cls._add_or_update_by_name(**fields)
+        record = cls._add_or_update_by_name(kwargs=locals())
         return record
 
 

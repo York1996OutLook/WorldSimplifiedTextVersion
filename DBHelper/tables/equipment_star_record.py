@@ -17,8 +17,8 @@ class EquipmentStarRecord(Basic, Base):
     """
     __cn__ = "装备升星记录表"
     __tablename__ = 'equipment_star_record'
-
-    equipment_record_id = CustomColumn(Integer, cn='装备记录ID', comment="装备记录id")
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
+    equipment_record_id = CustomColumn(Integer, cn='装备', comment="装备记录id")  # todo
     cur_star_num = CustomColumn(Integer, cn="当前升星数量", comment="当前升星数量，如果没有星星，则不在此表中存储")
 
     @classmethod
@@ -28,8 +28,7 @@ class EquipmentStarRecord(Basic, Base):
                             equipment_record_id: int = None,
                             cur_star_num: int = None,
                             ):
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record
 
 # 增

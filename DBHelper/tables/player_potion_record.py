@@ -3,23 +3,24 @@ from typing import List
 
 from sqlalchemy import Integer
 from sqlalchemy.ext.declarative import declarative_base
-from DBHelper.tables.base_table import CustomColumn,Timestamp
+from DBHelper.tables.base_table import CustomColumn, Timestamp
 
 from DBHelper.session import session
-from DBHelper.tables.base_table import Basic,Base
+from DBHelper.tables.base_table import Basic, Base
 
 
-class PlayerPotionRecord(Basic,Base):
+class PlayerPotionRecord(Basic, Base):
     """
     将玩家使用的药品记录下来。每个用户仅有一个使用药剂记录,使用新的药剂会替换原有药剂;
     """
     __cn__ = "玩家药剂使用"
     __tablename__ = "player_potion_record"
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
 
-    character_id = CustomColumn(Integer, cn="人物ID",comment="药剂使用者的人物ID")
-    potion_id = CustomColumn(Integer, cn="药剂ID",comment="药剂类ID")
+    character_id = CustomColumn(Integer, bind_table="Player", cn="人物ID", comment="药剂使用者的人物ID")
+    potion_id = CustomColumn(Integer, cn="药剂ID",bind_table="Potion", comment="药剂类ID")
 
-    take_timestamp = CustomColumn(Timestamp, cn="使用时间",comment="药剂类最新的使用时间")
+    take_timestamp = CustomColumn(Timestamp, cn="使用时间", comment="药剂类最新的使用时间")
 
     @classmethod
     def add_or_update_by_id(cls,
@@ -37,9 +38,9 @@ class PlayerPotionRecord(Basic,Base):
         :param take_timestamp: 药剂类最新的使用时间
         :return: Record
         """
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record
+
 
 # 删
 
@@ -55,6 +56,5 @@ def get_by_character_id(*, character_id: int) -> PlayerPotionRecord:
     """
     record = session.query(PlayerPotionRecord).filter(PlayerPotionRecord.character_id == character_id).first()
     return record
-
 
 # other

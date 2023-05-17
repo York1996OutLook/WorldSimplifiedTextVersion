@@ -22,6 +22,7 @@ class ExpBook(Entity, Base):
     __cn__ = "经验书"
 
     __tablename__ = 'exp_book'
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
     name = CustomColumn(Integer, cn="名称")
 
     book_type = CustomColumn(Integer, cn="类型", bind_type=ExpBookType, comment="经验书的类型,目前只有一种:人物")
@@ -39,8 +40,7 @@ class ExpBook(Entity, Base):
 
                               is_bind: bool = None
                               ) -> "ExpBook":
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_name)
-        record = cls._add_or_update_by_name(**fields)
+        record = cls._add_or_update_by_name(kwargs=locals())
         return record
 
     # 改
@@ -56,6 +56,5 @@ class ExpBook(Entity, Base):
 
             is_bind: bool = None
     ) -> "ExpBook":
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record

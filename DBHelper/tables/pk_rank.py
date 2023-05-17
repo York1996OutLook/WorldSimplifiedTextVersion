@@ -13,24 +13,24 @@ class PK_Rank(Basic, Base):
     """
     __cn__ = "pk排行榜"
     __tablename__ = 'pk_rank'
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
 
     pk_rank = CustomColumn(Integer, cn="排行", comment="pk排名次")
-    character_id = CustomColumn(Integer, cn="玩家ID", comment="")
+    character_id = CustomColumn(Integer, cn="玩家", bind_table="Player", comment="")
 
     @classmethod
     def add_or_update_by_id(cls,
                             *,
                             _id: int = None,
                             pk_rank: int = None,
-                            player_id: int = None
+                            character_id: int = None
                             ):
         """
         更新或创建PK排名记录
         :param _id: 记录ID
         :param pk_rank: PK排名
-        :param player_id: QQ
+        :param character_id:
         :return:
         """
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record

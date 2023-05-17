@@ -19,8 +19,9 @@ class MonsterShowUpRecord(Basic,Base):
     __cn__ = "怪物出现记录"
 
     __tablename__ = 'monster_show_up_record'
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
 
-    monster_id = CustomColumn(Integer,cn="怪物ID", comment='怪物id')
+    monster_id = CustomColumn(Integer,cn="怪物",bind_table="Monster", comment='怪物id')
 
     date_type = CustomColumn(Integer,cn="日期类型", comment="出现的日期类型,DateType")
     date_value = CustomColumn(Integer,cn='日期', comment="确定date_type后,再确定具体的时间")
@@ -32,8 +33,7 @@ class MonsterShowUpRecord(Basic,Base):
                        date_value: int=None
                        ):
 
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record
 
 

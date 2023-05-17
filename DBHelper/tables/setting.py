@@ -1,9 +1,9 @@
 import os
 import os.path as osp
 
-from sqlalchemy import Integer, String,Text
+from sqlalchemy import Integer, String, Text
 from sqlalchemy.ext.declarative import declarative_base
-from DBHelper.tables.base_table import CustomColumn
+from DBHelper.tables.base_table import CustomColumn,MultiLineText
 
 from typing import List
 
@@ -16,7 +16,7 @@ from DBHelper.session import session
 from DBHelper.tables.base_table import Entity
 
 
-class Setting(Entity,Base):
+class Setting(Entity, Base):
     """
     比如:
     一个人最多可以学习多少个技能,10
@@ -38,22 +38,21 @@ class Setting(Entity,Base):
     __cn__ = "设置"
 
     __tablename__ = 'setting'
-    name = CustomColumn(String, cn='名称')  # 显式复制并设置 cn 属性
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
 
+    name = CustomColumn(Text, cn='名称')  # 显式复制并设置 cn 属性
 
-    value = CustomColumn(String, cn="值",comment="设置的值,如果是数字,则将字符串转换为数字;")
-    comment = CustomColumn(Text, cn="备注",comment="注释,备忘录")
+    value = CustomColumn(Text, cn="值", comment="设置的值,如果是数字,则将字符串转换为数字;")
+    comment = CustomColumn(MultiLineText, cn="备注", comment="注释,备忘录")
 
     @classmethod
     def add_or_update_by_name(cls,
                               *,
                               name: str,
-                              value: str=None,
+                              value: str = None,
                               comment: str = None
                               ) -> "Setting":
-
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_name)
-        record = cls._add_or_update_by_name(**fields)
+        record = cls._add_or_update_by_name(kwargs=locals())
         return record
 
     @classmethod
@@ -65,10 +64,8 @@ class Setting(Entity,Base):
             name: str = None,
             value: str = None,
             comment: str = None
-            ) -> "Setting":
-
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+    ) -> "Setting":
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record
 
 

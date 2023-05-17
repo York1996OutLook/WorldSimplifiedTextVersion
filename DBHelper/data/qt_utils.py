@@ -2,17 +2,17 @@
 
 from collections import defaultdict
 import inspect
-from typing import List, Dict
+from typing import List, Dict, Any
 
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QLineEdit, \
-    QPushButton, QListWidget, QMessageBox, QFrame, QComboBox, QDateTimeEdit
+    QPushButton, QListWidget, QMessageBox, QFrame, QComboBox, QDateTimeEdit,QTextEdit
 from PyQt5.QtCore import pyqtSignal, pyqtBoundSignal, QMetaObject
 import PyQt5.QtGui as QtGui
 
 from DBHelper.tables.base_table import Basic
 from DBHelper.db import *
-from Enums import DataType, AdditionSourceType, Item
+from Enums import DataType, AdditionSourceType, Item, StuffType
 
 
 class TableItemList:
@@ -20,8 +20,8 @@ class TableItemList:
         TableItem.item_list = self
 
         self.items: [TableItem] = []
-        self.name_index_dict = defaultdict(None)
-        self.index_name_dict = defaultdict(None)
+        self.name_dict = defaultdict(None)
+        self.index_dict = defaultdict(None)
         self.counter: int = 0
 
     def clear(self):
@@ -31,21 +31,23 @@ class TableItemList:
         return self.items
 
     def get_by_index(self, *, index: int) -> "TableItem":
-        return self.index_name_dict[index]
+        return self.index_dict[index]
 
     def get_by_name(self, *, name: str) -> "TableItem":
-        return self.name_index_dict[name]
+        return self.name_dict[name]
 
 
 class TableItem:
     item_list: TableItemList = None
 
     def __init__(self, *,
-                 table_class=None,
+                 table_class=None,  # orm class 类型
                  comment: str = '',
                  index: int = None,
                  addition_source_type: Item = None,
-                 editable: bool = True
+                 bind_stuff_type: Item = None,
+                 editable: bool = True,
+                 is_entity: bool = None,
                  ):
         if index:
             self.index = index
@@ -57,15 +59,17 @@ class TableItem:
         self.comment = comment
         self.addition_source_type = addition_source_type
         self.editable = editable
+        self.is_entity = is_entity
+        self.bind_stuff_type = bind_stuff_type
 
         self.item_list.items.append(self)
-        if self.name in self.item_list.name_index_dict:
+        if self.name in self.item_list.name_dict:
             raise ValueError(f"name:{self.name} is already exists!")
-        if self.name in self.item_list.name_index_dict:
+        if self.name in self.item_list.index_dict:
             raise ValueError(f"index:{self.index} is already exists!")
 
-        self.item_list.name_index_dict[self.name] = self
-        self.item_list.index_name_dict[self.index] = self
+        self.item_list.name_dict[self.name] = self
+        self.item_list.index_dict[self.index] = self
 
     def __repr__(self):
         return f'TableItem( table_class:{self.table_class}  ' \
@@ -75,21 +79,30 @@ class TableItem:
 
 class TableItems:
     item_list = TableItemList()
-    achievement = TableItem(table_class=Achievement, addition_source_type=AdditionSourceType.ACHIEVEMENT_TITLE)
-    skill = TableItem(table_class=SkillBook, addition_source_type=AdditionSourceType.SKILL_BOOK)
-    battle_status = TableItem(table_class=BattleStatus, addition_source_type=AdditionSourceType.STATUS)
+    achievement = TableItem(table_class=Achievement,
+                            addition_source_type=AdditionSourceType.ACHIEVEMENT_TITLE)
+    skill = TableItem(table_class=SkillBook,
+                      addition_source_type=AdditionSourceType.SKILL_BOOK)
+    battle_status = TableItem(table_class=BattleStatus,
+                              addition_source_type=AdditionSourceType.STATUS)
     achievement_title_book = TableItem(table_class=AchievementTitleBook)
-    monster = TableItem(table_class=Monster, addition_source_type=AdditionSourceType.MONSTER)
-    potion = TableItem(table_class=Potion, addition_source_type=AdditionSourceType.POTION)
+    monster = TableItem(table_class=Monster,
+                        addition_source_type=AdditionSourceType.MONSTER,
+                        bind_stuff_type=StuffType.MONSTER,
+                        )
+    potion = TableItem(table_class=Potion,
+                       addition_source_type=AdditionSourceType.POTION)
     player_or_monster_skill_setting = TableItem(table_class=PlayerOrMonsterSkillSetting)
 
     setting = TableItem(table_class=Setting)
     dust = TableItem(table_class=Dust)
     gem = TableItem(table_class=Gem)
-    box = TableItem(table_class=Box)
+    box = TableItem(table_class=Box, bind_stuff_type=StuffType.BOX)
     exp_book = TableItem(table_class=ExpBook)
     holiday = TableItem(table_class=Holiday)
-    equipment = TableItem(table_class=Equipment)
+    equipment = TableItem(table_class=Equipment,
+                          addition_source_type=AdditionSourceType.EQUIPMENT_PROTOTYPE,
+                          bind_stuff_type=StuffType.EQUIPMENT)
 
     equipment_quality_dust_num = TableItem(table_class=EquipmentQualityDustNum)
     identify_book = TableItem(table_class=IdentifyBook)
@@ -112,13 +125,17 @@ class TableItems:
     equipment_gem_record = TableItem(table_class=EquipmentGemRecord, editable=False)
     equipment_star_record = TableItem(table_class=EquipmentStarRecord, editable=False)
 
-    player = TableItem(table_class=Player, addition_source_type=AdditionSourceType.PLAYER, editable=False)
+    player = TableItem(table_class=Player,
+                       addition_source_type=AdditionSourceType.PLAYER,
+                       editable=False)
     sell_store = TableItem(table_class=PlayerSellStoreRecord, editable=False)
-    pk_rank = TableItem(table_class=PK_Rank, editable=False)
+    pk_rank = TableItem(table_class=PK_Rank,
+                        addition_source_type=AdditionSourceType.PK_RANK,
+                        editable=False)
     player_battle_record = TableItem(table_class=PlayerBattleRecord, editable=False)
     # base_property = '5大基础属性'  # 稍后再决定如何实现非单独定义表格数据的实现
 
-    default = achievement_title_book
+    default = setting
 
 
 class BaseWidget(QWidget):
@@ -132,7 +149,7 @@ class BaseWidget(QWidget):
         elif width > 1920 or height > 1080:
             font_size = 8  # 1080p及以上屏幕
         else:
-            font_size = 6  # 普通屏幕
+            font_size = 10  # 普通屏幕
         font = QtGui.QFont()
         font.setPointSize(font_size)
         self.setFont(font)
@@ -141,7 +158,7 @@ class BaseWidget(QWidget):
         try:
             self.disconnect()
         except:
-            return
+            return False
 
     def right(self):
         return self.geometry().right()
@@ -172,16 +189,54 @@ class MyLineText(QLineEdit, BaseWidget):
     def focusOutEvent(self, a0: QtGui.QFocusEvent) -> None:
         self.setStyleSheet(self.style_sheet_default)
 
-    def set_text(self, *, text: str or int or None) -> None:
+    def set_text(self, *, text: str or int or bool or None) -> None:
         if text is None:
             print("None->空字符串")
             text = ""
         if type(text) == int:
             text = str(text)
+        if type(text) == bool:
+            text = str(text)
         self.setText(text)
 
     def text(self) -> str:
         return super(MyLineText, self).text().strip()
+
+
+class MyMultiLineText(QTextEdit, BaseWidget):
+    focus: pyqtBoundSignal = pyqtSignal(int, str)
+    text_change: pyqtBoundSignal = pyqtSignal(int, str)
+
+    def __init__(self, *, index: int = -1):
+        super().__init__()
+        self.index = index
+        self.textChanged.connect(self.text_change_event)
+        self.style_sheet_focused = 'border: 2px solid blue;'
+        self.style_sheet_default = 'border: 1px solid black;'
+
+    def text_change_event(self):
+        self.setStyleSheet(self.style_sheet_focused)
+        self.text_change.emit(self.index, self.text())
+
+    def focusInEvent(self, a0: QtGui.QFocusEvent) -> None:
+        self.setStyleSheet(self.style_sheet_focused)
+        self.focus.emit(self.index, self.text())
+
+    def focusOutEvent(self, a0: QtGui.QFocusEvent) -> None:
+        self.setStyleSheet(self.style_sheet_default)
+
+    def set_text(self, *, text: str or int or bool or None) -> None:
+        if text is None:
+            print("None->空字符串")
+            text = ""
+        if type(text) == int:
+            text = str(text)
+        if type(text) == bool:
+            text = str(text)
+        self.setText(text)
+
+    def text(self) -> str:
+        return super(MyMultiLineText, self).toPlainText().strip()
 
 
 class MyButton(QPushButton, BaseWidget):
@@ -227,7 +282,9 @@ class MyComboBox(QComboBox, BaseWidget):
     def __init__(self):
         super(MyComboBox, self).__init__()
 
-    def set_text(self, *, text: str):
+    def set_text(self, *, text: str or bool):
+        if type(text) == bool:
+            text = str(text)
         self.setCurrentText(text)
 
     def text(self):
@@ -245,27 +302,38 @@ class EditWidgetType:
     long_text = 3
     bool_combo_box = 4
     date_time_box = 5
+    multiline_text_box = 6
 
 
-class DataEdit:
+class ColumnEdit:
     def __init__(self, *,
                  data_type: DataType,
                  key: str,
                  cn: str,
                  edit_widget_type: EditWidgetType,
-                 choices=None,
+                 bind_type=None,  # enums里面的枚举类型。包含item list 和 default
+                 bind_table: Basic = None,  #
+                 choices: List[str] = None,
                  editable: bool = True,
-                 default=None):
+                 default: Any = None):
+
+        if bind_type is not None and bind_table is not None:
+            raise ValueError("table 和 type只能指定一个")
         self.data_type = data_type
         self.key = key
         self.cn = cn
         self.edit_widget_type = edit_widget_type
+        self.bind_type = bind_type  # bind_type 和 bind_type只能有一个
+        self.bind_table = bind_table
         self.choices = choices
         self.editable = editable
 
+        self.edit_label:MyLabel = None
         self.edit_widget: MyLineText or MyComboBox or MyListBox = None
 
         self.default = default
+
+
 
 
 class StatuesWidgets:
@@ -291,24 +359,48 @@ class PropertyWidgets:
     def __init__(self,
                  *,
                  index_label: MyLabel,
-                 name_text: MyLineText,
+                 property_input_text: MyLineText,
 
-                 # target_label: MyLabel,
-                 # target_combo_box: QComboBox,
+                 availability_label: MyLabel,
                  availability_combo_box: MyComboBox,
+
                  name_label: MyLabel,
                  value_text: MyLineText):
         self.index_label = index_label
-        self.name_text = name_text
-
-        # self.target_label = target_label
-        # self.target_combo_box = target_combo_box
+        self.name_input_text = property_input_text
 
         self.name_label = name_label
         self.value_text = value_text
 
+        self.availability_label = availability_label
         self.availability_combo_box = availability_combo_box
-        print(1)
+
+
+class DropStuffWidgets:
+    """
+    和属性相关的若干控件
+    """
+
+    def __init__(self,
+                 *,
+                 index_label: MyLabel,
+                 name_input_text: MyLineText,
+
+                 stuff_type_label: MyLabel,
+                 stuff_type_combo_box: MyComboBox,
+
+                 name_label: MyLabel,
+                 prob_label: MyLabel,
+                 prob_value_text: MyLineText):
+        self.index_label = index_label
+        self.name_input_text = name_input_text
+
+        self.stuff_type_label = stuff_type_label
+        self.stuff_type_combo_box = stuff_type_combo_box
+
+        self.name_label = name_label
+        self.prob_label = prob_label
+        self.prob_value_text = prob_value_text
 
 
 def set_geo(*,

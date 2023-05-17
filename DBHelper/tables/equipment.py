@@ -16,7 +16,8 @@ class Equipment(Entity, Base):
     """
     __cn__ = "装备原型"
     __tablename__ = 'equipment'
-    name = CustomColumn(String, cn='名称')  # 显式复制并设置 cn 属性
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
+    name = CustomColumn(Text, cn='名称')  # 显式复制并设置 cn 属性
 
     part = CustomColumn(Integer, cn="类型/部位",bind_type=PartType, comment="所属位置,请参考Part枚举类型")
 
@@ -41,8 +42,7 @@ class Equipment(Entity, Base):
                               introduction: str = None,
                               is_bind: bool = None
                               ) -> "Equipment":
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_name)
-        record = cls._add_or_update_by_name(**fields)
+        record = cls._add_or_update_by_name(kwargs=locals())
         return record
 
     # 改
@@ -61,6 +61,5 @@ class Equipment(Entity, Base):
             introduction: str = None,
             is_bind: bool = None
     ) -> "Equipment":
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record

@@ -20,19 +20,18 @@ class Box(Entity, Base):
     __cn__ = "宝箱"
 
     __tablename__ = 'box'
-    name = CustomColumn(String, cn='名称')  # 显式复制并设置 cn 属性
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
+    name = CustomColumn(Text, cn='名称')  # 显式复制并设置 cn 属性
 
     is_bind = CustomColumn(Boolean,  cn='是否绑定',comment="是否已经绑定")
     introduction = CustomColumn(Text,  cn='介绍',comment="说明")
 
     @classmethod
     def add_or_update_by_name(cls, *, name: str, is_bind: bool = None, introduction: str = None):
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_name(**fields)
+        record = cls._add_or_update_by_name(kwargs=locals())
         return record
 
     @classmethod
     def add_or_update_by_id(cls, *, _id: int, is_bind: bool = None, introduction: str = None):
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record

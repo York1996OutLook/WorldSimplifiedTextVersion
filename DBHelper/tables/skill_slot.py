@@ -1,7 +1,7 @@
 from typing import List
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Integer, String, Boolean
+from sqlalchemy import Integer, String, Boolean,Text
 
 from DBHelper.session import session
 from Enums import StatusType
@@ -16,7 +16,9 @@ class SkillSlot(Entity, Base):
     """
     __cn__ = "人物技能槽"
     __tablename__ = "skill_slot"
-    name = CustomColumn(String, cn='名称')  # 显式复制并设置 cn 属性
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
+
+    name = CustomColumn(Text, cn='名称')  # 显式复制并设置 cn 属性
 
     is_bind = CustomColumn(Boolean, cn="是否绑定",comment="是否绑定")
 
@@ -26,8 +28,7 @@ class SkillSlot(Entity, Base):
                               name: str,
                               is_bind: bool = None,
                               ) -> "SkillSlot":
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_name)
-        record = cls._add_or_update_by_name(**fields)
+        record = cls._add_or_update_by_name(kwargs=locals())
         return record
 
     @classmethod
@@ -37,6 +38,5 @@ class SkillSlot(Entity, Base):
             _id: int,
             name: str = None,
     ) -> "SkillSlot":
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record

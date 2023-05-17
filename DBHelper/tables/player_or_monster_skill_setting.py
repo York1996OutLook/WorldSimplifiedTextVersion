@@ -16,12 +16,13 @@ class PlayerOrMonsterSkillSetting(Basic, Base):
     """
     __cn__ = "技能设置"
     __tablename__ = 'player_or_monster_skill_setting'
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
 
     being_type = CustomColumn(Integer, cn="生物类型", bind_type=BeingType, comment="参考枚举类型,being_type")
-    character_or_monster_id = CustomColumn(Integer, cn="生物ID", comment="character_id or monster_id")  # 参考人物表
+    character_or_monster_id = CustomColumn(Integer, cn="生物ID", comment="character_id or monster_id")  # 参考人物表 todo
 
     round_index = CustomColumn(Integer, cn="回合", comment="第n回合,从1开始")
-    skill_book_id = CustomColumn(Integer, cn="技能书ID", comment="技能书,其中包含了技能名称和技能等级")
+    skill_book_id = CustomColumn(Integer, cn="技能书ID",bind_table="SkillBook", comment="技能书,其中包含了技能名称和技能等级")
 
     setting_timestamp = CustomColumn(Timestamp, cn="技能更新时间戳", comment="技能设置的时间戳")
 
@@ -44,8 +45,7 @@ class PlayerOrMonsterSkillSetting(Basic, Base):
         :param setting_timestamp: 技能设置的时间戳
         :return:
         """
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record
 
 

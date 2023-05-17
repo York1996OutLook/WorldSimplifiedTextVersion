@@ -16,6 +16,7 @@ class RaiseStarProb(Basic,Base):
     __cn__ = "装备升星概率"
 
     __tablename__ = 'raise_star_prob'
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
 
     star_count = CustomColumn(Integer, cn="升星数量",comment="当前升星数量")
     success_prob = CustomColumn(Integer, cn="成功概率",comment="从上一星星数量升级到当前数量的星星成功的概率,100为决定成功,0是无法成功")
@@ -34,8 +35,7 @@ class RaiseStarProb(Basic,Base):
         :param success_prob: 从上一星星数量升级到当前数量的星星成功的概率,100为决定成功,0是无法成功
         :return:
         """
-        fields = cls.update_fields_from_signature(func=cls.add_or_update_by_id)
-        record = cls._add_or_update_by_id(**fields)
+        record = cls._add_or_update_by_id(kwargs=locals())
         return record
 
     @classmethod

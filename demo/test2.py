@@ -5,7 +5,7 @@ class Item:
     _tags = dict()
     _items = []
     _name_index_dict = defaultdict(dict)
-    _index_name_dict = defaultdict(dict)
+    _index_dict = defaultdict(dict)
 
     def __init__(self, *, tag: str, name: str, comment: str = ''):
         self.tag = tag
@@ -20,7 +20,7 @@ class Item:
         Item._items.append(self)
 
         Item._name_index_dict[self.tag].update({self.name: self.index})
-        Item._index_name_dict[self.tag].update({self.index: self.name})
+        Item._index_dict[self.tag].update({self.index: self.name})
 
     @classmethod
     def clear(cls):
@@ -33,8 +33,8 @@ class Item:
 
     @classmethod
     def get_name_by_index(cls, *, tag: str, index: int):
-        if index in Item._index_name_dict[tag]:
-            return Item._index_name_dict[tag][index]
+        if index in Item._index_dict[tag]:
+            return Item._index_dict[tag][index]
         else:
             raise KeyError('no such index')
 
