@@ -6,7 +6,7 @@ from typing import List, Dict, Any
 
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QLineEdit, \
-    QPushButton, QListWidget, QMessageBox, QFrame, QComboBox, QDateTimeEdit,QTextEdit
+    QPushButton, QListWidget, QMessageBox, QFrame, QComboBox, QDateTimeEdit, QTextEdit, QScrollArea
 from PyQt5.QtCore import pyqtSignal, pyqtBoundSignal, QMetaObject
 import PyQt5.QtGui as QtGui
 
@@ -48,6 +48,7 @@ class TableItem:
                  bind_stuff_type: Item = None,
                  editable: bool = True,
                  is_entity: bool = None,
+                 sub_type_field: str = None,
                  ):
         if index:
             self.index = index
@@ -61,6 +62,11 @@ class TableItem:
         self.editable = editable
         self.is_entity = is_entity
         self.bind_stuff_type = bind_stuff_type
+        self.sub_type_field = sub_type_field    # 第一级类型划分
+
+        self.sub_type_field_column=None
+        self.sub_type_field_column_bind_type=None
+        self.sub_type_index=None
 
         self.item_list.items.append(self)
         if self.name in self.item_list.name_dict:
@@ -80,7 +86,8 @@ class TableItem:
 class TableItems:
     item_list = TableItemList()
     achievement = TableItem(table_class=Achievement,
-                            addition_source_type=AdditionSourceType.ACHIEVEMENT_TITLE)
+                            addition_source_type=AdditionSourceType.ACHIEVEMENT_TITLE,
+                            sub_type_field="achievement_type")
     skill = TableItem(table_class=SkillBook,
                       addition_source_type=AdditionSourceType.SKILL_BOOK)
     battle_status = TableItem(table_class=BattleStatus,
@@ -135,7 +142,7 @@ class TableItems:
     player_battle_record = TableItem(table_class=PlayerBattleRecord, editable=False)
     # base_property = '5大基础属性'  # 稍后再决定如何实现非单独定义表格数据的实现
 
-    default = setting
+    default = achievement
 
 
 class BaseWidget(QWidget):
@@ -166,25 +173,34 @@ class BaseWidget(QWidget):
     def left(self):
         return self.geometry().left()
 
+    def top(self):
+        return self.geometry().top()
+
+    def bottom(self):
+        return self.geometry().bottom()
 
 class MyLineText(QLineEdit, BaseWidget):
-    focus: pyqtBoundSignal = pyqtSignal(int, str)
-    text_change: pyqtBoundSignal = pyqtSignal(int, str)
+    focus: pyqtBoundSignal = pyqtSignal(int, int, str)
+    text_change: pyqtBoundSignal = pyqtSignal(int, int, str)
 
-    def __init__(self, *, index: int = -1):
+    def __init__(self, *, main_index: int = 0, sub_index=0, text: str = ""):
         super().__init__()
-        self.index = index
+        self.main_index = main_index
+        self.sub_index = sub_index
         self.textChanged.connect(self.text_change_event)
         self.style_sheet_focused = 'border: 2px solid blue;'
         self.style_sheet_default = 'border: 1px solid black;'
 
+        if text:
+            self.setText(text)
+
     def text_change_event(self, ev):
         self.setStyleSheet(self.style_sheet_focused)
-        self.text_change.emit(self.index, self.text())
+        self.text_change.emit(self.main_index, self.sub_index, self.text())
 
     def focusInEvent(self, a0: QtGui.QFocusEvent) -> None:
         self.setStyleSheet(self.style_sheet_focused)
-        self.focus.emit(self.index, self.text())
+        self.focus.emit(self.main_index, self.sub_index, self.text())
 
     def focusOutEvent(self, a0: QtGui.QFocusEvent) -> None:
         self.setStyleSheet(self.style_sheet_default)
@@ -245,6 +261,21 @@ class MyButton(QPushButton, BaseWidget):
         self.setText(text)
 
 
+class MyAddSubButton(QPushButton, BaseWidget):
+    push: pyqtBoundSignal = pyqtSignal(int, int)
+
+    def __init__(self, *, text: str, main_index: int, sub_index: int = 0):
+        super().__init__()
+        self.setText(text)
+        self.main_index = main_index
+        self.sub_index = sub_index
+
+        self.clicked.connect(self.click_button)
+
+    def click_button(self) -> None:
+        self.push.emit(self.main_index, self.sub_index + 1)
+
+
 class MyListBox(QListWidget, BaseWidget):
     def __init__(self):
         super().__init__()
@@ -262,8 +293,15 @@ class MyFrame(QFrame, BaseWidget):
         self.setStyleSheet(self.style_sheet)
 
 
+class MyScrollArea(QScrollArea, BaseWidget):
+    def __init__(self):
+        super(MyScrollArea, self).__init__()
+        self.style_sheet = 'border: 1px solid black;'
+        self.setStyleSheet(self.style_sheet)
+
+
 class MyLabel(QLabel, BaseWidget):
-    def __init__(self, label_text: str = ""):
+    def __init__(self, *, label_text: str = ""):
         super(MyLabel, self).__init__()
         self.set_text(text=label_text)
         self.style_sheet = 'border: 1px solid black;'
@@ -316,7 +354,6 @@ class ColumnEdit:
                  choices: List[str] = None,
                  editable: bool = True,
                  default: Any = None):
-
         if bind_type is not None and bind_table is not None:
             raise ValueError("table 和 type只能指定一个")
         self.data_type = data_type
@@ -328,12 +365,10 @@ class ColumnEdit:
         self.choices = choices
         self.editable = editable
 
-        self.edit_label:MyLabel = None
+        self.edit_label: MyLabel = None
         self.edit_widget: MyLineText or MyComboBox or MyListBox = None
 
         self.default = default
-
-
 
 
 class StatuesWidgets:
@@ -358,22 +393,65 @@ class PropertyWidgets:
 
     def __init__(self,
                  *,
+                 add_sub_property_button: MyButton,
                  index_label: MyLabel,
-                 property_input_text: MyLineText,
-
-                 availability_label: MyLabel,
-                 availability_combo_box: MyComboBox,
+                 name_input_text: MyLineText,
 
                  name_label: MyLabel,
-                 value_text: MyLineText):
+                 min_value_label: MyLabel,
+                 min_value_text: MyLineText,
+                 max_value_label: MyLabel,
+                 max_value_text: MyLineText,
+
+                 temp_value_label: MyLabel,
+                 temp_value_text: MyLineText,
+
+                 cur_value_label: MyLabel,
+                 cur_value_text: MyLineText,
+                 ):
+        self.add_sub_property_button = add_sub_property_button
         self.index_label = index_label
-        self.name_input_text = property_input_text
+        self.name_input_text = name_input_text
 
         self.name_label = name_label
-        self.value_text = value_text
 
-        self.availability_label = availability_label
-        self.availability_combo_box = availability_combo_box
+        self.min_value_label = min_value_label
+        self.min_value_text = min_value_text
+        self.max_value_label = max_value_label
+        self.max_value_text = max_value_text
+
+        self.temp_value_label = temp_value_label
+        self.temp_value_text = temp_value_text
+
+        self.cur_value_label = cur_value_label
+        self.cur_value_text = cur_value_text
+
+        self.all_widgets = [
+            add_sub_property_button,
+            index_label,
+
+            name_input_text,
+            name_label,
+
+            min_value_label,
+            min_value_text,
+            max_value_label,
+            max_value_text,
+
+            temp_value_label,
+            temp_value_text,
+
+            cur_value_label,
+            cur_value_text,
+        ]
+        self.should_clear_widgets = [
+            name_input_text,
+
+            min_value_text,
+            max_value_text,
+            temp_value_text,
+            cur_value_text,
+        ]
 
 
 class DropStuffWidgets:
@@ -401,6 +479,23 @@ class DropStuffWidgets:
         self.name_label = name_label
         self.prob_label = prob_label
         self.prob_value_text = prob_value_text
+
+        self.all_widgets = [
+            index_label,
+            name_input_text,
+            name_input_text,
+            stuff_type_label,
+            stuff_type_combo_box,
+            name_label,
+            prob_label,
+            prob_value_text,
+        ]
+        self.should_clear_widgets = [
+            name_input_text,
+            stuff_type_label,
+            prob_value_text,
+            stuff_type_combo_box,
+        ]
 
 
 def set_geo(*,

@@ -13,7 +13,7 @@ from Enums import AdditionSourceType, AdditionalPropertyType, PropertyAvailabili
 class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
     """初始属性，基础属性加点、技能、装备(最大，最小，当前)、称号，临时药剂等常见的所有属性表，为永久表"""
     __tablename__ = 'initial_skill_achievement_equipment_etc_properties_record'
-    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False,autoincrement=True)
+    id = CustomColumn(Integer, cn="ID", primary_key=True, editable=False, autoincrement=True)
 
     additional_source_type = CustomColumn(Integer, cn="属性", bind_type=AdditionSourceType,
                                           comment="带来属性提升的物品类型，比如成就初始属性，基础属性加点，称号，技能，装备.参考枚举类型 AdditionSourceType")
@@ -39,6 +39,9 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
 如果是药剂，则此项为1 2 3...。
 如果是状态，则此项为1 2 3...。
     """)
+    additional_source_property_index_sub_index = CustomColumn(Integer, cn='属性索引子索引', comment="""
+    比如第一条属性会有多种可能性的时候，会存在这个值
+        """)
     property_availability = CustomColumn(Integer,
                                          cn="作用域",
                                          bind_type=PropertyAvailability,
@@ -61,6 +64,7 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
 
                             additional_source_id: int = None,
                             additional_source_property_index: int = None,
+                            additional_source_property_index_sub_index: int = None,
 
                             property_availability: int = None,
                             ) -> "InitialSkillAchievementEquipmentPotionEtcPropertiesRecord":
@@ -86,6 +90,7 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
             additional_property_value: int = None,
 
             additional_source_property_index: int = None,
+            additional_source_property_index_sub_index: int = None,
 
             property_availability: int = None,
             ) -> 'InitialSkillAchievementEquipmentPotionEtcPropertiesRecord':
@@ -99,11 +104,7 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
                               additional_property_type: int,
                               additional_property_value: int,
                               ) -> 'InitialSkillAchievementEquipmentPotionEtcPropertiesRecord':
-        property_record = cls.add(additional_source_type=AdditionSourceType.PLAYER.index,
-                                  additional_source_id=character_id,
-                                  additional_property_type=additional_property_type,
-                                  additional_property_value=additional_property_value,
-                                  )
+        property_record = cls.add_with_kwargs(kwargs=locals())
         return property_record
 
     @classmethod
@@ -112,10 +113,7 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
                                additional_property_type: int,
                                additional_property_value: int,
                                ) -> 'InitialSkillAchievementEquipmentPotionEtcPropertiesRecord':
-        property_record = cls.add(additional_source_type=AdditionSourceType.INITIAL.index,
-                                  additional_property_type=additional_property_type,
-                                  additional_property_value=additional_property_value,
-                                  )
+        property_record = cls.add_with_kwargs(kwargs=locals())
         return property_record
 
     @classmethod
@@ -125,11 +123,7 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
                                additional_property_type: int,
                                additional_property_value: int,
                                ) -> 'InitialSkillAchievementEquipmentPotionEtcPropertiesRecord':
-        property_record = cls.add(additional_source_type=AdditionSourceType.MONSTER.index,
-                                  additional_source_id=monster_id,
-                                  additional_property_type=additional_property_type,
-                                  additional_property_value=additional_property_value,
-                                  )
+        property_record = cls.add_with_kwargs(kwargs=locals(),)
         return property_record
 
     @classmethod
@@ -148,12 +142,7 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
         :param additional_property_value: 其它额外属性的值
         :return:
         """
-        property_record = cls.add(additional_source_type=AdditionSourceType.BASE_ADDITIONAL.index,
-                                  additional_source_id=base_property_type,
-                                  additional_source_property_index=additional_source_property_index,
-                                  additional_property_type=additional_property_type,
-                                  additional_property_value=additional_property_value,
-                                  )
+        property_record = cls.add_with_kwargs(kwargs=locals(),)
         return property_record
 
     @classmethod
@@ -161,18 +150,13 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
                                  *,
                                  equipment_stuff_id: int,
                                  additional_source_property_index: int,
+                                 additional_source_property_index_sub_index: int,
 
                                  property_availability: int = None,
                                  additional_property_type: int = None,
                                  additional_property_value: int = None,
                                  ) -> 'InitialSkillAchievementEquipmentPotionEtcPropertiesRecord':
-        property_record = cls.add(additional_source_type=AdditionSourceType.EQUIPMENT_PROTOTYPE.index,
-                                  additional_source_id=equipment_stuff_id,
-                                  additional_source_property_index=additional_source_property_index,
-                                  property_availability=property_availability,
-                                  additional_property_type=additional_property_type,
-                                  additional_property_value=additional_property_value,
-                                  )
+        property_record = cls.add_with_kwargs(kwargs=locals())
         return property_record
 
     @classmethod
@@ -183,12 +167,7 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
                                    additional_property_type: int,
                                    additional_property_value: int,
                                    ) -> 'InitialSkillAchievementEquipmentPotionEtcPropertiesRecord':
-        property_record = cls.add_with_kwargs(additional_source_type=AdditionSourceType.ACHIEVEMENT_TITLE.index,
-                                              additional_source_id=achievement_id,
-                                              additional_source_property_index=additional_source_property_index,
-                                              additional_property_type=additional_property_type,
-                                              additional_property_value=additional_property_value,
-                                              )
+        property_record = cls.add_with_kwargs(kwargs=locals())
         return property_record
 
     # 删
@@ -208,7 +187,7 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
         删除成就对应的所有属性加成
         :return:
         """
-        is_del_data = cls.del_all_by_kwargs(additional_source_type=AdditionSourceType.INITIAL.index)
+        is_del_data = cls.del_by_additional_source_type_id(additional_source_type=AdditionSourceType.INITIAL.index)
         return is_del_data
 
     @classmethod
@@ -221,7 +200,7 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
         :param achievement_id:
         :return:
         """
-        is_del_data = cls.del_all_by_kwargs(additional_source_type=AdditionSourceType.ACHIEVEMENT_TITLE.index,
+        is_del_data = cls.del_by_additional_source_type_id(additional_source_type=AdditionSourceType.ACHIEVEMENT_TITLE.index,
                                             additional_source_id=achievement_id)
         return is_del_data
 
@@ -235,7 +214,7 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
         :param equipment_id:
         :return:
         """
-        is_del_data = cls.del_all_by_kwargs(additional_source_type=AdditionSourceType.EQUIPMENT_PROTOTYPE.index,
+        is_del_data = cls.del_by_additional_source_type_id(additional_source_type=AdditionSourceType.EQUIPMENT_PROTOTYPE.index,
                                             additional_source_id=equipment_id)
         return is_del_data
 
@@ -249,7 +228,7 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
         :param monster_id:
         :return:
         """
-        is_del_data = cls.del_all_by_kwargs(additional_source_type=AdditionSourceType.MONSTER.index,
+        is_del_data = cls.del_by_additional_source_type_id(additional_source_type=AdditionSourceType.MONSTER.index,
                                             additional_source_id=monster_id)
         return is_del_data
 
@@ -264,7 +243,7 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
         :return:
         """
 
-        is_del_data = cls.del_all_by_kwargs(additional_source_type=AdditionSourceType.SKILL_BOOK.index,
+        is_del_data = cls.del_by_additional_source_type_id(additional_source_type=AdditionSourceType.SKILL_BOOK.index,
                                             additional_source_id=skill_book_id)
         return is_del_data
 
@@ -278,7 +257,7 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
         :param status_id:
         :return:
         """
-        is_del_data = cls.del_all_by_kwargs(additional_source_type=AdditionSourceType.STATUS.index,
+        is_del_data = cls.del_by_additional_source_type_id(additional_source_type=AdditionSourceType.STATUS.index,
                                             additional_source_id=status_id)
         return is_del_data
 
@@ -287,7 +266,7 @@ class InitialSkillAchievementEquipmentPotionEtcPropertiesRecord(Basic, Base):
                                        *,
                                        base_property_type: int,
                                        ) -> bool:
-        is_del_data = cls.del_all_by_kwargs(additional_source_type=AdditionSourceType.BASE_ADDITIONAL.index,
+        is_del_data = cls.del_by_additional_source_type_id(additional_source_type=AdditionSourceType.BASE_ADDITIONAL.index,
                                             additional_source_id=base_property_type)
         return is_del_data
 

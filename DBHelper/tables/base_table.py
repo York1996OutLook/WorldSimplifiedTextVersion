@@ -2,15 +2,17 @@ from abc import ABC, abstractmethod
 import inspect
 from typing import List, Callable, Dict, Any, Set
 
-from sqlalchemy import Column, Integer, String,Text
+from sqlalchemy import Column, Integer, String, Text
 from sqlalchemy.ext.declarative import declarative_base
 
 from DBHelper.session import session
 
 Base = declarative_base()
 
+
 class MultiLineText(Text):
     ...
+
 
 class Timestamp(Integer):
     ...
@@ -87,8 +89,9 @@ class Basic:
 
     @classmethod
     def get_all_by_kwargs(cls,
-                   kwargs: Dict[str, Any]
-                   ) -> List['cls']:
+                          *,
+                          kwargs: Dict[str, Any]
+                          ) -> List['cls']:
         """
         通过传入字段及值获取所有记录。如果为None则代表对这个字段不筛选
         :param kwargs: 字段及值
@@ -114,6 +117,7 @@ class Basic:
             setattr(record, k, v)
         session.add(record)
         session.commit()
+        return record
 
     # 删
     @classmethod
@@ -156,7 +160,7 @@ class Basic:
         kwargs = remove_none_and_cls_kwargs(kwargs=kwargs)
 
         records = session.query(cls).filter_by(**kwargs).all()
-        if len(records)>0:
+        if len(records) > 0:
             for record in records:
                 session.delete(record)
             session.commit()
@@ -296,7 +300,7 @@ class Basic:
         """
         返回修改或者新增后的记录
         """
-        _id=kwargs['_id']
+        _id = kwargs['_id']
         kwargs.pop("_id")
         if cls.is_exists_by_id(_id=_id):
             return cls.update_kwargs_by_id(_id=_id, kwargs=kwargs)

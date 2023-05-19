@@ -5,7 +5,7 @@ from sqlalchemy import Integer, String, Text
 from sqlalchemy.ext.declarative import declarative_base
 
 from DBHelper.session import session
-from Enums import AchievementType, AdditionalPropertyType, AchievementPropertyType, BindType
+from Enums import  AdditionalPropertyType, AchievementPropertyType, BindType
 from DBHelper.tables.base_table import Entity
 from DBHelper.tables.base_table import CustomColumn
 
@@ -45,9 +45,8 @@ class Achievement(Entity, Base):
     id = CustomColumn(Integer, cn="ID", primary_key=True)
     name = CustomColumn(Text, cn='名称')  # 显式复制并设置 cn 属性
 
-    achievement_type = CustomColumn(Integer, cn="成就类型", bind_type=AchievementType,comment="成就类型")
+    achievement_type = CustomColumn(Integer, cn="成就类型", bind_type=AchievementPropertyType,comment="成就类型")
 
-    condition_property_type = CustomColumn(Integer, cn="条件类型", bind_type=AchievementPropertyType,comment="达成条件对应的属性")
     condition_property_value = CustomColumn(Integer, cn="条件值", comment="达成条件对应属性应该达到的值。")
 
     achievement_point = CustomColumn(Integer, cn="成就点", comment="根据达成难度获得成就点数")
@@ -81,7 +80,7 @@ class Achievement(Entity, Base):
             _id: int,
 
             name: str = None,
-            achievement_type: AchievementType = None,
+            achievement_type: AchievementPropertyType = None,
             condition_type: int = None,
             condition_value: int = None,
             days_of_validity: int = None,

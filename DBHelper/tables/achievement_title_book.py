@@ -10,7 +10,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from DBHelper.session import session
 from DBHelper.tables.base_table import Entity, Base
-from Enums import AchievementType, AdditionalPropertyType
+from Enums import AdditionalPropertyType
 
 
 class AchievementTitleBook(Entity, Base):

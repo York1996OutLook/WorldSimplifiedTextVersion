@@ -20,7 +20,7 @@ class ItemList:
         names = [item.name for item in self.items]
         return names
 
-    def get_by_index(self, *, index: int) ->"Item":
+    def get_by_index(self, *, index: int) -> "Item":
         if index not in self.index_dict:
             return None
         return self.index_dict[index]
@@ -56,7 +56,6 @@ class Item:
 
     def __repr__(self) -> str:
         return f'Item({self.index}: {self.name}, {self.comment})'
-
 
 
 class SkillLevel:
@@ -146,69 +145,53 @@ class AchievementPropertyType:
     item_list = ItemList()
 
     VIP_LEVEL = Item(name='VIP等級', comment="充值动作完成后会触发")
+
     CHARGE = Item(name='充值数量', comment="充值动作完成后会触发")
+
     GOLD_NUM = Item(name="黄金数量", comment="黄金数量增加后可能会触发")
     PHYSIQUE = Item(name="体质", comment="基础属性变化的时候会触发")
     STRENGTH = Item(name="力量", comment="基础属性变化的时候会触发")
     AGILITY = Item(name="敏捷", comment="基础属性变化的时候会触发")
     INTELLIGENCE = Item(name="智力", comment="基础属性变化的时候会触发")
+
     LEVEL = Item(name="等级", comment="升级的时候会触发")
+
     KILL_BOSS_NUM = Item(name="击杀怪物数量", comment="击杀成功的时候可能会触发")
-    KILL_BOSS_SUCCESS = Item(name="某个特定怪物的ID", comment="击杀成功的时候可能会触发，比如说是屠龙勇士")
+    KILL_BOSS_SUCCESS = Item(name="某个特定怪物的", comment="击杀成功的时候可能会触发，比如说是屠龙勇士。ID为具体的BOSS的ID。用成就书的方式来获得")  # 比较特殊，
     KILL_BOSS_FAILED = Item(name="被怪物打败次数", comment="击杀失败的时候可能会触发")
+
     PK_NUMBER = Item(name="PK胜利次数", comment="PK胜利的时候会触发")
     PK_RANK = Item(name="PK排行榜名次", comment="PK胜利的时候会触发")
     PK_RANK_RAISE = Item(name="PK排行榜名次提升数量", comment="PK胜利的时候会触发")
+
     SKILL = Item(name="学习技能数量", comment="学习技能的时候会触发")
-    ANY_SKILL_LEVEL = Item(name="某个技能的技能等级", comment="学习技能的时候会触发")
-    ALL_SKILL_LEVEL = Item(name="所有技能的技能等级和", comment="学习技能的时候会触发")
-    ALL_SKILL_LEVEL_BIGGER_THAN = Item(name="所有技能中的最低等级", comment="学习技能的时候会触发")
+    ANY_SKILL_LEVEL = Item(name="最高技能等级", comment="学习技能的时候会触发")
+    ALL_SKILL_LEVEL = Item(name="所有技能等级加和", comment="学习技能的时候会触发")
+    ALL_SKILL_LEVEL_BIGGER_THAN = Item(name="技能最低等级", comment="学习技能的时候会触发。必须学满技能")
+
     LOTTERY_NUM = Item(name="抽奖次数", comment="抽奖的时候可能会触发")
     WIN_LOTTERY_NUMBER = Item(name="中奖次数", comment="中奖的时候可能会触发")
-    ALL_EQUIPMENT_QUALITY = Item(name="所有装备最低品质", comment="穿戴装备的时候可能会触发")
-    BUY_STUFF = Item(name="购买物品", comment="从交易所购买物品的时候可能会触发")
-    SELL_STUFF = Item(name="卖出物品", comment="卖出物品的时候可能会触发")
+
+    ANY_EQUIPMENT_QUALITY = Item(name="穿戴装备中的最高品质", comment="穿戴装备的时候可能会触发。要求穿满装备")
+    ALL_EQUIPMENT_QUALITY = Item(name="所有装备最低品质", comment="穿戴装备的时候可能会触发。要求穿满装备")
+
+    BUY_STUFF = Item(name="购买物品次数", comment="从交易所购买物品的时候可能会触发")
+    SELL_STUFF = Item(name="卖出物品次数", comment="卖出物品的时候可能会触发")
+
     EXP_BOOK_NUM = Item(name="使用经验书次数", comment="使用经验书的时候可能会触发")
+
     IDENTIFY_NUM = Item(name="鉴定次数", comment="使用鉴定卷轴的时候（包括装备鉴定卷轴，装备技能鉴定卷轴）可能会触发")
-    RAISE_STAR_NUM = Item(name="第一次升星成功", comment="装备升星的时候可能会触发")
-    ANY_RAISE_STAR_NUM = Item(name="某个穿戴装备升星数量", comment="装备升星的时候可能会触发")
-    SUM_RAISE_STAR_NUM = Item(name="所有穿戴装备累计升星数量", comment="装备升星的时候可能会触发")
+
+    RAISE_STAR_NUM = Item(name="升星成功次数", comment="装备升星的时候可能会触发")
+    ANY_RAISE_STAR_NUM = Item(name="某个穿戴中装备升星数量", comment="装备升星的时候可能会触发")
+    SUM_RAISE_STAR_NUM = Item(name="所有穿戴中装备累计升星数量", comment="装备升星的时候可能会触发")
+
     ANY_GEM_NUM = Item(name="某件穿戴装备宝石数量", comment="镶嵌宝石、更换装备的时候可能会触发")
     SUM_GEM_NUM = Item(name="全身穿戴装备宝石数量", comment="镶嵌宝石、更换装备的时候可能会触发")
-    ANNIVERSARY_FESTIVAL = Item(name="周年节日", comment="周年节日对应的称号。通过称号卷轴获得。")
 
-    default = CHARGE
+    ANNIVERSARY_FESTIVAL = Item(name="周年节日", comment="周年节日对应的称号。通过称号卷轴获得。值为具体的节日ID。用成就书的方式来获得。")  # 比较特殊，
 
-
-class AchievementType:
-    """
-    成就的类型
-    """
-    name = '成就类型'
-
-    item_list = ItemList()
-
-    VIP = Item(name='VIP称号', comment="开通vip后会触发")
-    CHARGE = Item(name='充值', comment="充值动作完成后会触发")
-    GOLD_NUM = Item(name="黄金数量", comment="黄金数量增加后可能会触发")
-    BASE_PROPERTY_TYPE = Item(name="基础属性突破", comment="黄金数量增加后可能会触发")
-    LEVEL = Item(name="等级", comment="升级的时候会触发")
-    KILL_BOSS_SUCCESS = Item(name="击杀怪物", comment="击杀成功的时候可能会触发")
-    KILL_BOSS_FAILED = Item(name="被怪物打败", comment="击杀失败的时候可能会触发")
-    PK_NUMBER = Item(name="PK胜利次数", comment="PK胜利的时候会触发")
-    PK_RANK = Item(name="PK排行榜名次", comment="PK胜利的时候会触发")
-    PK_RANK_RAISE = Item(name="PK排行榜名次提升", comment="PK胜利的时候会触发")
-    SKILL = Item(name="学习技能", comment="学习技能的时候会触发")
-    LOTTERY = Item(name="抽奖", comment="抽奖的时候可能会触发")
-    EQUIPMENT = Item(name="装备", comment="穿戴装备的时候可能会触发")
-    BUY_STUFF = Item(name="购买物品", comment="从交易所购买物品的时候可能会触发")
-    SELL_STUFF = Item(name="卖出物品", comment="卖出物品的时候可能会触发")
-    EXP_BOOK = Item(name="经验书", comment="使用经验书的时候可能会触发")
-    IDENTIFY = Item(name="鉴定", comment="使用鉴定卷轴的时候（包括装备鉴定卷轴，装备技能鉴定卷轴）可能会触发")
-    RAISE_STAR = Item(name="装备升星强化", comment="装备升星的时候可能会触发")
-    GEM = Item(name="全身宝石", comment="镶嵌宝石的时候可能会触发")
-
-    ANNIVERSARY_FESTIVAL = Item(name="周年节日", comment="周年节日对应的称号。通过称号卷轴获得。")
+    LOGIN_NUM = Item(name='登陆次数', comment="充值动作完成后会触发")
 
     default = CHARGE
 

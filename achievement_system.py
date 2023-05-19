@@ -5,7 +5,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from DBHelper.db import *
 from DBHelper.session import session
-from Enums import AchievementType, AdditionalPropertyType, StuffType, AdditionSourceType, PropertyAvailability
+from Enums import AdditionalPropertyType, StuffType, AdditionSourceType, PropertyAvailability
 from DBHelper.tables.base_table import CustomColumn
 
 Base = declarative_base()

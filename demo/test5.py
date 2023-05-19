@@ -1,30 +1,36 @@
-from PyQt5.QtWidgets import QWidget, QLabel, QGridLayout, QMessageBox,QPushButton
+import sys
+from PyQt5.QtWidgets import QWidget, QLabel, QScrollArea, QVBoxLayout, QApplication
 
 
-class YesNoDialog(QWidget):
+class ScrollArea(QWidget):
     def __init__(self):
         super().__init__()
 
-        layout = QGridLayout()
-        self.yes_button = QPushButton('Yes')
-        self.yes_button.clicked.connect(self.on_yes_clicked)
-        layout.addWidget(self.yes_button, 0, 0)
+        self.initUI()
 
-        self.no_button = QPushButton('No')
-        self.no_button.clicked.connect(self.on_no_clicked)
-        layout.addWidget(self.no_button, 0, 1)
+    def initUI(self):
+        # Scroll Area widget contents
+        widget = QWidget()
+        vbox = QVBoxLayout()
+        for i in range(50):
+            vbox.addWidget(QLabel(f'Line {i}'))
+        widget.setLayout(vbox)
 
+        # Scroll Area
+        scroll = QScrollArea()
+        scroll.setWidget(widget)
+
+        # Layout
+        layout = QVBoxLayout()
+        layout.addWidget(scroll)
         self.setLayout(layout)
-        self.reply=None
-    def on_yes_clicked(self):
-        self.reply = QMessageBox.Yes
-        self.close()
 
-    def on_no_clicked(self):
-        self.reply = QMessageBox.No
-        self.close()
+        # Window
+        self.setWindowTitle('ScrollArea')
+        self.show()
 
 
-dialog = YesNoDialog()
-dialog.exec_()
-print(dialog.reply)
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    ex = ScrollArea()
+    sys.exit(app.exec_())
